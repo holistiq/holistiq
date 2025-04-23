@@ -79,3 +79,27 @@ Testing approach:
 - Test session persistence and expiration
 - Perform security testing (CSRF protection, XSS prevention)
 
+## 4. Implement User Account Deletion Feature [pending]
+### Dependencies: 1.1, 1.2, 1.3
+### Description: Create functionality to allow users to delete their accounts and all associated data
+### Details:
+Implementation steps:
+1. Create DELETE /auth/account endpoint for account deletion
+2. Implement account deletion service with methods for:
+   - verifyUserIdentity(): Confirm user identity before deletion (e.g., via magic link confirmation)
+   - deleteUserData(): Remove or anonymize all user data across related tables
+   - deleteUserAccount(): Delete or mark user account as deleted
+3. Add confirmation flow to prevent accidental deletion
+4. Implement cascading deletion or anonymization of related user data (test results, supplement logs, etc.)
+5. Add audit logging for account deletion events
+6. Ensure compliance with data protection regulations (GDPR, CCPA)
+7. Create email notification confirming account deletion
+
+Testing approach:
+- Test account deletion flow end-to-end
+- Verify all related user data is properly handled
+- Test cancellation of deletion process
+- Verify audit logs are created correctly
+- Test confirmation email delivery
+- Ensure deleted accounts cannot be accessed after deletion
+

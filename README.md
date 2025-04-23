@@ -18,23 +18,42 @@ Changes made via Lovable will be committed automatically to this repo.
 
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Local Development Setup
 
-Follow these steps:
+To work locally, you need Node.js and npm. It is strongly recommended to use [nvm](https://github.com/nvm-sh/nvm#installing-and-updating) to manage your Node.js versions.
+
+#### Quick Start
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# 1. Clone the repository
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 2. Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 3. Start the development server
 npm run dev
 ```
+
+#### Task-Driven Workflow (Recommended)
+This project uses a task-driven workflow with the `task-master` CLI to manage development tasks:
+
+```sh
+# See all tasks and their status
+task-master list
+
+# Show details for a specific task
+task-master show <id>
+
+# Mark a task as done
+task-master set-status --id=<id> --status=done
+```
+
+See `.windsurfrules` for full workflow details and advanced commands.
+
+You can also use the Lovable cloud editor or GitHub Codespaces for browser-based development.
+
 
 **Edit a file directly in GitHub**
 

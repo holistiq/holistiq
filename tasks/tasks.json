@@ -41,6 +41,19 @@
           "details": "Implementation steps:\n1. Create the following API endpoints:\n   - POST /auth/register: Register new user account\n   - POST /auth/login: Request magic link for login\n   - GET /auth/verify: Verify magic link token and create session\n   - POST /auth/logout: End user session\n   - GET /auth/me: Get current authenticated user profile\n2. Implement input validation and sanitization for all endpoints\n3. Add proper error handling with meaningful error messages\n4. Implement authentication middleware to protect routes\n5. Set up CSRF protection\n6. Configure secure cookie settings for session management (httpOnly, secure, sameSite)\n7. Add audit logging for authentication events\n\nTesting approach:\n- Write integration tests for each endpoint\n- Test happy paths and error scenarios\n- Verify proper HTTP status codes for different scenarios\n- Test authentication middleware\n- Test session persistence and expiration\n- Perform security testing (CSRF protection, XSS prevention)",
           "status": "pending",
           "parentTaskId": 1
+        },
+        {
+          "id": 4,
+          "title": "Implement User Account Deletion Feature",
+          "description": "Create functionality to allow users to delete their accounts and all associated data",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Implementation steps:\n1. Create DELETE /auth/account endpoint for account deletion\n2. Implement account deletion service with methods for:\n   - verifyUserIdentity(): Confirm user identity before deletion (e.g., via magic link confirmation)\n   - deleteUserData(): Remove or anonymize all user data across related tables\n   - deleteUserAccount(): Delete or mark user account as deleted\n3. Add confirmation flow to prevent accidental deletion\n4. Implement cascading deletion or anonymization of related user data (test results, supplement logs, etc.)\n5. Add audit logging for account deletion events\n6. Ensure compliance with data protection regulations (GDPR, CCPA)\n7. Create email notification confirming account deletion\n\nTesting approach:\n- Test account deletion flow end-to-end\n- Verify all related user data is properly handled\n- Test cancellation of deletion process\n- Verify audit logs are created correctly\n- Test confirmation email delivery\n- Ensure deleted accounts cannot be accessed after deletion",
+          "status": "pending",
+          "parentTaskId": 1
         }
       ]
     },
