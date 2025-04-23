@@ -52,6 +52,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				nootrack: {
+					50: '#f3f1fe',
+					100: '#ebe7fd',
+					200: '#d9d1fb',
+					300: '#bcaef7',
+					400: '#9b87f5',
+					500: '#7c5cee',
+					600: '#6943e5',
+					700: '#5932cb',
+					800: '#492aa5',
+					900: '#3c2483',
+					950: '#231250',
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
