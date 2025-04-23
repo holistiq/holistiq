@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -22,8 +21,8 @@ const Index = () => {
       <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-secondary to-background">
         <div className="container px-4 md:px-6 flex flex-col items-center">
           <img
-            src="https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=900&q=80"
-            alt="Person using technology"
+            src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
+            alt="Professional working on cognitive enhancement technology"
             className="rounded-xl mb-8 w-full max-w-2xl shadow-lg object-cover h-64 md:h-80"
           />
           <div className="flex flex-col items-center gap-6 text-center">
