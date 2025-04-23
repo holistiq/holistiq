@@ -17,7 +17,7 @@ export function Footer() {
           </Link>
         </div>
         <div className="text-muted-foreground">
-          &copy; {new Date().getFullYear()} NooTrack. All rights reserved.
+          &copy; {new Date().getFullYear()} Holistiq. All rights reserved.
         </div>
       </div>
     </footer>

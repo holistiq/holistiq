@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -16,7 +15,7 @@ const Index = () => {
                 Objectively Measure Your <span className="text-primary">Cognitive Enhancement</span>
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                NooTrack helps you determine if your supplements are actually working through standardized cognitive assessments and data-driven insights.
+                Holistiq helps you determine if your supplements are actually working through standardized cognitive assessments and data-driven insights.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -44,7 +43,7 @@ const Index = () => {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">How NooTrack Works</h2>
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">How Holistiq Works</h2>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                 A simple, science-based approach to tracking your cognitive enhancement
               </p>
@@ -128,7 +127,7 @@ const Index = () => {
                 Ready to Track Your Cognitive Enhancement?
               </h2>
               <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl">
-                Join NooTrack today and discover if your supplements are actually working.
+                Join Holistiq today and discover if your supplements are actually working.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
