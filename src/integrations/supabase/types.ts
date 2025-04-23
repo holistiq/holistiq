@@ -9,22 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
-    }
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          created_at: string;
+          settings: Record<string, any> | null;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          created_at?: string;
+          settings?: Record<string, any> | null;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          created_at?: string;
+          settings?: Record<string, any> | null;
+        };
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
 type DefaultSchema = Database[Extract<keyof Database, "public">]
 

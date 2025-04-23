@@ -1,0 +1,178 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Setup Authentication System",
+      "description": "Implement the email-based magic link authentication system for user registration and login",
+      "status": "in-progress",
+      "dependencies": [],
+      "priority": "high",
+      "details": "Create authentication service with passwordless email magic link flow. Implement user registration, login endpoints, and session management. Set up user profiles table in the database with fields for unique identifier, email address, account creation date, and settings/preferences. Ensure data encryption at rest and in transit.",
+      "testStrategy": "Test user registration flow, magic link delivery, login process, session persistence, and security measures including encryption. Verify proper error handling for invalid links or expired sessions.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Create User Database Schema and Models",
+          "description": "Set up the database schema for user profiles and create the necessary data models for the authentication system",
+          "dependencies": [],
+          "details": "Implementation steps:\n1. Create a users table with fields: id (UUID), email (unique), email_verified (boolean), created_at (timestamp), updated_at (timestamp), and last_login (timestamp)\n2. Add a user_settings table with fields: user_id (foreign key), notification_preferences (JSON), theme_preference (string), etc.\n3. Create a magic_links table with fields: id, user_id (foreign key), token (hashed), expires_at (timestamp), used (boolean)\n4. Implement data encryption for sensitive fields\n5. Create ORM models for these tables\n6. Write database migration scripts\n7. Test database connections and basic CRUD operations\n\nTesting approach:\n- Write unit tests for model validations\n- Test database constraints (unique email, etc.)\n- Verify encryption/decryption functions work correctly\n- Ensure proper index creation for query performance",
+          "status": "pending",
+          "parentTaskId": 1
+        },
+        {
+          "id": 2,
+          "title": "Implement Magic Link Authentication Service",
+          "description": "Create the core authentication service that handles magic link generation, verification, and user session management",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation steps:\n1. Create an AuthService class with methods for:\n   - generateMagicLink(email): Creates a secure token, saves to DB, and returns the token\n   - verifyMagicLink(token): Validates token, marks as used, and returns user\n   - createUserSession(user): Generates JWT or session token for authenticated users\n2. Implement email sending service integration to deliver magic links\n3. Create token generation with proper expiration (15-30 minutes)\n4. Implement secure hashing for tokens stored in the database\n5. Add rate limiting for magic link generation\n6. Create session management with proper expiration and refresh capabilities\n\nTesting approach:\n- Unit test token generation and verification\n- Mock email service for testing\n- Test token expiration logic\n- Test rate limiting functionality\n- Verify session creation and validation\n- Test edge cases like expired tokens and already-used tokens",
+          "status": "pending",
+          "parentTaskId": 1
+        },
+        {
+          "id": 3,
+          "title": "Create Authentication API Endpoints",
+          "description": "Implement the REST API endpoints for user registration, login, and authentication verification",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implementation steps:\n1. Create the following API endpoints:\n   - POST /auth/register: Register new user account\n   - POST /auth/login: Request magic link for login\n   - GET /auth/verify: Verify magic link token and create session\n   - POST /auth/logout: End user session\n   - GET /auth/me: Get current authenticated user profile\n2. Implement input validation and sanitization for all endpoints\n3. Add proper error handling with meaningful error messages\n4. Implement authentication middleware to protect routes\n5. Set up CSRF protection\n6. Configure secure cookie settings for session management (httpOnly, secure, sameSite)\n7. Add audit logging for authentication events\n\nTesting approach:\n- Write integration tests for each endpoint\n- Test happy paths and error scenarios\n- Verify proper HTTP status codes for different scenarios\n- Test authentication middleware\n- Test session persistence and expiration\n- Perform security testing (CSRF protection, XSS prevention)",
+          "status": "pending",
+          "parentTaskId": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Create Database Structure",
+      "description": "Establish core data models and relationships for users, test results, supplement intake, and analytics",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "high",
+      "details": "Design and implement database schemas for all required models: User Model (id, email, creation date, preferences), Test Results Model (user ID reference, test type, timestamp, raw scores, calculated metrics), Supplement Intake Model (user ID reference, supplement name, dosage, timestamp, notes), and Analytics Model (user ID reference, baseline references, calculated deltas). Set up proper indexing, relationships, and constraints.",
+      "testStrategy": "Validate database schema with sample data insertion. Test relationships between tables, query performance, and data integrity constraints. Ensure proper backup mechanisms are in place."
+    },
+    {
+      "id": 3,
+      "title": "Implement N-back Working Memory Test",
+      "description": "Develop the core cognitive assessment test with proper timing and scoring mechanisms",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2
+      ],
+      "priority": "high",
+      "details": "Create a browser-based n-back test with 2-back and 3-back levels, 3-minute duration, and visual-only stimuli. Implement using requestAnimationFrame API for precise timing. Include test instructions, environment preparation guidance, and results calculation. Develop algorithms for score calculation (accuracy percentage, reaction time) and validity checks. Ensure low-latency test delivery (<100ms) and reliable timing.",
+      "testStrategy": "Test timing accuracy across different browsers and devices. Validate scoring algorithms against expected outcomes. Measure and verify test-retest reliability. Test under various network conditions to ensure consistent performance."
+    },
+    {
+      "id": 4,
+      "title": "Create Supplement Logging Interface",
+      "description": "Build form components and calendar view for users to record supplement information",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2
+      ],
+      "priority": "medium",
+      "details": "Develop a form interface for logging supplement intake with fields for name, dosage amount, dosage unit, timestamp, and optional notes. Implement a calendar visualization showing supplement intake history. Create APIs for storing and retrieving supplement data. Add basic reminder functionality to encourage regular logging.",
+      "testStrategy": "Test form validation, data persistence, calendar view accuracy, and date-based filtering. Verify proper handling of different supplement types and dosage units. Test reminder functionality across different time zones."
+    },
+    {
+      "id": 5,
+      "title": "Develop Analytics Engine",
+      "description": "Create backend service for processing test results and calculating performance metrics",
+      "status": "pending",
+      "dependencies": [
+        2,
+        3
+      ],
+      "priority": "high",
+      "details": "Implement analytics service to process raw test data, establish baseline scores (from initial tests), calculate performance deltas against baseline, and perform basic statistical analysis. Create APIs for retrieving processed analytics data. Include logic to handle edge cases like insufficient baseline data or outlier results.",
+      "testStrategy": "Validate calculations with known test datasets. Verify baseline determination logic and delta calculations. Test statistical analysis functions with edge cases. Benchmark performance with large datasets."
+    },
+    {
+      "id": 6,
+      "title": "Build Performance Analytics Dashboard",
+      "description": "Create visualization components to display cognitive performance changes compared to baseline",
+      "status": "pending",
+      "dependencies": [
+        3,
+        4,
+        5
+      ],
+      "priority": "medium",
+      "details": "Develop dashboard UI with charts showing baseline establishment, current performance, and percentage changes from baseline. Implement date range filtering controls. Create clear visualizations that help users understand their cognitive performance trends in relation to supplement intake. Focus on simple, intuitive presentation of complex data.",
+      "testStrategy": "Test dashboard with various data scenarios (improvement, decline, no change). Verify proper rendering across device sizes. Test interactive elements like date filters and hover states. Conduct usability testing to ensure data is presented clearly."
+    },
+    {
+      "id": 7,
+      "title": "Implement Core User Flow Integration",
+      "description": "Connect all components into a cohesive user journey from signup through testing and analytics",
+      "status": "pending",
+      "dependencies": [
+        1,
+        3,
+        4,
+        6
+      ],
+      "priority": "high",
+      "details": "Integrate authentication, cognitive testing, supplement logging, and dashboard components into a complete user flow. Create navigation structure, onboarding sequence, and proper state management between components. Ensure smooth transitions between user actions and appropriate guidance throughout the experience.",
+      "testStrategy": "Conduct end-to-end testing of the complete user journey. Test navigation paths, state preservation between components, and error recovery. Verify that data flows correctly between all system components."
+    },
+    {
+      "id": 8,
+      "title": "Add Test Experience Improvements",
+      "description": "Enhance the cognitive test with calibration, improved instructions, and environment validity checks",
+      "status": "pending",
+      "dependencies": [
+        3
+      ],
+      "priority": "medium",
+      "details": "Implement device latency calibration routine to improve timing accuracy. Enhance test instructions with clearer guidance and environment preparation steps. Add validity checks to detect suboptimal testing conditions (window switching, tab changes, etc.). Implement fullscreen mode for test taking.",
+      "testStrategy": "Test calibration routine across different devices and browsers. Verify that validity checks correctly identify testing interruptions. Conduct user testing to validate clarity of instructions and preparation guidance."
+    },
+    {
+      "id": 9,
+      "title": "Implement Legal and Safety Components",
+      "description": "Add necessary disclaimers, terms of service, privacy policy, and educational resources",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "high",
+      "details": "Create modal dialogues for disclaimers about supplement usage and cognitive testing limitations. Develop terms of service and privacy policy pages that comply with health data regulations. Add educational resource links to authoritative sources about cognitive enhancement and proper testing methodology.",
+      "testStrategy": "Review legal content with appropriate stakeholders. Verify that all required disclaimers appear at appropriate points in the user journey. Test modal functionality and link accessibility."
+    },
+    {
+      "id": 10,
+      "title": "Deploy MVP and Setup Monitoring",
+      "description": "Configure production environment, deploy the application, and implement monitoring",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "priority": "medium",
+      "details": "Set up production hosting environment for web application, database, and API servers. Configure security settings, backups, and performance optimizations. Implement monitoring for application performance, error tracking, and user engagement metrics. Create deployment pipeline for continuous integration and delivery.",
+      "testStrategy": "Conduct pre-launch security audit and performance testing. Verify monitoring alerts and logging functionality. Test backup and restore procedures. Perform load testing to ensure system can handle expected user volume."
+    }
+  ],
+  "metadata": {
+    "projectName": "Holistiq - Supplement Efficacy Tracking Platform",
+    "totalTasks": 10,
+    "sourceFile": "Holistiq_PRD.txt",
+    "generatedAt": "2023-05-25"
+  }
+}

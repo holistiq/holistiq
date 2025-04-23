@@ -17,8 +17,10 @@ import {
   ShieldCheck
 } from "lucide-react";
 
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+
 const Index = () => {
-  const isLoggedIn = localStorage.getItem("authToken");
+  const { user } = useSupabaseAuth();
 
   return (
     <div className="flex flex-col">
@@ -42,7 +44,7 @@ const Index = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              {isLoggedIn ? (
+              {user ? (
                 <Link to="/dashboard">
                   <Button size="lg" className="gap-2">
                     <BarChart size={20} /> Go to Dashboard
@@ -181,7 +183,7 @@ const Index = () => {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              {isLoggedIn ? (
+              {user ? (
                 <Link to="/dashboard">
                   <Button size="lg" className="gap-2">
                     <BarChart size={20} /> Go to Dashboard

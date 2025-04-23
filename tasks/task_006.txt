@@ -1,0 +1,11 @@
+# Task ID: 6
+# Title: Build Performance Analytics Dashboard
+# Status: pending
+# Dependencies: 3, 4, 5
+# Priority: medium
+# Description: Create visualization components to display cognitive performance changes compared to baseline
+# Details:
+Develop dashboard UI with charts showing baseline establishment, current performance, and percentage changes from baseline. Implement date range filtering controls. Create clear visualizations that help users understand their cognitive performance trends in relation to supplement intake. Focus on simple, intuitive presentation of complex data.
+
+# Test Strategy:
+Test dashboard with various data scenarios (improvement, decline, no change). Verify proper rendering across device sizes. Test interactive elements like date filters and hover states. Conduct usability testing to ensure data is presented clearly.

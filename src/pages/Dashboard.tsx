@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // Note: @/ alias requires Vite/TS config.
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,33 +18,86 @@ const mockSupplements = [
   { id: 1, name: "Alpha GPC", dosage: "300mg", lastTaken: "2023-04-28", notes: "Morning dose" },
 ];
 
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useNavigate } from "react-router-dom";
+
+interface TestResult {
+  date: string;
+  score: number;
+  reactionTime: number;
+  accuracy: number;
+}
+
 export default function Dashboard() {
-  const [baselineResult, setBaselineResult] = useState<any>(null);
-  const [latestResult, setLatestResult] = useState<any>(null);
+  const { user, loading } = useSupabaseAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [baselineResult, setBaselineResult] = useState<TestResult | null>(null);
+  const [latestResult, setLatestResult] = useState<TestResult | null>(null);
   const [supplements, setSupplements] = useState<any[]>(mockSupplements);
-  const [testHistory, setTestHistory] = useState<any[]>([]);
-  
+  const [testHistory, setTestHistory] = useState<TestResult[]>([]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login");
+    }
+  }, [user, loading, navigate]);
+
   useEffect(() => {
     // Load baseline result from localStorage (in a real app, would fetch from API)
     const storedBaselineResult = localStorage.getItem("baselineResult");
+    let parsedBaseline: TestResult | null = null;
     if (storedBaselineResult) {
-      const parsedResult = JSON.parse(storedBaselineResult);
-      setBaselineResult(parsedResult);
-      
-      // Create test history including baseline and mock data
-      const allTests = [parsedResult, ...mockTestData];
-      setTestHistory(allTests);
-      
-      // Set latest result
-      setLatestResult(mockTestData[mockTestData.length - 1]);
+      try {
+        parsedBaseline = JSON.parse(storedBaselineResult);
+      } catch {
+        parsedBaseline = null;
+      }
     }
-  }, []);
-  
+    setBaselineResult(parsedBaseline);
+
+    // Load all test results (including baseline and user tests)
+    const storedTestResults = localStorage.getItem("testResults");
+    let testResults: TestResult[] = [];
+    if (storedTestResults) {
+      try {
+        testResults = JSON.parse(storedTestResults);
+      } catch {
+        testResults = [];
+      }
+    }
+    // If no user test results, show baseline + mock. If user has results, show baseline + user.
+    let allTests: TestResult[] = [];
+    if (parsedBaseline) {
+      if (testResults.length > 0) {
+        allTests = [parsedBaseline, ...testResults];
+      } else {
+        allTests = [parsedBaseline, ...mockTestData];
+      }
+    }
+    setTestHistory(allTests);
+    // Pick latest by date
+    if (allTests.length > 0) {
+      const sorted = [...allTests].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      setLatestResult(sorted[sorted.length - 1]);
+    } else {
+      setLatestResult(null);
+    }
+  }, [location.pathname]);
+
   // Calculate percentage change from baseline
   const calculateChange = (current: number, baseline: number) => {
-    if (!baseline) return 0;
+    if (typeof baseline !== "number" || baseline === 0 || isNaN(baseline)) return 0;
     return ((current - baseline) / baseline) * 100;
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg font-semibold">Loading...</div>
+      </div>
+    );
+  }
 
   if (!baselineResult) {
     return (
@@ -113,7 +166,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Reaction Time</CardTitle>
@@ -121,16 +174,23 @@ export default function Dashboard() {
             <CardContent>
               <div className="flex items-baseline justify-between">
                 <div className="text-3xl font-bold">
-                  {latestResult && (
+                  {latestResult && baselineResult && (
                     <>
-                      {calculateChange(baselineResult.reactionTime, latestResult.reactionTime).toFixed(1)}%
-                      <span className={calculateChange(baselineResult.reactionTime, latestResult.reactionTime) >= 0 ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1"}>
-                        {calculateChange(baselineResult.reactionTime, latestResult.reactionTime) >= 0 ? "↑" : "↓"}
-                      </span>
+                      {(() => {
+                        const change = calculateChange(baselineResult.reactionTime, latestResult.reactionTime);
+                        const iconUp = change > 0; // More ms is slower
+                        const color = iconUp ? "text-red-500 text-sm ml-1" : "text-green-500 text-sm ml-1";
+                        return (
+                          <>
+                            {Math.abs(change).toFixed(1)}%
+                            <span className={color}>{iconUp ? "↑" : "↓"}</span>
+                          </>
+                        );
+                      })()}
                     </>
                   )}
                 </div>
-                <div className="text-sm text-muted-foreground">faster</div>
+                <div className="text-sm text-muted-foreground">ms faster</div>
               </div>
             </CardContent>
           </Card>

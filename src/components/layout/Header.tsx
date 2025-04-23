@@ -3,17 +3,10 @@ import { Bell, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/theme/ModeToggle";
-import { useEffect, useState } from "react";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 export function Header() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  // This would be replaced with actual auth logic in a real app
-  useEffect(() => {
-    // Check for auth status (simplified for MVP)
-    const token = localStorage.getItem("authToken");
-    setIsAuthenticated(!!token);
-  }, []);
+  const { user, loading } = useSupabaseAuth();
 
   return (
     <header className="border-b bg-background">
@@ -24,9 +17,9 @@ export function Header() {
           </div>
         </Link>
         <div className="flex items-center gap-4">
-          {isAuthenticated ? (
+          {user ? (
             <>
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" aria-label="Notifications">
                 <Bell className="h-5 w-5" />
                 <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
               </Button>
