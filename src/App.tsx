@@ -29,16 +29,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
-            <Route
-              path="/"
-              element={
-                window.location.hash.includes("access_token") ? (
-                  <MagicLinkHandler />
-                ) : (
-                  <Index />
-                )
-              }
-            />
+            <Route path="/" element={<Index />} />
+            <Route path="/auth/callback" element={<MagicLinkHandler />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/onboarding" element={<Onboarding />} />

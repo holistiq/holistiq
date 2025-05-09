@@ -1,1 +1,13 @@
-project_id = "lllcafzzyosseqldfhcw"
+# This is an example configuration file for your Supabase project
+# Make sure your Google OAuth is properly configured
+
+[auth]
+  # Enable Google OAuth
+  [auth.external.google]
+    enabled = true
+    client_id = "863915966889-35vc1avvr9cukv0cjce9el4bj7cglhj9.apps.googleusercontent.com"
+    secret = "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"
+    # Make sure these URLs are correct
+    redirect_uri = "https://wnqyqnkynyombyngzdcq.supabase.co/auth/v1/callback"
+    url = "https://accounts.google.com/o/oauth2/v2/auth"
+    token_url = "https://oauth2.googleapis.com/token"

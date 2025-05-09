@@ -14,19 +14,148 @@ export type Database = {
           id: string;
           email: string;
           created_at: string;
-          settings: Record<string, any> | null;
+          settings: Json | null;
         };
         Insert: {
           id?: string;
           email: string;
           created_at?: string;
-          settings?: Record<string, any> | null;
+          settings?: Json | null;
         };
         Update: {
           id?: string;
           email?: string;
           created_at?: string;
-          settings?: Record<string, any> | null;
+          settings?: Json | null;
+        };
+      };
+      test_results: {
+        Row: {
+          id: string;
+          user_id: string;
+          test_type: string;
+          timestamp: string;
+          score: number;
+          reaction_time: number | null;
+          accuracy: number | null;
+          raw_data: Json | null;
+          environmental_factors: Json | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          test_type: string;
+          timestamp?: string;
+          score: number;
+          reaction_time?: number | null;
+          accuracy?: number | null;
+          raw_data?: Json | null;
+          environmental_factors?: Json | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          test_type?: string;
+          timestamp?: string;
+          score?: number;
+          reaction_time?: number | null;
+          accuracy?: number | null;
+          raw_data?: Json | null;
+          environmental_factors?: Json | null;
+        };
+      };
+      analytics: {
+        Row: {
+          id: string;
+          user_id: string;
+          baseline_test_id: string | null;
+          test_type: string;
+          period_start: string;
+          period_end: string;
+          avg_score: number | null;
+          avg_reaction_time: number | null;
+          avg_accuracy: number | null;
+          score_delta: number | null;
+          reaction_time_delta: number | null;
+          accuracy_delta: number | null;
+          score_percent_change: number | null;
+          reaction_time_percent_change: number | null;
+          accuracy_percent_change: number | null;
+          sample_size: number;
+          metadata: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          baseline_test_id?: string | null;
+          test_type: string;
+          period_start: string;
+          period_end: string;
+          avg_score?: number | null;
+          avg_reaction_time?: number | null;
+          avg_accuracy?: number | null;
+          score_delta?: number | null;
+          reaction_time_delta?: number | null;
+          accuracy_delta?: number | null;
+          score_percent_change?: number | null;
+          reaction_time_percent_change?: number | null;
+          accuracy_percent_change?: number | null;
+          sample_size?: number;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          baseline_test_id?: string | null;
+          test_type?: string;
+          period_start?: string;
+          period_end?: string;
+          avg_score?: number | null;
+          avg_reaction_time?: number | null;
+          avg_accuracy?: number | null;
+          score_delta?: number | null;
+          reaction_time_delta?: number | null;
+          accuracy_delta?: number | null;
+          score_percent_change?: number | null;
+          reaction_time_percent_change?: number | null;
+          accuracy_percent_change?: number | null;
+          sample_size?: number;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      supplements: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          dosage: string;
+          intake_time: string;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          dosage: string;
+          intake_time?: string;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          dosage?: string;
+          intake_time?: string;
+          notes?: string | null;
+          created_at?: string;
         };
       };
     };
