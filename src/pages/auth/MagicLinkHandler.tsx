@@ -19,32 +19,53 @@ export default function MagicLinkHandler() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { hash } = window.location;
-    if (!hash) {
-      navigate("/login");
-      return;
-    }
-    const tokens = parseHashFragment(hash);
-    if (tokens.access_token && tokens.refresh_token) {
-      // Set the session in Supabase
-      supabase.auth.setSession({
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-      }).then(({ error }) => {
-        if (error) {
-          navigate("/login", { state: { error: error.message } });
-        } else {
-          navigate("/dashboard");
-        }
-      });
-    } else {
-      navigate("/login");
-    }
+    // Check if this is a redirect from OAuth (like Google)
+    const handleOAuthRedirect = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Auth error:", error);
+        navigate("/login", { state: { error: error.message } });
+        return;
+      }
+      
+      if (data.session) {
+        // Successfully authenticated
+        navigate("/dashboard");
+        return;
+      }
+      
+      // If no session but we have hash params, try to process them
+      const { hash } = window.location;
+      if (!hash) {
+        navigate("/login");
+        return;
+      }
+      
+      const tokens = parseHashFragment(hash);
+      if (tokens.access_token && tokens.refresh_token) {
+        // Set the session in Supabase
+        supabase.auth.setSession({
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+        }).then(({ error }) => {
+          if (error) {
+            navigate("/login", { state: { error: error.message } });
+          } else {
+            navigate("/dashboard");
+          }
+        });
+      } else {
+        navigate("/login");
+      }
+    };
+
+    handleOAuthRedirect();
   }, [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="text-lg font-semibold">Processing magic link...</div>
+      <div className="text-lg font-semibold">Processing authentication...</div>
     </div>
   );
 }

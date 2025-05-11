@@ -3,9 +3,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { toast } from "@/components/ui/use-toast";
 
 export default function LogSupplement() {
   const [name, setName] = useState("");
@@ -13,28 +16,52 @@ export default function LogSupplement() {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { user } = useSupabaseAuth();
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to log supplements",
+        variant: "destructive"
+      });
+      navigate("/login");
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Simulate saving to database
-    setTimeout(() => {
-      // In a real app, this would be saved to a database
-      const supplement = {
-        id: Date.now(),
-        name,
-        dosage,
-        notes,
-        lastTaken: new Date().toISOString(),
-      };
+    try {
+      const { error } = await supabase
+        .from('supplements')
+        .insert({
+          user_id: user.id,
+          name,
+          dosage,
+          notes,
+          intake_time: new Date().toISOString()
+        });
+        
+      if (error) throw error;
       
-      // For demo, just save to localStorage
-      const existingSupplements = JSON.parse(localStorage.getItem("supplements") || "[]");
-      localStorage.setItem("supplements", JSON.stringify([...existingSupplements, supplement]));
+      toast({
+        title: "Success",
+        description: "Supplement logged successfully"
+      });
       
       navigate("/dashboard");
-    }, 1000);
+    } catch (error) {
+      console.error("Error logging supplement:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log supplement",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
