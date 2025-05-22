@@ -10,4 +10,3 @@
     # Make sure these URLs are correct
     redirect_uri = "https://wnqyqnkynyombyngzdcq.supabase.co/auth/v1/callback"
     url = "https://accounts.google.com/o/oauth2/v2/auth"
-    token_url = "https://oauth2.googleapis.com/token"

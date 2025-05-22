@@ -138,6 +138,24 @@ export type Database = {
           intake_time: string;
           notes: string | null;
           created_at: string;
+          // Structured dosage fields
+          amount?: number | null;
+          unit?: string | null;
+          // Timing and frequency fields
+          frequency?: string | null;
+          time_of_day?: string | null;
+          with_food?: boolean | null;
+          schedule?: object | null;
+          specific_time?: string | null;
+          // Brand and formulation fields
+          manufacturer?: string | null;
+          brand?: string | null;
+          brand_reputation?: number | null;
+          formulation_type?: string | null;
+          batch_number?: string | null;
+          expiration_date?: string | null;
+          third_party_tested?: boolean | null;
+          certification?: string | null;
         };
         Insert: {
           id?: string;
@@ -147,6 +165,24 @@ export type Database = {
           intake_time?: string;
           notes?: string | null;
           created_at?: string;
+          // Structured dosage fields
+          amount?: number | null;
+          unit?: string | null;
+          // Timing and frequency fields
+          frequency?: string | null;
+          time_of_day?: string | null;
+          with_food?: boolean | null;
+          schedule?: object | null;
+          specific_time?: string | null;
+          // Brand and formulation fields
+          manufacturer?: string | null;
+          brand?: string | null;
+          brand_reputation?: number | null;
+          formulation_type?: string | null;
+          batch_number?: string | null;
+          expiration_date?: string | null;
+          third_party_tested?: boolean | null;
+          certification?: string | null;
         };
         Update: {
           id?: string;
@@ -156,6 +192,198 @@ export type Database = {
           intake_time?: string;
           notes?: string | null;
           created_at?: string;
+          // Structured dosage fields
+          amount?: number | null;
+          unit?: string | null;
+          // Timing and frequency fields
+          frequency?: string | null;
+          time_of_day?: string | null;
+          with_food?: boolean | null;
+          schedule?: object | null;
+          specific_time?: string | null;
+          // Brand and formulation fields
+          manufacturer?: string | null;
+          brand?: string | null;
+          brand_reputation?: number | null;
+          formulation_type?: string | null;
+          batch_number?: string | null;
+          expiration_date?: string | null;
+          third_party_tested?: boolean | null;
+          certification?: string | null;
+        };
+      };
+      confounding_factors: {
+        Row: {
+          id: string;
+          user_id: string;
+          recorded_at: string;
+          sleep_duration: number | null;
+          sleep_quality: number | null;
+          stress_level: number | null;
+          exercise_duration: number | null;
+          exercise_intensity: number | null;
+          exercise_type: string | null;
+          meal_timing: Json | null;
+          caffeine_intake: number | null;
+          alcohol_intake: number | null;
+          water_intake: number | null;
+          location: string | null;
+          noise_level: number | null;
+          temperature: number | null;
+          mood: number | null;
+          energy_level: number | null;
+          illness: boolean | null;
+          illness_details: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          recorded_at?: string;
+          sleep_duration?: number | null;
+          sleep_quality?: number | null;
+          stress_level?: number | null;
+          exercise_duration?: number | null;
+          exercise_intensity?: number | null;
+          exercise_type?: string | null;
+          meal_timing?: Json | null;
+          caffeine_intake?: number | null;
+          alcohol_intake?: number | null;
+          water_intake?: number | null;
+          location?: string | null;
+          noise_level?: number | null;
+          temperature?: number | null;
+          mood?: number | null;
+          energy_level?: number | null;
+          illness?: boolean | null;
+          illness_details?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          recorded_at?: string;
+          sleep_duration?: number | null;
+          sleep_quality?: number | null;
+          stress_level?: number | null;
+          exercise_duration?: number | null;
+          exercise_intensity?: number | null;
+          exercise_type?: string | null;
+          meal_timing?: Json | null;
+          caffeine_intake?: number | null;
+          alcohol_intake?: number | null;
+          water_intake?: number | null;
+          location?: string | null;
+          noise_level?: number | null;
+          temperature?: number | null;
+          mood?: number | null;
+          energy_level?: number | null;
+          illness?: boolean | null;
+          illness_details?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      washout_periods: {
+        Row: {
+          id: string;
+          user_id: string;
+          supplement_id: string | null;
+          supplement_name: string;
+          start_date: string;
+          end_date: string | null;
+          expected_duration_days: number | null;
+          actual_duration_days: number | null;
+          status: string;
+          reason: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          supplement_id?: string | null;
+          supplement_name: string;
+          start_date: string;
+          end_date?: string | null;
+          expected_duration_days?: number | null;
+          actual_duration_days?: number | null;
+          status?: string;
+          reason?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          supplement_id?: string | null;
+          supplement_name?: string;
+          start_date?: string;
+          end_date?: string | null;
+          expected_duration_days?: number | null;
+          actual_duration_days?: number | null;
+          status?: string;
+          reason?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      statistical_analyses: {
+        Row: {
+          id: string;
+          user_id: string;
+          test_type: string;
+          baseline_period_start: string;
+          baseline_period_end: string;
+          comparison_period_start: string;
+          comparison_period_end: string;
+          alpha: number;
+          context_type: string;
+          context_id: string | null;
+          context_name: string | null;
+          results: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          test_type: string;
+          baseline_period_start: string;
+          baseline_period_end: string;
+          comparison_period_start: string;
+          comparison_period_end: string;
+          alpha?: number;
+          context_type: string;
+          context_id?: string | null;
+          context_name?: string | null;
+          results: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          test_type?: string;
+          baseline_period_start?: string;
+          baseline_period_end?: string;
+          comparison_period_start?: string;
+          comparison_period_end?: string;
+          alpha?: number;
+          context_type?: string;
+          context_id?: string | null;
+          context_name?: string | null;
+          results?: Json;
+          created_at?: string;
+          updated_at?: string;
         };
       };
     };

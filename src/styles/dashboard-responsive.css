@@ -1,0 +1,418 @@
+/* Dashboard Responsive Styles */
+
+/* Dashboard spacing variables system */
+:root {
+  --dashboard-spacing-xs: 0.5rem;
+  --dashboard-spacing-sm: 0.75rem;
+  --dashboard-spacing-md: 1rem;
+  --dashboard-spacing-lg: 1.5rem;
+  --dashboard-spacing-xl: 2rem;
+  --dashboard-spacing-2xl: 3rem;
+  --dashboard-spacing-3xl: 4rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --dashboard-spacing-xs: 0.75rem;
+    --dashboard-spacing-sm: 1rem;
+    --dashboard-spacing-md: 1.5rem;
+    --dashboard-spacing-lg: 2rem;
+    --dashboard-spacing-xl: 3rem;
+    --dashboard-spacing-2xl: 4rem;
+    --dashboard-spacing-3xl: 5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --dashboard-spacing-xs: 1rem;
+    --dashboard-spacing-sm: 1.5rem;
+    --dashboard-spacing-md: 2rem;
+    --dashboard-spacing-lg: 3rem;
+    --dashboard-spacing-xl: 4rem;
+    --dashboard-spacing-2xl: 5rem;
+    --dashboard-spacing-3xl: 6rem;
+  }
+}
+
+@layer components {
+  /* Base container for all dashboard content */
+  .dashboard-container {
+    @apply container mx-auto py-8 px-6 sm:px-8 md:py-10 md:px-10 lg:py-12 lg:px-12 xl:py-14 xl:px-16 max-w-screen-2xl;
+  }
+
+  /* Grid layout for dashboard overview */
+  .dashboard-overview-grid {
+    @apply grid grid-cols-1 gap-10 sm:gap-12 md:gap-14 mx-auto w-full max-w-full mb-10 sm:mb-12 md:mb-16;
+    grid-template-areas:
+      "trend"
+      "supplements"
+      "washout"
+      "factors";
+  }
+
+  /* Grid layout for metrics cards */
+  .metrics-grid {
+    @apply grid grid-cols-1 gap-8 sm:gap-10 mx-auto mb-12 sm:mb-14 md:mb-16;
+  }
+
+  /* Card content with consistent padding */
+  .dashboard-card-content {
+    @apply p-6 sm:p-8 md:p-10 lg:p-12;
+  }
+
+  /* Special padding for performance trend card content */
+  .trend-card .dashboard-card-content {
+    @apply p-4 sm:p-6 md:p-8;
+  }
+
+  /* Equal height cards */
+  .dashboard-card {
+    @apply flex flex-col h-full card-elevation-2 interactive-card overflow-hidden;
+  }
+
+  /* Card content that grows to fill available space */
+  .card-content-container {
+    @apply flex-grow overflow-y-auto;
+    min-height: 200px;
+    height: 100%; /* Ensure height is set to 100% */
+    display: flex; /* Use flexbox for better height distribution */
+    flex-direction: column;
+  }
+
+  /* Performance trend card content container */
+  .trend-card .card-content-container {
+    min-height: 350px;
+    height: 100%; /* Ensure height is set to 100% */
+  }
+
+  /* Responsive spacing for card headers */
+  .dashboard-card-header {
+    @apply p-6 sm:p-8 md:p-10 lg:p-12 pb-3 sm:pb-4 md:pb-5;
+  }
+
+  /* Responsive spacing for card footers */
+  .dashboard-card-footer {
+    @apply p-6 sm:p-8 md:p-10 lg:p-12 pt-3 sm:pt-4 md:pt-5;
+  }
+
+  /* Card content section with border */
+  .card-content-section + .card-content-section {
+    @apply border-t border-border/30 pt-4 mt-4;
+  }
+
+  /* Responsive filter controls */
+  .filter-controls {
+    @apply flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:items-center mb-6 sm:mb-8;
+  }
+
+  /* Responsive chart container */
+  .chart-container {
+    @apply h-[300px] sm:h-[350px] md:h-[400px] w-full my-6 sm:my-8;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    max-height: 450px; /* Increased max-height to prevent truncation */
+    overflow: visible; /* Allow content to overflow for tooltips */
+    margin-bottom: 70px; /* Increased bottom margin to create more space for the legend */
+  }
+
+  /* Performance chart legend container */
+  .performance-chart-legend {
+    @apply mt-12 pt-4;
+    position: relative;
+  }
+
+  /* Section spacing */
+  .dashboard-section {
+    @apply mb-10 sm:mb-12 md:mb-16;
+  }
+
+  /* Tablet layout (768px and up) */
+  @media (min-width: 768px) {
+    .dashboard-overview-grid {
+      @apply grid-cols-2 gap-10;
+      grid-template-areas:
+        "trend trend"
+        "supplements washout"
+        "factors factors";
+    }
+
+    .metrics-grid {
+      @apply grid-cols-3 gap-8;
+    }
+
+    /* Grid area assignments */
+    .trend-card {
+      grid-area: trend;
+    }
+
+    .supplements-card {
+      grid-area: supplements;
+    }
+
+    .washout-card {
+      grid-area: washout;
+    }
+
+    .factors-card {
+      grid-area: factors;
+    }
+  }
+
+  /* Desktop layout (1024px and up) */
+  @media (min-width: 1024px) {
+    .dashboard-container {
+      @apply py-12 px-14;
+    }
+
+    .dashboard-overview-grid {
+      @apply grid-cols-3 gap-12;
+      grid-template-areas:
+        "trend trend trend"
+        "supplements washout factors";
+    }
+
+    .metrics-grid {
+      @apply grid-cols-3 gap-10;
+    }
+
+    /* Add more space between sections on desktop */
+    .dashboard-section + .dashboard-section {
+      @apply mt-16;
+    }
+  }
+
+  /* Large desktop layout (1280px and up) */
+  @media (min-width: 1280px) {
+    .dashboard-container {
+      @apply py-14 px-16;
+    }
+
+    .dashboard-overview-grid {
+      @apply gap-14 grid-cols-3;
+      grid-template-areas:
+        "trend trend trend"
+        "supplements washout factors";
+    }
+
+    .metrics-grid {
+      @apply gap-12;
+    }
+
+    /* Increase card padding on large screens */
+    .dashboard-card-content {
+      @apply p-12;
+    }
+
+    .dashboard-card-header {
+      @apply p-12 pb-5;
+    }
+
+    .dashboard-card-footer {
+      @apply p-12 pt-5;
+    }
+  }
+
+  /* Extra large desktop layout (1536px and up) */
+  @media (min-width: 1536px) {
+    .dashboard-container {
+      @apply py-16 px-20;
+    }
+
+    .dashboard-overview-grid {
+      @apply gap-16 grid-cols-3;
+      grid-template-areas:
+        "trend trend trend"
+        "supplements washout factors";
+    }
+
+    .metrics-grid {
+      @apply gap-14;
+    }
+  }
+
+  /* Touch-friendly controls for mobile */
+  .touch-friendly-control {
+    @apply min-h-[48px] min-w-[48px];
+  }
+
+  /* Responsive tabs */
+  .responsive-tabs {
+    @apply w-full overflow-x-auto flex-nowrap;
+  }
+
+  /* Metric card styling */
+  .metric-card {
+    @apply rounded-lg border border-border bg-card p-6 sm:p-8 md:p-10 shadow-md;
+  }
+
+  /* Dashboard section title */
+  .dashboard-section-title {
+    @apply text-xl sm:text-2xl font-semibold mb-6 sm:mb-8 md:mb-10 mt-4 sm:mt-6 md:mt-8;
+  }
+
+  /* Card with extra spacing */
+  .spacious-card {
+    @apply rounded-lg border border-border bg-card shadow-md overflow-hidden;
+  }
+
+  /* Content wrapper with extra padding */
+  .content-wrapper {
+    @apply px-6 sm:px-8 md:px-10 lg:px-12 py-8 sm:py-10 md:py-12;
+  }
+
+  /* Add spacing between stacked elements */
+  .stacked-content > * + * {
+    @apply mt-6 sm:mt-8 md:mt-10;
+  }
+
+  /* ===== Typography System ===== */
+
+  /* Primary Headings */
+  .dashboard-heading-1 {
+    @apply text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-tight text-foreground mb-4;
+  }
+
+  /* Section Headings */
+  .dashboard-heading-2 {
+    @apply text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight text-foreground mb-3;
+  }
+
+  /* Card Headings */
+  .dashboard-heading-3 {
+    @apply text-lg sm:text-xl md:text-2xl font-semibold leading-snug text-foreground mb-1;
+  }
+
+  /* Subsection Headings */
+  .dashboard-heading-4 {
+    @apply text-base sm:text-lg font-medium leading-snug text-foreground mb-1;
+  }
+
+  /* Body Text */
+  .dashboard-text {
+    @apply text-base sm:text-lg leading-relaxed text-foreground;
+  }
+
+  /* Secondary Text */
+  .dashboard-text-secondary {
+    @apply text-sm sm:text-base text-muted-foreground/80 leading-relaxed;
+  }
+
+  /* Small Text / Captions */
+  .dashboard-text-small {
+    @apply text-xs sm:text-sm text-muted-foreground/90;
+  }
+
+  /* Highlighted Text */
+  .dashboard-text-highlight {
+    @apply font-medium text-foreground;
+  }
+
+  /* ===== Card Elevation System ===== */
+
+  /* Subtle elevation - for secondary or grouped cards */
+  .card-elevation-1 {
+    @apply shadow-sm border border-border/50 bg-card hover:shadow-md transition-shadow duration-200;
+  }
+
+  /* Standard elevation - for most content cards */
+  .card-elevation-2 {
+    @apply shadow-md border border-border/60 bg-card hover:shadow-lg transition-shadow duration-200;
+  }
+
+  /* Prominent elevation - for featured or important cards */
+  .card-elevation-3 {
+    @apply shadow-lg border border-border/70 bg-card hover:shadow-xl transition-shadow duration-200;
+  }
+
+  /* ===== Empty State Styling ===== */
+
+  /* Container for empty states */
+  .empty-state-container {
+    @apply flex flex-col items-center justify-center py-8 sm:py-10 md:py-12 px-4 sm:px-6 text-center
+           space-y-4 sm:space-y-5 bg-secondary/20 rounded-lg border border-border/40 h-full;
+    max-height: 100%;
+  }
+
+  /* Icon container for empty states */
+  .empty-state-icon-container {
+    @apply bg-secondary/30 p-3 rounded-full mb-1;
+  }
+
+  /* Icon styling for empty states */
+  .empty-state-icon {
+    @apply h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/90;
+  }
+
+  /* Primary text for empty states */
+  .empty-state-title {
+    @apply text-base sm:text-lg font-medium text-foreground max-w-[90%] mx-auto mb-1;
+  }
+
+  /* Secondary text for empty states */
+  .empty-state-description {
+    @apply text-sm text-muted-foreground/90 max-w-[85%] mx-auto mb-2 line-clamp-2;
+  }
+
+  /* Empty state action button */
+  .empty-state-action {
+    @apply mt-2 bg-primary/90 hover:bg-primary text-primary-foreground font-medium
+           py-2 px-4 rounded-md transition-colors duration-200;
+  }
+
+  /* ===== Interactive Elements ===== */
+
+  /* Focus ring for accessibility */
+  .dashboard-focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
+
+  /* Hover effect for interactive cards */
+  .interactive-card {
+    @apply transition-all duration-200 hover:shadow-md hover:border-primary/20 hover:bg-background/80;
+  }
+
+  /* Subtle hover effect for list items */
+  .interactive-list-item {
+    @apply transition-colors duration-150 hover:bg-secondary/20 rounded-md;
+  }
+
+  /* Primary action buttons */
+  .primary-action-button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 py-2.5 px-4 rounded-md
+           font-medium transition-colors duration-200 flex items-center justify-center gap-2;
+  }
+
+  /* Secondary action buttons */
+  .secondary-action-button {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2.5 px-4 rounded-md
+           font-medium transition-colors duration-200 flex items-center justify-center gap-2;
+  }
+
+  /* Card action button */
+  .card-action-button {
+    @apply w-full flex items-center justify-center gap-2 py-3 rounded-md
+           bg-secondary/50 hover:bg-secondary text-foreground font-medium
+           transition-colors duration-200;
+  }
+
+  /* View all links */
+  .view-all-link {
+    @apply text-sm text-muted-foreground hover:text-foreground flex items-center gap-1.5
+           transition-colors duration-200;
+  }
+
+  /* Animated indicator for active items */
+  .active-indicator {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full
+           after:bg-primary after:transform after:scale-x-0 after:origin-left
+           after:transition-transform after:duration-300 hover:after:scale-x-100;
+  }
+
+  /* Active state for the indicator */
+  .active-indicator.active {
+    @apply after:scale-x-100;
+  }
+}

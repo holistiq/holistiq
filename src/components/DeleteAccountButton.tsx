@@ -13,8 +13,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { Loader2, AlertTriangle } from "lucide-react";
 
-export function DeleteAccountButton() {
+interface DeleteAccountButtonProps {
+  readonly className?: string;
+}
+
+export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
@@ -95,20 +100,28 @@ export function DeleteAccountButton() {
   return (
     <>
       <Button
-        variant="destructive"
+        variant="outline"
         onClick={() => setIsOpen(true)}
+        className={`text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30 ${className}`}
       >
         Delete Account
       </Button>
 
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your account
-              and remove all of your data from our servers, including all test results
-              and supplement logs.
+            <div className="flex items-center gap-2 text-destructive mb-2">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertDialogTitle>Delete Account</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data, including:
+              <ul className="list-disc pl-5 mt-2 space-y-1">
+                <li>Your profile information</li>
+                <li>All test results and history</li>
+                <li>Supplement logs and tracking data</li>
+                <li>Confounding factor records</li>
+              </ul>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -119,9 +132,16 @@ export function DeleteAccountButton() {
                 handleDeleteAccount();
               }}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
-              {isDeleting ? "Deleting..." : "Yes, delete my account"}
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Account"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

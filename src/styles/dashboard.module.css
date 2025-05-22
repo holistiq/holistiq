@@ -1,0 +1,215 @@
+/* Dashboard Layout Styles */
+.dashboardContainer {
+  @apply container mx-auto py-6 px-4 sm:py-8 sm:px-6 lg:py-10 lg:px-8 xl:py-12 xl:px-10 max-w-screen-2xl;
+}
+
+.dashboardHeader {
+  @apply mb-6 sm:mb-8 lg:mb-10;
+}
+
+.dashboardContent {
+  @apply mb-10 sm:mb-12 lg:mb-16;
+}
+
+/* Card Styles */
+.card {
+  @apply bg-card text-card-foreground rounded-lg border shadow-sm overflow-hidden transition-all duration-200;
+}
+
+.cardHover {
+  @apply hover:shadow-md hover:border-primary/20;
+}
+
+.cardHeader {
+  @apply p-4 sm:p-6 flex flex-row items-center justify-between gap-4;
+}
+
+.cardTitle {
+  @apply text-lg font-semibold leading-none tracking-tight;
+}
+
+.cardDescription {
+  @apply text-sm text-muted-foreground mt-1;
+}
+
+.cardContent {
+  @apply p-4 sm:p-6 pt-0 sm:pt-0;
+}
+
+.cardFooter {
+  @apply p-4 sm:p-6 border-t bg-muted/10 flex items-center;
+}
+
+/* Grid Layouts */
+.grid {
+  @apply grid gap-4 sm:gap-6 lg:gap-8;
+}
+
+.gridCols1 {
+  @apply grid-cols-1;
+}
+
+.gridCols2 {
+  @apply grid-cols-1 sm:grid-cols-2;
+}
+
+.gridCols3 {
+  @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+}
+
+.gridCols4 {
+  @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-4;
+}
+
+/* Metric Cards */
+.metricCard {
+  @apply bg-card text-card-foreground rounded-lg border shadow-sm overflow-hidden;
+}
+
+.metricCardHeader {
+  @apply h-1.5 w-full;
+}
+
+.metricCardContent {
+  @apply p-4 sm:p-6;
+}
+
+.metricValue {
+  @apply text-2xl font-bold;
+}
+
+.metricChange {
+  @apply text-sm font-medium flex items-center;
+}
+
+.metricPositive {
+  @apply text-green-500;
+}
+
+.metricNegative {
+  @apply text-red-500;
+}
+
+/* Chart Containers */
+.chartContainer {
+  @apply relative w-full h-full min-h-[300px] max-h-[400px] overflow-visible;
+}
+
+.chartHeader {
+  @apply flex items-center justify-between mb-4;
+}
+
+.chartContent {
+  @apply relative w-full h-full min-h-[250px];
+}
+
+.chartFooter {
+  @apply mt-4 pt-4 border-t flex items-center justify-between;
+}
+
+/* Legend Styles */
+.legendContainer {
+  @apply mt-6 pt-4 flex flex-wrap justify-center gap-4 sm:gap-6;
+}
+
+.legendCard {
+  @apply border rounded-md p-3 flex-1 min-w-[180px] max-w-[250px] bg-background;
+}
+
+.legendHeader {
+  @apply text-sm font-medium mb-2 pb-2 border-b;
+}
+
+.legendItem {
+  @apply flex items-center gap-2 text-xs py-1;
+}
+
+/* Responsive Spacing */
+.spacingXs {
+  @apply space-y-2 sm:space-y-3;
+}
+
+.spacingSm {
+  @apply space-y-4 sm:space-y-6;
+}
+
+.spacingMd {
+  @apply space-y-6 sm:space-y-8 lg:space-y-10;
+}
+
+.spacingLg {
+  @apply space-y-8 sm:space-y-10 lg:space-y-12;
+}
+
+/* Tab Styles */
+.tabs {
+  @apply w-full;
+}
+
+.tabsList {
+  @apply w-full max-w-md grid grid-cols-4;
+}
+
+.tabsTrigger {
+  @apply flex items-center justify-center gap-2 py-2;
+}
+
+.tabsContent {
+  @apply mt-6 sm:mt-8;
+}
+
+/* Animation Utilities */
+.fadeIn {
+  @apply animate-in fade-in duration-300;
+}
+
+.slideUp {
+  @apply animate-in slide-in-from-bottom-4 duration-300;
+}
+
+.slideDown {
+  @apply animate-in slide-in-from-top-4 duration-300;
+}
+
+/* Responsive Utilities */
+@media (min-width: 640px) {
+  .smHidden {
+    @apply hidden;
+  }
+  
+  .smBlock {
+    @apply block;
+  }
+  
+  .smFlex {
+    @apply flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .mdHidden {
+    @apply hidden;
+  }
+  
+  .mdBlock {
+    @apply block;
+  }
+  
+  .mdFlex {
+    @apply flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lgHidden {
+    @apply hidden;
+  }
+  
+  .lgBlock {
+    @apply block;
+  }
+  
+  .lgFlex {
+    @apply flex;
+  }
+}
