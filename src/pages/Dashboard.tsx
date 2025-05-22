@@ -1,615 +1,767 @@
-
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Calendar, 
-  BarChart, 
-  Plus, 
-  Brain, 
-  Clock, 
-  Target, 
-  TrendingUp, 
-  TrendingDown, 
-  HelpCircle,
-  Pill,
-  Zap,
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  User
-} from "lucide-react";
-
-import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
-interface TestResult {
-  date: string;
-  score: number;
-  reactionTime: number;
-  accuracy: number;
-}
+// Hooks
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useTestResults } from "@/hooks/useTestResults";
+import { useRefreshState } from "@/hooks/useRefreshState";
 
-interface Supplement {
-  id: string;
-  name: string;
-  dosage: string;
-  intake_time: string;
-  notes: string | null;
-  color?: string;
-}
+// Utils
+import { getSupplements, loadSupplementsFromLocalStorage } from "@/services/supplementService";
+import { getConfoundingFactors } from "@/services/confoundingFactorService";
+import { getWashoutPeriods } from "@/services/washoutPeriodService";
+import { debounce } from "@/lib/utils";
+
+// Components
+import { DashboardLayout } from "@/components/dashboard/layout";
+import { ModernDashboardOverview } from "@/components/dashboard/tabs/overview";
+// Removed SupplementsOverview import as the tab has been removed
+// Removed FactorsAnalysis import as the tab has been removed
+import { CognitivePerformanceDashboard } from "@/components/dashboard/tabs/performance";
+import { BaselinePrompt, LoadingState } from "@/components/dashboard/common";
+import { RefreshIndicator } from "@/components/dashboard/common/RefreshIndicator";
+
+// Types
+import { Supplement } from "@/types/supplement";
+import { ConfoundingFactor } from "@/types/confoundingFactor";
+import { ActiveWashoutPeriod } from "@/types/washoutPeriod";
+import { DashboardTabValue } from "@/components/dashboard/layout/DashboardLayout";
 
 export default function Dashboard() {
   const { user, loading } = useSupabaseAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [baselineResult, setBaselineResult] = useState<TestResult | null>(null);
-  const [latestResult, setLatestResult] = useState<TestResult | null>(null);
-  const [supplements, setSupplements] = useState<Supplement[]>([]);
-  const [testHistory, setTestHistory] = useState<TestResult[]>([]);
+  const [activeTab, setActiveTab] = useState<DashboardTabValue>("overview");
+
+  // Use the TestResultsContext to get test results data
+  const {
+    baselineResult,
+    latestResult,
+    testHistory,
+    isLoadingTests,
+    refreshTestResults
+  } = useTestResults();
+
   const [recentSupplements, setRecentSupplements] = useState<Supplement[]>([]);
   const [isLoadingSupplements, setIsLoadingSupplements] = useState(true);
-  const [isLoadingTests, setIsLoadingTests] = useState(true);
+  const [recentFactors, setRecentFactors] = useState<ConfoundingFactor[]>([]);
+  const [isLoadingFactors, setIsLoadingFactors] = useState(true);
+  const [activeWashoutPeriods, setActiveWashoutPeriods] = useState<ActiveWashoutPeriod[]>([]);
+  const [isLoadingWashoutPeriods, setIsLoadingWashoutPeriods] = useState(true);
 
+  // Use the new refresh state hook for better state management
+  const {
+    isRefreshing,
+    startRefresh,
+    completeRefresh,
+    updateProgress
+  } = useRefreshState({
+    minRefreshInterval: 2000,
+    autoResetTimeout: 8000,
+    debug: process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true'
+  });
+
+  // Use refs to prevent double fetching and track state
+  const isFetchingRef = useRef(false);
+  const isFirstMount = useRef(true);
+  const hasHandledAuthCallback = useRef(false);
+
+  // Memoize the current loading state to prevent unnecessary re-renders
+  const currentLoadingState = useMemo(() =>
+    isLoadingTests ||
+    isLoadingSupplements ||
+    isLoadingFactors ||
+    isLoadingWashoutPeriods ||
+    isRefreshing
+  , [isLoadingTests, isLoadingSupplements, isLoadingFactors, isLoadingWashoutPeriods, isRefreshing]);
+
+  // Check if we have any test results - memoize to prevent unnecessary recalculations
+  const hasAnyTestResults = useMemo(() => testHistory.length > 0, [testHistory.length]);
+
+  // Add debug logging to help diagnose loading state issues
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+      console.log("Dashboard loading state changed:", {
+        isLoadingTests,
+        isLoadingSupplements,
+        isLoadingFactors,
+        isLoadingWashoutPeriods,
+        isFetching: isFetchingRef.current,
+        isRefreshing,
+        testHistoryLength: testHistory.length
+      });
+    }
+  }, [isLoadingTests, isLoadingSupplements, isLoadingFactors, isLoadingWashoutPeriods, isRefreshing, testHistory.length]);
+
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
       navigate("/login");
     }
   }, [user, loading, navigate]);
 
+  // Handle case where activeTab might be set to the removed tabs
   useEffect(() => {
-    // Load baseline result from localStorage (in a real app, would fetch from API)
-    const storedBaselineResult = localStorage.getItem("baselineResult");
-    let parsedBaseline: TestResult | null = null;
-    if (storedBaselineResult) {
-      try {
-        parsedBaseline = JSON.parse(storedBaselineResult);
-      } catch {
-        parsedBaseline = null;
-      }
+    if (activeTab === 'supplements' as any) {
+      navigate('/supplements');
+    } else if (activeTab === 'factors' as any) {
+      navigate('/confounding-factors');
     }
-    setBaselineResult(parsedBaseline);
+  }, [activeTab, navigate]);
 
-    // Load all test results (including baseline and user tests)
-    const storedTestResults = localStorage.getItem("testResults");
-    let testResults: TestResult[] = [];
-    if (storedTestResults) {
-      try {
-        testResults = JSON.parse(storedTestResults);
-      } catch {
-        testResults = [];
+  // Create a debounced version of refreshTestResults to prevent rapid multiple calls
+  const debouncedRefreshTestResults = useMemo(() =>
+    debounce((forceRefresh = false) => {
+      // The actual refresh is now handled by the TestResultsContext with proper state management
+      refreshTestResults(forceRefresh);
+
+      // Set a timeout to ensure the fetching flag is reset
+      // This is a safety measure in case the TestResultsContext doesn't properly reset it
+      setTimeout(() => {
+        if (isFetchingRef.current) {
+          if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+            console.log("Safety reset of isFetchingRef after debounced refresh");
+          }
+          isFetchingRef.current = false;
+        }
+      }, 3000); // 3 second safety timeout
+    }, 300), // 300ms debounce time
+  [refreshTestResults]);
+
+  // Function to fetch test results - now uses debounced refresh
+  const fetchTestResults = useCallback((forceRefresh = false) => {
+    // Prevent double fetching unless forced
+    if (isFetchingRef.current && !forceRefresh) {
+      if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+        console.log("Skipping duplicate fetch request - already fetching");
       }
+      return () => {}; // Return empty cleanup function
     }
-    
-    // If user has baseline, set test history
-    let allTests: TestResult[] = [];
-    if (parsedBaseline) {
-      if (testResults.length > 0) {
-        allTests = [parsedBaseline, ...testResults];
-      } else {
-        allTests = [parsedBaseline];
+
+    // Set fetching flag
+    isFetchingRef.current = true;
+
+    try {
+      // Use the debounced refresh function
+      debouncedRefreshTestResults(forceRefresh);
+
+      // Set a safety timeout to ensure we don't get stuck in loading state
+      const safetyTimeout = setTimeout(() => {
+        if (isFetchingRef.current) {
+          // Only log in development or if it's a real issue
+          if (process.env.NODE_ENV === 'development') {
+            console.warn("Test results fetch safety timeout triggered - resetting loading state");
+          }
+          isFetchingRef.current = false;
+        }
+      }, 8000); // 8 second safety timeout (reduced from 10s)
+
+      // Set a shorter timeout to reset the fetching flag after a reasonable time
+      // This helps ensure we don't block future fetches if the current one is slow
+      const resetTimeout = setTimeout(() => {
+        isFetchingRef.current = false;
+      }, 5000); // Reset after 5 seconds
+
+      // Return cleanup function to clear both timeouts
+      return () => {
+        clearTimeout(safetyTimeout);
+        clearTimeout(resetTimeout);
+      };
+    } catch (error) {
+      console.error("Error refreshing test results:", error);
+      // Reset fetching flag immediately on error
+      isFetchingRef.current = false;
+      return () => {}; // Return empty cleanup function
+    }
+  }, [debouncedRefreshTestResults]);
+
+  // Function to fetch supplements
+  const fetchSupplements = useCallback(async () => {
+    if (!user) return;
+
+    setIsLoadingSupplements(true);
+    try {
+      // First try to load from local storage for immediate display
+      const localSupplements = loadSupplementsFromLocalStorage();
+      if (localSupplements.length > 0) {
+        // Take the 3 most recent supplements
+        setRecentSupplements(localSupplements.slice(0, 3));
       }
+
+      // If user is logged in, fetch from Supabase for the most up-to-date data
+      const result = await getSupplements(user.id);
+      if (result.success) {
+        setRecentSupplements(result.recentSupplements);
+      }
+    } catch (error) {
+      console.error('Error fetching supplements:', error);
+    } finally {
+      setIsLoadingSupplements(false);
     }
-    setTestHistory(allTests);
-    
-    // Pick latest by date
-    if (allTests.length > 0) {
-      const sorted = [...allTests].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      setLatestResult(sorted[sorted.length - 1]);
-    } else {
-      setLatestResult(null);
+  }, [user]);
+
+  // Function to fetch confounding factors
+  const fetchConfoundingFactors = useCallback(async () => {
+    if (!user) return;
+
+    setIsLoadingFactors(true);
+    try {
+      const result = await getConfoundingFactors(user.id);
+      if (result.success) {
+        setRecentFactors(result.factors);
+      }
+    } catch (error) {
+      console.error('Error fetching confounding factors:', error);
+    } finally {
+      setIsLoadingFactors(false);
     }
-    
-    setIsLoadingTests(false);
-    
-    // Load real supplements data from Supabase
-    const fetchSupplements = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('supplements')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('intake_time', { ascending: false });
-          
-        if (error) throw error;
-        
-        // Generate colors for supplements (in a real app, these would be stored in the database)
-        const colors = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-        const supplementsWithColors = data.map((supplement, index) => ({
-          ...supplement,
-          color: colors[index % colors.length]
-        }));
-        
-        setSupplements(supplementsWithColors);
-        setRecentSupplements(supplementsWithColors.slice(0, 3));
-      } catch (error) {
-        console.error('Error fetching supplements:', error);
-      } finally {
-        setIsLoadingSupplements(false);
+  }, [user]);
+
+  // Function to fetch washout periods
+  const fetchWashoutPeriods = useCallback(async () => {
+    if (!user) return;
+
+    setIsLoadingWashoutPeriods(true);
+    try {
+      const result = await getWashoutPeriods(user.id);
+      if (result.success) {
+        setActiveWashoutPeriods(result.activeWashoutPeriods);
+      }
+    } catch (error) {
+      console.error('Error fetching washout periods:', error);
+    } finally {
+      setIsLoadingWashoutPeriods(false);
+    }
+  }, [user]);
+
+  // Create a memoized handler for tab changes
+  const handleTabChange = useCallback((tab: DashboardTabValue) => {
+    // If someone tries to access the removed supplements tab, redirect to the main supplements page
+    if (tab === 'supplements' as any) {
+      navigate('/supplements');
+      return;
+    }
+    // If someone tries to access the removed factors tab, redirect to the confounding factors page
+    if (tab === 'factors' as any) {
+      navigate('/confounding-factors');
+      return;
+    }
+    setActiveTab(tab);
+  }, [setActiveTab, navigate]);
+
+  // Create a single coordinated refresh function for all data
+  const refreshAllData = useCallback((forceRefresh = false) => {
+    // Prevent multiple simultaneous refreshes
+    if (isRefreshing) {
+      if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+        console.log("Refresh already in progress, skipping duplicate refresh");
+      }
+      return;
+    }
+
+    // Track completion of each data source
+    const completionStatus = {
+      tests: false,
+      supplements: false,
+      factors: false,
+      washouts: false
+    };
+
+    // Track if the operation has timed out
+    let hasTimedOut = false;
+    let isCleanedUp = false;
+
+    // Create a function to check if all refreshes are complete
+    const checkAllComplete = () => {
+      // Don't update state if we've already timed out or cleaned up
+      if (hasTimedOut || isCleanedUp) {
+        return;
+      }
+
+      if (completionStatus.tests &&
+          completionStatus.supplements &&
+          completionStatus.factors &&
+          completionStatus.washouts) {
+        if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+          console.log("All data refresh operations completed successfully");
+        }
+
+        // Set progress to 100% and complete the refresh
+        updateProgress(100);
+        setTimeout(() => {
+          completeRefresh();
+          isFetchingRef.current = false;
+        }, 300); // Small delay for visual feedback
       }
     };
-    
-    fetchSupplements();
-    
-  }, [location.pathname, user]);
 
-  // Calculate percentage change from baseline
-  const calculateChange = (current: number, baseline: number) => {
-    if (typeof baseline !== "number" || baseline === 0 || isNaN(baseline)) return 0;
-    return ((current - baseline) / baseline) * 100;
-  };
+    // Set a safety timeout to ensure we don't get stuck in loading state
+    const refreshTimeout = setTimeout(() => {
+      if (isRefreshing) {
+        hasTimedOut = true;
+        console.warn("Dashboard refresh timeout triggered - forcing reset of loading state");
 
-  // Helper function to determine if a change is positive (improvement)
-  const isPositiveChange = (metric: string, change: number) => {
-    // For reaction time, lower is better (negative change is good)
-    if (metric === 'reactionTime') return change < 0;
-    // For other metrics, higher is better (positive change is good)
-    return change > 0;
-  };
+        // Log which operations didn't complete
+        if (process.env.NODE_ENV === 'development') {
+          const pendingOps = [];
+          if (!completionStatus.tests) pendingOps.push('tests');
+          if (!completionStatus.supplements) pendingOps.push('supplements');
+          if (!completionStatus.factors) pendingOps.push('factors');
+          if (!completionStatus.washouts) pendingOps.push('washouts');
+          console.warn(`Incomplete operations: ${pendingOps.join(', ')}`);
+        }
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+        // Force complete the refresh
+        updateProgress(100);
+        setTimeout(() => {
+          completeRefresh();
+          isFetchingRef.current = false;
+        }, 300);
+      }
+    }, 8000); // 8 second safety timeout
 
+    // Refresh test results - this is handled differently because it returns a cleanup function
+    isFetchingRef.current = true;
+    let testCleanup;
+
+    try {
+      testCleanup = fetchTestResults(forceRefresh);
+    } catch (error) {
+      console.error("Error fetching test results:", error);
+      completionStatus.tests = true;
+      checkAllComplete();
+    }
+
+    // We need to manually track when test results are done since it doesn't return a promise
+    // Set a shorter timeout just for test results
+    const testTimeout = setTimeout(() => {
+      if (!completionStatus.tests) {
+        completionStatus.tests = true;
+        checkAllComplete();
+      }
+    }, 5000); // Assume test results complete within 5 seconds
+
+    // Add event listener to detect when test results are loaded
+    const handleTestResultsLoaded = () => {
+      if (!completionStatus.tests && !hasTimedOut && !isCleanedUp) {
+        if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+          console.log("Test results loaded event received");
+        }
+        completionStatus.tests = true;
+        updateProgress(25); // Update progress indicator
+        checkAllComplete();
+      }
+    };
+
+    // Listen for a custom event that could be dispatched when test results are loaded
+    // Use { once: true } to ensure the event listener is automatically removed after it's triggered once
+    window.addEventListener('test-results-loaded', handleTestResultsLoaded, { once: true });
+
+    // Refresh supplements with error handling
+    fetchSupplements()
+      .then(() => {
+        if (!isCleanedUp) {
+          completionStatus.supplements = true;
+          updateProgress(50); // Update progress indicator
+          checkAllComplete();
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching supplements:", error);
+        if (!isCleanedUp) {
+          completionStatus.supplements = true; // Mark as complete even on error
+          updateProgress(50); // Update progress indicator
+          checkAllComplete();
+        }
+      });
+
+    // Refresh confounding factors with error handling
+    fetchConfoundingFactors()
+      .then(() => {
+        if (!isCleanedUp) {
+          completionStatus.factors = true;
+          updateProgress(75); // Update progress indicator
+          checkAllComplete();
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching confounding factors:", error);
+        if (!isCleanedUp) {
+          completionStatus.factors = true; // Mark as complete even on error
+          updateProgress(75); // Update progress indicator
+          checkAllComplete();
+        }
+      });
+
+    // Refresh washout periods with error handling
+    fetchWashoutPeriods()
+      .then(() => {
+        if (!isCleanedUp) {
+          completionStatus.washouts = true;
+          updateProgress(90); // Update progress indicator
+          checkAllComplete();
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching washout periods:", error);
+        if (!isCleanedUp) {
+          completionStatus.washouts = true; // Mark as complete even on error
+          updateProgress(90); // Update progress indicator
+          checkAllComplete();
+        }
+      });
+
+    // Return cleanup function
+    return () => {
+      // Mark as cleaned up to prevent further state updates
+      isCleanedUp = true;
+
+      // Clear all timeouts
+      clearTimeout(refreshTimeout);
+      clearTimeout(testTimeout);
+
+      // Remove event listener
+      window.removeEventListener('test-results-loaded', handleTestResultsLoaded);
+
+      // Call the cleanup function from fetchTestResults if it exists
+      if (testCleanup) testCleanup();
+
+      // Ensure we reset loading states on cleanup
+      if (isRefreshing && !hasTimedOut) {
+        // Complete the refresh with a smooth transition
+        updateProgress(100);
+        setTimeout(() => {
+          completeRefresh();
+          isFetchingRef.current = false;
+        }, 300);
+      } else {
+        isFetchingRef.current = false;
+      }
+    };
+  }, [
+    fetchTestResults,
+    fetchSupplements,
+    fetchConfoundingFactors,
+    fetchWashoutPeriods,
+    isRefreshing,
+    updateProgress,
+    completeRefresh
+  ]);
+
+  // Create a memoized handler for user-initiated refresh
+  const handleRefresh = useCallback(() => {
+    // Use our new refresh state hook to manage the refresh state
+    if (startRefresh()) {
+      // Only proceed with data fetching if startRefresh returns true
+      // (it will return false if a refresh is already in progress or if it's too soon)
+
+      // Start by updating progress to indicate the refresh has started
+      updateProgress(10);
+
+      // When user explicitly clicks refresh, we should force refresh
+      refreshAllData(true);
+    }
+  }, [startRefresh, updateProgress, refreshAllData]);
+
+  // Main data fetching effect - only runs once on mount and when user changes
+  useEffect(() => {
+    // Skip if we're still loading auth state
+    if (loading) {
+      return;
+    }
+
+    // Create a ref to track if this effect has already initiated a fetch
+    // This prevents multiple fetches from the same effect instance
+    const effectRef = {
+      hasFetched: false
+    };
+
+    // Only fetch data once on initial mount or when user changes
+    if (isFirstMount.current || user?.id) {
+      isFirstMount.current = false;
+
+      // Set a small delay to prevent double rendering
+      const fetchTimer = setTimeout(() => {
+        // Skip if this effect instance has already fetched or component unmounted
+        if (effectRef.hasFetched) return;
+        effectRef.hasFetched = true;
+
+        // Reset loading flags to ensure we start from a clean state
+        isFetchingRef.current = false;
+
+        // Check if we're already in a refreshing state before initiating a new refresh
+        if (!isRefreshing) {
+          // Use our consolidated refresh function with regular (non-forced) refresh
+          // to allow caching and prevent duplicate calls
+          refreshAllData(false);
+
+          // Only log in development and only when debugging is needed
+          if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+            console.log("Dashboard data fetching initiated for user:", user?.id);
+          }
+        } else {
+          console.warn("Skipping initial data fetch because a refresh is already in progress");
+        }
+
+        // Add a global safety timeout to reset loading state if something goes wrong
+        const globalSafetyTimeout = setTimeout(() => {
+          if (isFetchingRef.current || isRefreshing) {
+            console.warn("Global safety timeout triggered - resetting all loading states");
+            isFetchingRef.current = false;
+            completeRefresh(); // Use completeRefresh instead of setIsRefreshing
+          }
+        }, 8000); // 8 second global safety timeout
+
+        return () => clearTimeout(globalSafetyTimeout);
+      }, 200); // Increased to 200ms to ensure React has time to stabilize
+
+      return () => {
+        clearTimeout(fetchTimer);
+        // Ensure we clean up loading states when the component unmounts
+        isFetchingRef.current = false;
+        if (isRefreshing) {
+          completeRefresh(); // Use completeRefresh instead of setIsRefreshing
+        }
+      };
+    }
+  // Include completeRefresh in the dependency array
+  }, [loading, user?.id, refreshAllData, completeRefresh]);
+
+  // Add a global safety timeout to ensure we never get stuck in a loading state
+  useEffect(() => {
+    // Set a global safety timeout that will reset all loading states after a maximum time
+    const absoluteMaxTimeout = setTimeout(() => {
+      const anyLoadingState = isLoadingTests ||
+                             isLoadingSupplements ||
+                             isLoadingFactors ||
+                             isLoadingWashoutPeriods ||
+                             isRefreshing ||
+                             isFetchingRef.current;
+
+      if (anyLoadingState) {
+        console.warn("ABSOLUTE MAXIMUM TIMEOUT REACHED - Forcing reset of all loading states");
+
+        // Reset all loading states
+        setIsLoadingTests(false);
+        setIsLoadingSupplements(false);
+        setIsLoadingFactors(false);
+        setIsLoadingWashoutPeriods(false);
+        completeRefresh(); // Use completeRefresh instead of setIsRefreshing
+        isFetchingRef.current = false;
+
+        // Force a refresh of the page as a last resort
+        if (process.env.NODE_ENV === 'production') {
+          window.location.reload();
+        }
+      }
+    }, 20000); // 20 second absolute maximum timeout
+
+    return () => clearTimeout(absoluteMaxTimeout);
+  }, [isLoadingTests, isLoadingSupplements, isLoadingFactors, isLoadingWashoutPeriods, isRefreshing, completeRefresh]);
+
+  // Check if we're coming from an authentication flow
+  useEffect(() => {
+    // Only run this once
+    if (hasHandledAuthCallback.current) {
+      return;
+    }
+
+    const referrer = document.referrer;
+    if (referrer?.includes('/auth/callback')) {
+      // Mark as handled to prevent multiple refreshes
+      hasHandledAuthCallback.current = true;
+
+      // Only log in development and only when debugging is needed
+      const shouldLog = process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true';
+
+      if (shouldLog) {
+        console.log("Detected navigation from auth callback, ensuring fresh state (one-time)");
+      }
+
+      // Clear any cached data to ensure we have fresh state
+      if (user?.id) {
+        // Using dynamic import instead of require
+        import('@/lib/cache').then(cacheModule => {
+          const cache = cacheModule.cache;
+          if (cache) {
+            if (shouldLog) {
+              console.log("Clearing cache after authentication for user:", user.id);
+            }
+            cache.clear();
+
+            // Force refresh all data after clearing cache
+            refreshAllData(true);
+          }
+        }).catch(error => {
+          console.error("Error importing cache module after authentication:", error);
+        });
+      }
+    } else {
+      // Mark as handled even if not from auth callback to prevent future checks
+      hasHandledAuthCallback.current = true;
+    }
+  }, [user?.id, refreshAllData]);
+
+  // Render loading state for auth with a timeout to prevent getting stuck
+  useEffect(() => {
+    let authTimeoutId: number | null = null;
+
+    if (loading) {
+      // Set a timeout to prevent getting stuck in the loading state
+      authTimeoutId = window.setTimeout(() => {
+        // Always log this warning as it's a critical issue
+        console.warn("Authentication check timed out after 10 seconds");
+        // Force refresh the page if we're stuck in loading state for too long
+        window.location.reload();
+      }, 10000); // 10 seconds timeout
+    }
+
+    return () => {
+      if (authTimeoutId !== null) {
+        window.clearTimeout(authTimeoutId);
+      }
+    };
+  }, [loading]);
+
+  // We no longer need the effect to reset refreshing state
+  // as it's now handled by the useRefreshState hook
+
+  // Add an effect to check if all data is loaded and complete the refresh
+  useEffect(() => {
+    // If we're not refreshing, nothing to do
+    if (!isRefreshing) {
+      return;
+    }
+
+    // Check if all data is loaded
+    if (!isLoadingTests &&
+        !isLoadingSupplements &&
+        !isLoadingFactors &&
+        !isLoadingWashoutPeriods &&
+        !isFetchingRef.current) {
+      // Only log in development and only when debugging is needed
+      if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+        console.log("All data loaded, completing refresh");
+      }
+
+      // Set progress to 100% and complete the refresh
+      updateProgress(100);
+      setTimeout(() => {
+        completeRefresh();
+      }, 300); // Small delay for visual feedback
+    }
+  }, [
+    isRefreshing,
+    isLoadingTests,
+    isLoadingSupplements,
+    isLoadingFactors,
+    isLoadingWashoutPeriods,
+    updateProgress,
+    completeRefresh
+  ]);
+
+  // Render loading state for auth
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-2">
-          <Brain className="h-12 w-12 text-primary animate-pulse" />
-          <div className="text-lg font-semibold">Loading your dashboard...</div>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Checking authentication..." />;
   }
 
-  if (!baselineResult) {
-    return (
-      <div className="container py-12">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Welcome to Holistiq</CardTitle>
-            <CardDescription className="text-lg">
-              You need to establish your baseline before using the dashboard.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <Brain className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">
-                  To get started, you'll need to take an initial cognitive assessment to establish your baseline.
-                </p>
-                <p className="text-muted-foreground mt-1">
-                  This will be used as the reference point for measuring changes in your cognitive performance.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <Clock className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">The baseline test takes about 5 minutes to complete.</p>
-                <p className="text-muted-foreground mt-1">
-                  Find a quiet place without distractions for the most accurate results.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Link to="/baseline-test" className="w-full">
-              <Button size="lg" className="w-full gap-2">
-                <Zap className="h-5 w-5" />
-                Take Baseline Test
-              </Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
-    );
+
+
+  // Show loading state if we're still fetching initial data
+  // Only show loading state if we have no test results yet
+  if ((isLoadingTests || isFetchingRef.current) && testHistory.length === 0) {
+    return <LoadingState message="Loading your data..." />;
   }
 
+  // We'll show the loading indicator inline when refreshing, so we don't need this block anymore
+
+  // Log the current state for debugging in development only when debug_logging is enabled
+  if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+    console.log("Dashboard state:", {
+      hasBaseline: !!baselineResult,
+      testCount: testHistory.length,
+      isLoading: currentLoadingState
+    });
+  }
+
+  // Render baseline prompt ONLY if we have no test results at all and we're not loading
+  if (testHistory.length === 0) {
+    return <BaselinePrompt />;
+  }
+
+  // If we have test results but no explicit baseline, use the first test as baseline
+  // This ensures we don't keep prompting for baseline tests if the user has already taken tests
+  if (!baselineResult && hasAnyTestResults) {
+    // Only refresh if we're not already fetching
+    if (!isFetchingRef.current) {
+      // Only log in development and only when debugging is needed
+      if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+        console.log("No baseline found but tests exist, refreshing data...");
+      }
+
+      // Don't force refresh here - let the caching mechanism work
+      // This prevents unnecessary double fetching
+      refreshTestResults(false);
+
+      return (
+        <DashboardLayout
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          onRefresh={handleRefresh}
+          isLoading={true}
+        >
+          <LoadingState message="Preparing your dashboard..." />
+        </DashboardLayout>
+      );
+    }
+  }
+
+
+
+  // Render the dashboard content
   return (
-    <div className="container py-8">
-      <div className="flex flex-col space-y-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <div className="flex flex-wrap gap-2">
-            <Link to="/take-test">
-              <Button className="gap-2">
-                <Brain className="h-4 w-4" />
-                Take Test
-              </Button>
-            </Link>
-            <Link to="/log-supplement">
-              <Button variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Log Supplement
-              </Button>
-            </Link>
-          </div>
-        </div>
+    <DashboardLayout
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+      onRefresh={handleRefresh}
+      isLoading={currentLoadingState}
+    >
+      {/* Use our new RefreshIndicator component for a non-disruptive loading indicator */}
+      <RefreshIndicator
+        isRefreshing={isRefreshing}
+        position="top-center"
+        size="medium"
+        showLabel={true}
+        className="mb-4"
+      />
 
-        {/* Quick Actions Section */}
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/10 p-2 rounded-full">
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Quick Actions</h3>
-                  <p className="text-sm text-muted-foreground">Track your progress and supplements</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link to="/take-test">
-                  <Button size="sm" variant="secondary" className="gap-1">
-                    <Brain className="h-3.5 w-3.5" />
-                    Take Test
-                  </Button>
-                </Link>
-                <Link to="/log-supplement">
-                  <Button size="sm" variant="secondary" className="gap-1">
-                    <Pill className="h-3.5 w-3.5" />
-                    Log Supplement
-                  </Button>
-                </Link>
-                <Link to="/profile">
-                  <Button size="sm" variant="secondary" className="gap-1">
-                    <User className="h-3.5 w-3.5" />
-                    Profile
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Performance Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <TooltipProvider>
-            {/* Score Change Card */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Card className="overflow-hidden">
-                  <div className={`h-1 w-full ${latestResult && calculateChange(latestResult.score, baselineResult.score) >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-sm font-medium flex items-center gap-2">
-                        <Target className="h-4 w-4 text-primary" />
-                        Overall Score
-                      </CardTitle>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingTests ? (
-                      <Skeleton className="h-8 w-24" />
-                    ) : (
-                      <div className="flex items-baseline justify-between">
-                        <div className="text-3xl font-bold">
-                          {latestResult && (
-                            <>
-                              {calculateChange(latestResult.score, baselineResult.score).toFixed(1)}%
-                              <span className={calculateChange(latestResult.score, baselineResult.score) >= 0 ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1"}>
-                                {calculateChange(latestResult.score, baselineResult.score) >= 0 ? (
-                                  <TrendingUp className="h-4 w-4 inline" />
-                                ) : (
-                                  <TrendingDown className="h-4 w-4 inline" />
-                                )}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">vs. baseline</div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Overall cognitive performance score compared to your baseline.</p>
-                <p className="text-xs text-muted-foreground mt-1">Higher is better.</p>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Reaction Time Card */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Card className="overflow-hidden">
-                  <div className={`h-1 w-full ${latestResult && baselineResult && calculateChange(baselineResult.reactionTime, latestResult.reactionTime) > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-sm font-medium flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-primary" />
-                        Reaction Time
-                      </CardTitle>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingTests ? (
-                      <Skeleton className="h-8 w-24" />
-                    ) : (
-                      <div className="flex items-baseline justify-between">
-                        <div className="text-3xl font-bold">
-                          {latestResult && baselineResult && (
-                            <>
-                              {(() => {
-                                const change = calculateChange(baselineResult.reactionTime, latestResult.reactionTime);
-                                const iconUp = change > 0; // More ms is slower
-                                const color = iconUp ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1";
-                                return (
-                                  <>
-                                    {Math.abs(change).toFixed(1)}%
-                                    <span className={color}>
-                                      {iconUp ? (
-                                        <TrendingDown className="h-4 w-4 inline" />
-                                      ) : (
-                                        <TrendingUp className="h-4 w-4 inline" />
-                                      )}
-                                    </span>
-                                  </>
-                                );
-                              })()}
-                            </>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">faster</div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>How quickly you respond to stimuli compared to your baseline.</p>
-                <p className="text-xs text-muted-foreground mt-1">Lower reaction time is better.</p>
-              </TooltipContent>
-            </Tooltip>
-            
-            {/* Accuracy Card */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Card className="overflow-hidden">
-                  <div className={`h-1 w-full ${latestResult && calculateChange(latestResult.accuracy, baselineResult.accuracy) >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-sm font-medium flex items-center gap-2">
-                        <Target className="h-4 w-4 text-primary" />
-                        Accuracy
-                      </CardTitle>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingTests ? (
-                      <Skeleton className="h-8 w-24" />
-                    ) : (
-                      <div className="flex items-baseline justify-between">
-                        <div className="text-3xl font-bold">
-                          {latestResult && (
-                            <>
-                              {calculateChange(latestResult.accuracy, baselineResult.accuracy).toFixed(1)}%
-                              <span className={calculateChange(latestResult.accuracy, baselineResult.accuracy) >= 0 ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1"}>
-                                {calculateChange(latestResult.accuracy, baselineResult.accuracy) >= 0 ? (
-                                  <TrendingUp className="h-4 w-4 inline" />
-                                ) : (
-                                  <TrendingDown className="h-4 w-4 inline" />
-                                )}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">vs. baseline</div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>How accurately you respond to test stimuli compared to your baseline.</p>
-                <p className="text-xs text-muted-foreground mt-1">Higher accuracy is better.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        {/* Recent Supplements Section */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <Pill className="h-5 w-5 text-primary" />
-                Recent Supplements
-              </CardTitle>
-              <Link to="/log-supplement">
-                <Button variant="ghost" size="sm" className="gap-1 text-xs">
-                  View All
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoadingSupplements ? (
-              <div className="space-y-3">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : recentSupplements.length > 0 ? (
-              <div className="space-y-3">
-                {recentSupplements.map((supplement) => (
-                  <div key={supplement.id} className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${supplement.color}20`, color: supplement.color }}>
-                        <Pill className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{supplement.name}</p>
-                        <p className="text-sm text-muted-foreground">{supplement.dosage} · {formatDate(supplement.intake_time)}</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline">{supplement.notes}</Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <div className="bg-secondary/30 p-4 rounded-lg">
-                  <Pill className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="font-medium">No supplements logged yet</p>
-                  <p className="text-sm text-muted-foreground mb-4">Start tracking your supplements to see them here</p>
-                  <Link to="/log-supplement">
-                    <Button size="sm" className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      Log Supplement
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Tabs defaultValue="performance">
-          <TabsList>
-            <TabsTrigger value="performance">
-              <BarChart className="h-4 w-4 mr-2" />
-              Performance
-            </TabsTrigger>
-            <TabsTrigger value="supplements">
-              <Calendar className="h-4 w-4 mr-2" />
-              Supplements
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="performance" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cognitive Performance</CardTitle>
-                <CardDescription>
-                  Your performance trend compared to baseline
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-muted-foreground text-center">
-                    {/* In a real app, this would be a chart component */}
-                    <p>Performance chart will be displayed here</p>
-                    <p className="text-sm">Showing data from {testHistory.length} tests</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Test History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {testHistory.map((test, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b last:border-0">
-                      <div>
-                        <p className="font-medium">
-                          {index === 0 ? "Baseline Test" : `Test ${index}`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(test.date || Date.now()).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">Score: {test.score}</p>
-                        <p className="text-sm text-muted-foreground">
-                          RT: {test.reactionTime}ms | Acc: {test.accuracy}%
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="supplements" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Supplements</CardTitle>
-                <CardDescription>
-                  Track your supplement intake
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {supplements.length > 0 ? (
-                  <div className="space-y-4">
-                    {supplements.map((supplement) => (
-                      <div key={supplement.id} className="flex justify-between items-center border-b pb-4">
-                        <div>
-                          <p className="font-medium">{supplement.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {supplement.dosage} · Last taken: {new Date(supplement.intake_time).toLocaleDateString()}
-                          </p>
-                          {supplement.notes && (
-                            <p className="text-sm mt-1">{supplement.notes}</p>
-                          )}
-                        </div>
-                        <Button variant="outline" size="sm">Log</Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No supplements tracked yet</p>
-                    <Link to="/log-supplement">
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Supplement
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Intake Calendar</CardTitle>
-                <CardDescription>
-                  Your supplement intake over time
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px] flex items-center justify-center">
-                  <div className="text-muted-foreground text-center">
-                    {/* In a real app, this would be a calendar component */}
-                    <p>Supplement intake calendar will be displayed here</p>
-                    <p className="text-sm">Tracking intake for {supplements.length} supplements</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+      {/* Dashboard Content */}
+      {activeTab === "overview" && (
+        <ModernDashboardOverview
+          baselineResult={baselineResult}
+          latestResult={latestResult}
+          recentSupplements={recentSupplements}
+          recentFactors={recentFactors}
+          activeWashoutPeriods={activeWashoutPeriods}
+          testHistory={testHistory}
+          isLoadingTests={isLoadingTests}
+          isLoadingSupplements={isLoadingSupplements}
+          isLoadingFactors={isLoadingFactors}
+          isLoadingWashoutPeriods={isLoadingWashoutPeriods}
+        />
+      )}
+      {activeTab === "performance" && (
+        <CognitivePerformanceDashboard
+          testResults={testHistory}
+          supplements={recentSupplements}
+          factors={recentFactors}
+          washoutPeriods={activeWashoutPeriods}
+          baselineResult={baselineResult}
+          isLoading={isLoadingTests || isLoadingSupplements || isLoadingWashoutPeriods}
+          isLoadingFactors={isLoadingFactors}
+        />
+      )}
+      {/* Supplements tab removed to simplify navigation */}
+      {/* Factors tab removed to simplify navigation */}
+    </DashboardLayout>
   );
 }

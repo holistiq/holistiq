@@ -1,22 +1,10 @@
-# Welcome to your Lovable project
+# Holistiq
 
-## Project info
-
-**URL**: https://lovable.dev/projects/41122171-cc8f-46fc-92a4-10acbdedf638
+Holistiq is an evidence-based supplement tracking platform that helps users objectively measure the efficacy of cognitive-enhancing supplements (nootropics). While supplement companies make bold claims about improved memory, focus, and cognitive performance, consumers have no reliable way to verify these effects for themselves. Holistiq solves this problem by providing standardized cognitive assessments, supplement tracking, and data visualization to help users determine which supplements actually work for their unique biology.
 
 ## How can I edit this code?
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/41122171-cc8f-46fc-92a4-10acbdedf638) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+You can work with this codebase using your preferred IDE by cloning the repository and pushing changes.
 
 ### Local Development Setup
 
@@ -32,27 +20,17 @@ cd <YOUR_PROJECT_NAME>
 # 2. Install dependencies
 npm install
 
-# 3. Start the development server
+# 3. Set up environment variables
+cp .env.example .env
+# Edit .env with your actual credentials
+
+# 4. Start the development server
 npm run dev
 ```
 
-#### Task-Driven Workflow (Recommended)
-This project uses a task-driven workflow with the `task-master` CLI to manage development tasks:
+For more detailed information about environment variables and configuration, see [Environment Variables Guide](docs/environment-variables.md).
 
-```sh
-# See all tasks and their status
-task-master list
-
-# Show details for a specific task
-task-master show <id>
-
-# Mark a task as done
-task-master set-status --id=<id> --status=done
-```
-
-See `.windsurfrules` for full workflow details and advanced commands.
-
-You can also use the Lovable cloud editor or GitHub Codespaces for browser-based development.
+You can also use GitHub Codespaces for browser-based development.
 
 
 **Edit a file directly in GitHub**
@@ -81,12 +59,23 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/41122171-cc8f-46fc-92a4-10acbdedf638) and click on Share -> Publish.
+The project can be deployed to any hosting service that supports Node.js applications, such as:
 
-## Can I connect a custom domain to my Lovable project?
+- Vercel
+- Netlify
+- AWS Amplify
+- GitHub Pages
+- Heroku
 
-Yes, you can!
+To deploy, build the project using `npm run build` and deploy the resulting files from the `dist` directory.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Environment Variables in Production
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+When deploying to production, you need to set up environment variables securely:
+
+- **Vercel**: Configure environment variables in the project settings
+- **Netlify**: Configure environment variables in the site settings
+- **AWS**: Use AWS Secrets Manager or Parameter Store
+- **Heroku**: Use config vars in the app settings
+
+Never commit sensitive credentials to version control. See the [Environment Variables Guide](docs/environment-variables.md) for more details on secure credential management.
