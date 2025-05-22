@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Lint
+      run: npm run lint
+      
+    - name: Type check
+      run: npm run type-check
+      
+    - name: Run tests
+      run: npm test
+      env:
+        VITE_APP_NAME: HolistiQ
+        VITE_PUBLIC_SUPABASE_URL: ${{ secrets.VITE_PUBLIC_SUPABASE_URL }}
+        VITE_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.VITE_PUBLIC_SUPABASE_ANON_KEY }}
+        NODE_ENV: test
+        
+    - name: Check for secrets
+      run: |
+        if [ "${{ github.event_name }}" == "pull_request" ]; then
+          git diff --name-only origin/${{ github.base_ref }} HEAD | xargs node scripts/check-for-secrets.js
+        else
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs node scripts/check-for-secrets.js
+        fi
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run npm audit
+      run: npm audit --audit-level=high
+      continue-on-error: true
