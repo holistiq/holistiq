@@ -6,7 +6,10 @@
   publish = "dist"
 
   # Environment variables for build
-  environment = { NODE_ENV = "production" }
+  environment = {
+    NODE_ENV = "production",
+    SECRETS_SCAN_OMIT_PATHS = "dist/**"
+  }
 
 [build.processing]
   # Skip processing of images, videos, audio, and PDFs
@@ -87,8 +90,3 @@
     NODE_ENV = "production"
     VITE_ENABLE_DEBUG_LOGGING = "false"
     VITE_APP_NAME = "HolistiQ"
-
-# Secrets scanning configuration
-[build.environment]
-  # Allow Supabase anon key in build output (it's designed to be public)
-  SECRETS_SCAN_OMIT_PATHS = "dist/**"
