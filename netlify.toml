@@ -6,10 +6,9 @@
   publish = "dist"
 
   # Environment variables for build
-  environment = {
-    NODE_ENV = "production",
+  [build.environment]
+    NODE_ENV = "production"
     SECRETS_SCAN_OMIT_PATHS = "dist/**"
-  }
 
 [build.processing]
   # Skip processing of images, videos, audio, and PDFs
