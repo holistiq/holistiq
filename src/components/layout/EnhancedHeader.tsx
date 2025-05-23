@@ -68,7 +68,7 @@ export function EnhancedHeader() {
         {/* Logo and Brand */}
         <Link to="/" className="flex items-center gap-2">
           <div className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-nootrack-400 to-nootrack-600 dark:from-nootrack-300 dark:to-nootrack-500">
-            Holistiq
+            HolistiQ
           </div>
         </Link>
 
@@ -76,7 +76,7 @@ export function EnhancedHeader() {
         <nav className="flex items-center gap-4">
           {/* Main Navigation Links - Desktop */}
           <div className="hidden md:flex items-center gap-6">
-            {user 
+            {user
               ? mainNavItems.map((item) => (
                   <Link
                     key={item.href}

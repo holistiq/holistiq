@@ -21,7 +21,7 @@ We use several types of credentials in our application:
 
 ### Production
 
-- Store credentials in Vercel Environment Variables
+- Store credentials in Netlify Environment Variables
 - Use different values for Production vs. Preview environments
 - Restrict access to who can view/edit production credentials
 
@@ -63,7 +63,7 @@ const serviceKey = process.env.SUPABASE_SERVICE_KEY;
 ### Rotation Procedure
 
 1. Generate new credentials in the service provider
-2. Update credentials in Vercel Environment Variables
+2. Update credentials in Netlify Environment Variables
 3. Deploy and verify the application works with new credentials
 4. Revoke old credentials after confirming everything works
 
@@ -72,7 +72,7 @@ const serviceKey = process.env.SUPABASE_SERVICE_KEY;
 If credentials are accidentally exposed:
 
 1. Generate new credentials immediately
-2. Update credentials in Vercel
+2. Update credentials in Netlify
 3. Force deploy the application
 4. Revoke old credentials
 5. Document the incident and review security practices
@@ -82,6 +82,6 @@ If credentials are accidentally exposed:
 Team members can request access to credentials through:
 
 1. The team password manager (for development credentials)
-2. Vercel access controls (for production credentials)
+2. Netlify access controls (for production credentials)
 
 All access requests must be approved by a team lead or security officer.

@@ -38,7 +38,7 @@ Common mistakes include:
    SUPABASE_URL=your_supabase_url_here
    SUPABASE_KEY=your_supabase_key_here
    ANALYTICS_API_KEY=your_analytics_api_key_here
-   
+
    # .env.local (not committed, for local development)
    SUPABASE_URL=https://actual-project-url.supabase.co
    SUPABASE_KEY=actual_key_value
@@ -64,11 +64,11 @@ Common mistakes include:
      'SUPABASE_KEY',
      // Add other required variables
    ];
-   
+
    const missingEnvVars = requiredEnvVars.filter(
      (envVar) => !process.env[envVar]
    );
-   
+
    if (missingEnvVars.length > 0) {
      console.error('Error: Missing required environment variables:');
      missingEnvVars.forEach((envVar) => {
@@ -77,7 +77,7 @@ Common mistakes include:
      console.error('Please check your .env file and try again.');
      process.exit(1);
    }
-   
+
    console.log('✅ Environment validation passed!');
    ```
 
@@ -106,10 +106,10 @@ Common mistakes include:
      ```bash
      # Initialize git-crypt in your repository
      git-crypt init
-     
+
      # Add a key for a team member
      git-crypt add-gpg-user user@example.com
-     
+
      # Configure which files to encrypt
      echo ".env.development filter=git-crypt diff=git-crypt" > .gitattributes
      ```
@@ -124,20 +124,20 @@ Common mistakes include:
 ### Preventing Credential Leaks
 
 1. **Pre-commit hooks**
-   
+
    Install and configure git hooks to prevent committing secrets:
-   
+
    ```bash
    # Install Husky for Git hooks
    npm install --save-dev husky
-   
+
    # Set up pre-commit hook
    npx husky add .husky/pre-commit "npx secretlint"
-   
+
    # Install secretlint
    npm install --save-dev @secretlint/secretlint @secretlint/secretlint-rule-preset-recommend
    ```
-   
+
    Create a secretlint configuration:
    ```json
    // .secretlintrc.json
@@ -153,15 +153,15 @@ Common mistakes include:
 2. **Git secrets scanning**
 
    Use git-secrets to prevent committing AWS credentials and other patterns:
-   
+
    ```bash
    # Install git-secrets
    brew install git-secrets  # macOS
-   
+
    # Set up git-secrets in your repository
    git secrets --install
    git secrets --register-aws
-   
+
    # Add custom patterns
    git secrets --add 'SUPABASE_KEY=\w+'
    git secrets --add 'API_KEY=\w+'
@@ -170,7 +170,7 @@ Common mistakes include:
 3. **GitHub security scanning**
 
    Enable GitHub's secret scanning for your repository:
-   
+
    1. Go to your repository on GitHub
    2. Navigate to Settings > Security & analysis
    3. Enable "Secret scanning"
@@ -200,51 +200,28 @@ If credentials are accidentally committed:
 
 ### Platform-Specific Configuration
 
-#### Vercel
-
-1. **Setting environment variables**:
-   - Go to your project in the Vercel dashboard
-   - Navigate to Settings > Environment Variables
-   - Add each variable and value
-   - Specify which environments (Production, Preview, Development) should use each variable
-
-2. **Using different values per environment**:
-   - Click "Add New" under Environment Variables
-   - Enter the name and value
-   - Select which environments should use this value
-   - For Preview environments, you can also set branch-specific values
-
-3. **Accessing in your application**:
-   ```javascript
-   // Access environment variables the same way as in local development
-   const supabaseUrl = process.env.SUPABASE_URL;
-   const supabaseKey = process.env.SUPABASE_KEY;
-   ```
-
-#### Netlify
+#### Netlify (Primary Platform)
 
 1. **Setting environment variables**:
    - Go to your site in the Netlify dashboard
-   - Navigate to Site settings > Build & deploy > Environment
-   - Add variables under "Environment variables"
+   - Navigate to Site Settings > Environment Variables
+   - Add each variable and value
+   - Specify which scopes (Production, Deploy previews, Branch deploys) should use each variable
 
-2. **Per-context configuration**:
-   Create a `netlify.toml` file in your repository:
-   ```toml
-   [context.production.environment]
-     SUPABASE_URL = "production-url"
-     # Don't put actual secrets here, use the Netlify UI
-   
-   [context.deploy-preview.environment]
-     SUPABASE_URL = "preview-url"
-   ```
+2. **Using different values per environment**:
+   - Click "Add a variable" under Environment Variables
+   - Enter the key and value
+   - Select which scopes should use this value
+   - For branch-specific values, use the netlify.toml configuration
 
 3. **Accessing in your application**:
    ```javascript
    // Access environment variables the same way as in local development
-   const supabaseUrl = process.env.SUPABASE_URL;
-   const supabaseKey = process.env.SUPABASE_KEY;
+   const supabaseUrl = import.meta.env.VITE_PUBLIC_SUPABASE_URL;
+   const supabaseKey = import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY;
    ```
+
+
 
 ### Using Secrets Management Services
 
@@ -308,9 +285,9 @@ export function validateEnvironment() {
     'SUPABASE_KEY',
     'ANALYTICS_API_KEY'
   ];
-  
+
   const missing = requiredVars.filter(varName => !process.env[varName]);
-  
+
   if (missing.length > 0) {
     console.error(`Missing required environment variables: ${missing.join(', ')}`);
     if (process.env.NODE_ENV === 'production') {
@@ -330,7 +307,7 @@ validateEnvironment();
 class CredentialManager {
   // Private storage for credentials
   #credentials = {};
-  
+
   constructor() {
     // Initialize with environment variables
     this.#credentials = {
@@ -343,17 +320,17 @@ class CredentialManager {
       }
     };
   }
-  
+
   // Controlled access to credentials
   getCredential(service, key) {
     if (!this.#credentials[service]) {
       throw new Error(`Unknown service: ${service}`);
     }
-    
+
     if (!this.#credentials[service][key]) {
       throw new Error(`Unknown credential key: ${key} for service ${service}`);
     }
-    
+
     return this.#credentials[service][key];
   }
 }

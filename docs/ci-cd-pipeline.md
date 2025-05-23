@@ -36,13 +36,13 @@ Our CD pipeline automatically deploys code to our environments:
 
 - **Production**: Live application at holistiq.com (deployed from `main` branch)
 - **Staging**: Testing environment at staging.holistiq.com (deployed from `develop` branch)
-- **Preview**: Temporary environments for pull requests (pr-123.holistiq.vercel.app)
+- **Preview**: Temporary environments for pull requests (deploy-preview-123--holistiq.netlify.app)
 
 ### Deployment Process
 
 1. Code is merged to `develop` or `main`
 2. GitHub Actions triggers the deployment workflow
-3. Vercel builds and deploys the application
+3. Netlify builds and deploys the application
 4. Deployment URL is posted as a comment on the PR
 
 ## Setting Up GitHub Secrets
@@ -52,7 +52,7 @@ For the CI/CD pipeline to work, the following secrets must be set in GitHub:
 1. Go to your repository on GitHub
 2. Navigate to Settings > Secrets and variables > Actions
 3. Add the following secrets:
-   - `VERCEL_TOKEN`: API token from Vercel
+   - `NETLIFY_AUTH_TOKEN`: API token from Netlify (if using CLI deployments)
    - `VITE_PUBLIC_SUPABASE_URL`: Supabase URL for testing
    - `VITE_PUBLIC_SUPABASE_ANON_KEY`: Supabase anonymous key for testing
 
@@ -66,7 +66,7 @@ For the CI/CD pipeline to work, the following secrets must be set in GitHub:
 
 ### Failed Deployments
 
-1. Check the Vercel deployment logs
+1. Check the Netlify deployment logs
 2. Verify environment variables are correctly set
 3. Ensure the build process works locally
-4. Check for any Vercel-specific configuration issues
+4. Check for any Netlify-specific configuration issues

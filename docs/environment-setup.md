@@ -52,7 +52,7 @@ When adding new environment variables:
 1. Add the variable to `.env.example` with a placeholder value
 2. Add the variable to your local `.env.local` file
 3. Update the validation script if it's a required variable
-4. Add the variable to Vercel for each environment (if needed for deployment)
+4. Add the variable to Netlify for each environment (if needed for deployment)
 5. Document the variable in this guide
 
 ## Troubleshooting

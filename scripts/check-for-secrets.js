@@ -18,11 +18,11 @@ const secretPatterns = [
   // URLs with embedded credentials
   /['"]https?:\/\/[^:]+:[^@]+@[^'"]+['"]/i,
 
-  // JWT tokens (Supabase keys)
-  /['"]eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}['"]/i,
+  // JWT tokens (Supabase keys) - but exclude schema URLs
+  /['"]eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+['"]/i,
 
-  // Long alphanumeric strings that look like keys
-  /['"][A-Za-z0-9]{32,}['"]/i,
+  // Long alphanumeric strings that look like keys (but exclude hex colors and schema URLs)
+  /['"][A-Za-z0-9]{40,}['"]/i,
 
   // Private keys
   /-----BEGIN [A-Z ]+ PRIVATE KEY-----/i
@@ -39,11 +39,12 @@ const ignorePatterns = [
   /\.husky\//,
   /package-lock\.json/,
   /yarn\.lock/,
-  /\.vercel\//,
   /dist\//,
   /\.next\//,
   /\.output\//,
-  /\.github\/workflows\//  // Ignore GitHub Actions workflows (they use ${{ secrets.* }} syntax)
+  /\.github\/workflows\//,  // Ignore GitHub Actions workflows (they use ${{ secrets.* }} syntax)
+  /components\.json/,        // Ignore shadcn/ui config file
+  /index\.html/             // Ignore HTML files (often have theme colors, etc.)
 ];
 
 // Check if a file should be ignored

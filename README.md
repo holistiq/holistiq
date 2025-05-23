@@ -59,23 +59,35 @@ This project is built with:
 
 ## How can I deploy this project?
 
-The project can be deployed to any hosting service that supports Node.js applications, such as:
+This project is configured for deployment on **Netlify** with automatic deployments from GitHub.
 
-- Vercel
-- Netlify
+### Quick Deployment to Netlify
+
+1. **Connect Repository**: Import your GitHub repository to Netlify
+2. **Configure Build Settings**:
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+3. **Set Environment Variables**: Add your Supabase credentials
+4. **Deploy**: Push to `main` branch for production, `develop` for preview
+
+For detailed deployment instructions, see the [Netlify Deployment Guide](docs/netlify-deployment.md).
+
+### Alternative Hosting Options
+
+The project can also be deployed to:
 - AWS Amplify
 - GitHub Pages
 - Heroku
+- Any static hosting service
 
-To deploy, build the project using `npm run build` and deploy the resulting files from the `dist` directory.
+To deploy elsewhere, build the project using `npm run build` and deploy the resulting files from the `dist` directory.
 
 ### Environment Variables in Production
 
 When deploying to production, you need to set up environment variables securely:
 
-- **Vercel**: Configure environment variables in the project settings
 - **Netlify**: Configure environment variables in the site settings
 - **AWS**: Use AWS Secrets Manager or Parameter Store
 - **Heroku**: Use config vars in the app settings
 
-Never commit sensitive credentials to version control. See the [Environment Variables Guide](docs/environment-variables.md) for more details on secure credential management.
+Never commit sensitive credentials to version control. See the [Netlify Deployment Guide](docs/netlify-deployment.md) for more details on secure credential management.

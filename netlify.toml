@@ -1,0 +1,89 @@
+[build]
+  # Build command
+  command = "npm run build"
+
+  # Output directory
+  publish = "dist"
+
+  # Environment variables for build
+  environment = { NODE_ENV = "production" }
+
+[build.processing]
+  # Skip processing of images, videos, audio, and PDFs
+  skip_processing = false
+
+[build.processing.css]
+  # Minify CSS files
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  # Minify JS files
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  # Minify HTML files
+  pretty_urls = true
+
+# SPA routing - redirect all routes to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache fonts
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Branch-specific build settings
+[context.production]
+  command = "npm run build"
+  [context.production.environment]
+    NODE_ENV = "production"
+    VITE_ENABLE_DEBUG_LOGGING = "false"
+
+[context.deploy-preview]
+  command = "npm run build"
+  [context.deploy-preview.environment]
+    NODE_ENV = "development"
+    VITE_ENABLE_DEBUG_LOGGING = "true"
+
+[context.branch-deploy]
+  command = "npm run build"
+  [context.branch-deploy.environment]
+    NODE_ENV = "development"
+    VITE_ENABLE_DEBUG_LOGGING = "true"
+
+# Specific branch configurations
+[context.develop]
+  command = "npm run build"
+  [context.develop.environment]
+    NODE_ENV = "development"
+    VITE_ENABLE_DEBUG_LOGGING = "true"
+    VITE_APP_NAME = "HolistiQ Staging"
+
+[context.main]
+  command = "npm run build"
+  [context.main.environment]
+    NODE_ENV = "production"
+    VITE_ENABLE_DEBUG_LOGGING = "false"
+    VITE_APP_NAME = "HolistiQ"
