@@ -1,36 +1,112 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialogTitle, AlertDialogDescription, AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { NBackTest, NBackTestResult } from "@/components/tests/NBackTest";
+import { NBackInstructions } from "@/components/tests/NBackInstructions";
+import { TestFrequencyInfo } from "@/components/tests/TestFrequencyInfo";
+import { TestCompletionFlow } from "@/components/tests/TestCompletionFlow";
+import { saveTestResult } from "@/services/testResultService";
+import { checkTestFrequency, TestFrequencyStatus } from "@/services/testFrequencyService";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useTestResults } from "@/hooks/useTestResults";
+import { useAchievements } from "@/hooks/useAchievements";
+import { AchievementTrigger } from "@/types/achievement";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
 
 export default function TakeTest() {
   const [testState, setTestState] = useState<"intro" | "ready" | "running" | "completed">("intro");
   const [showFullScreen, setShowFullScreen] = useState(false);
+  const [testResult, setTestResult] = useState<NBackTestResult | null>(null);
+  const [frequencyStatus, setFrequencyStatus] = useState<TestFrequencyStatus | null>(null);
+  const [isCheckingFrequency, setIsCheckingFrequency] = useState(false);
   const navigate = useNavigate();
-  
-  const startTest = () => {
-    setTestState("running");
-    
-    // Simulate test running for demo purposes
-    // In a real implementation, this would run the actual n-back test
-    setTimeout(() => {
-      setTestState("completed");
-      
-      // Generate random test result for the demo
-      const testResult = {
-        date: new Date().toISOString(),
-        score: Math.floor(Math.random() * (88 - 75) + 75), // Random score between 75-88
-        reactionTime: Math.floor(Math.random() * (550 - 490) + 490), // Random reaction time
-        accuracy: Math.floor(Math.random() * (91 - 83) + 83), // Random accuracy
-      };
-      
-      // Save test result to localStorage for the demo
-      // In a real app, this would be saved to a database
-      const existingTests = JSON.parse(localStorage.getItem("testResults") || "[]");
-      localStorage.setItem("testResults", JSON.stringify([...existingTests, testResult]));
-    }, 10000); // Simulating a 10-second test for demo
+  const { user, loading } = useSupabaseAuth();
+
+  // Try to get test results context, but handle the case where it might not be available
+  let baselineResult = null;
+  let refreshTestResults = () => {};
+
+  try {
+    const testResultsContext = useTestResults();
+    baselineResult = testResultsContext.baselineResult;
+    refreshTestResults = testResultsContext.refreshTestResults;
+  } catch (error) {
+    console.warn('TestResultsContext not available, using default values', error);
+  }
+
+  // Get achievements hook
+  const { triggerAchievement } = useAchievements();
+
+  // Check test frequency when component mounts
+  useEffect(() => {
+    async function checkFrequency() {
+      if (!user) return;
+
+      setIsCheckingFrequency(true);
+      try {
+        const status = await checkTestFrequency(user.id);
+        setFrequencyStatus(status);
+      } catch (error) {
+        console.error('Error checking test frequency:', error);
+      } finally {
+        setIsCheckingFrequency(false);
+      }
+    }
+
+    checkFrequency();
+  }, [user]);
+
+  const [testId, setTestId] = useState<string | undefined>(undefined);
+
+  const handleTestComplete = async (result: NBackTestResult) => {
+    setTestResult(result);
+    setTestState("completed");
+
+    // Save the result
+    const saveResponse = await saveTestResult(
+      user?.id,
+      'n-back-2',
+      result,
+      false // This is not a baseline test
+    );
+
+    if (saveResponse.success) {
+      // Save the test ID for linking with confounding factors
+      setTestId(saveResponse.testId);
+
+      // Refresh test results to update the dashboard
+      refreshTestResults();
+
+      // Trigger achievements
+      if (user) {
+        // Test completion achievement
+        triggerAchievement(AchievementTrigger.TEST_COMPLETED);
+
+        // Perfect score achievement (if applicable)
+        if (result.accuracy === 100) {
+          triggerAchievement(AchievementTrigger.TEST_COMPLETED, {
+            perfectScore: true
+          });
+        }
+
+        // High score achievement (if applicable)
+        if (baselineResult && result.score > baselineResult.score) {
+          triggerAchievement(AchievementTrigger.TEST_COMPLETED, {
+            improvedScore: true
+          });
+        }
+
+        // Fast reaction time achievement (if applicable)
+        if (result.reactionTime < 300) {
+          triggerAchievement(AchievementTrigger.TEST_COMPLETED, {
+            reactionTime: result.reactionTime
+          });
+        }
+      }
+    }
   };
 
   const handleFullScreen = () => {
@@ -50,7 +126,7 @@ export default function TakeTest() {
       setTestState("ready");
     }
   };
-  
+
   const exitFullScreen = () => {
     if (document.exitFullscreen) {
       document.exitFullscreen().catch((err) => {
@@ -58,7 +134,7 @@ export default function TakeTest() {
       });
     }
   };
-  
+
   useEffect(() => {
     // Clean up fullscreen when component unmounts
     return () => {
@@ -67,13 +143,42 @@ export default function TakeTest() {
       }
     };
   }, []);
-  
+
   const goToDashboard = () => {
     if (document.fullscreenElement) {
       exitFullScreen();
     }
     navigate("/dashboard");
   };
+
+  // Render loading state
+  if (loading) {
+    return (
+      <div className="container max-w-2xl py-12">
+        <Card className="w-full">
+          <CardHeader>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-full" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // If user is not authenticated, show authentication required component
+  if (!user) {
+    return (
+      <AuthenticationRequired
+        message="You need to be logged in to take cognitive tests and track your performance over time."
+      />
+    );
+  }
 
   return (
     <div className="container max-w-2xl py-12">
@@ -89,134 +194,66 @@ export default function TakeTest() {
         </CardHeader>
         <CardContent>
           {testState === "intro" && (
-            <div className="space-y-4">
-              <p>
-                This test will measure your current cognitive performance. The results will be compared to your baseline
-                to track changes over time.
-              </p>
-              <div className="bg-secondary p-4 rounded-md space-y-2">
-                <h3 className="font-medium">Before you begin:</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Find a quiet place where you won't be interrupted</li>
-                  <li>Turn off notifications on your device</li>
-                  <li>The test works best in fullscreen mode</li>
-                  <li>You'll need to focus for about 5 minutes</li>
-                </ul>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <p>
+                  This test will measure your current cognitive performance. The results will be compared to your baseline
+                  to track changes over time.
+                </p>
+                <div className="bg-secondary p-4 rounded-md space-y-2">
+                  <h3 className="font-medium">Before you begin:</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Find a quiet place where you won't be interrupted</li>
+                    <li>Turn off notifications on your device</li>
+                    <li>The test works best in fullscreen mode</li>
+                    <li>You'll need to focus for about 3 minutes</li>
+                  </ul>
+                </div>
               </div>
-              <Button onClick={() => setShowFullScreen(true)} className="w-full">
-                Continue
-              </Button>
+
+              {/* Test Frequency Information */}
+              <TestFrequencyInfo
+                onTakeTest={() => setShowFullScreen(true)}
+                {...(frequencyStatus && { frequencyStatus })}
+                {...(isCheckingFrequency && { loading: isCheckingFrequency })}
+              />
             </div>
           )}
 
           {testState === "ready" && (
-            <div className="space-y-4">
-              <div className="border p-6 rounded-md bg-secondary/30">
-                <h3 className="text-lg font-medium mb-4 text-center">2-Back Test Instructions</h3>
-                <div className="space-y-4">
-                  <p>
-                    You'll see squares appearing on a grid one at a time. Your task is to identify when the
-                    <strong> current position matches the position from 2 steps earlier</strong>.
-                  </p>
-                  <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
-                    {[...Array(9)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`aspect-square border ${i === 4 ? 'bg-primary' : ''} rounded`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground text-center">
-                    Example: If squares appear at positions 1, 4, and then 1 again, you would respond to the
-                    third square (since it matches the position from 2 steps earlier).
-                  </p>
-                </div>
-              </div>
-              <Button onClick={startTest} className="w-full">
-                Start Test
-              </Button>
-            </div>
+            <NBackInstructions
+              nBackLevel={2}
+              onReady={() => setTestState("running")}
+              onCancel={() => navigate("/dashboard")}
+            />
           )}
 
           {testState === "running" && (
-            <div className="text-center p-8 space-y-6">
-              <div className="animate-pulse">
-                <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto">
-                  {[...Array(9)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={`aspect-square border ${i === 5 ? 'bg-primary' : ''} rounded`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <p className="text-lg">Focus on the pattern...</p>
-              <p className="text-sm text-muted-foreground">
-                Press the spacebar when the current position matches the position from 2 steps ago.
-              </p>
-            </div>
+            <NBackTest
+              nBackLevel={2}
+              testDuration={180000} // 3 minutes in milliseconds
+              onTestComplete={handleTestComplete}
+              onCancel={() => {
+                if (confirm("Are you sure you want to cancel the test? Your progress will be lost.")) {
+                  setTestState("intro");
+                }
+              }}
+            />
           )}
 
-          {testState === "completed" && (
-            <div className="space-y-6 py-4">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-6 mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="36"
-                    height="36"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-primary"
-                  >
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium">Test Completed!</h3>
-                <p className="text-muted-foreground mt-2">
-                  Your results have been recorded. You can view your progress on the dashboard.
-                </p>
-              </div>
-              
-              <div className="bg-secondary/30 p-4 rounded-md space-y-4">
-                <h4 className="font-medium">Your Results:</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Overall Score</p>
-                    <p className="text-2xl font-bold">84</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Accuracy</p>
-                    <p className="text-2xl font-bold">89%</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Avg. Reaction Time</p>
-                    <p className="text-2xl font-bold">508ms</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Test Date</p>
-                    <p className="text-lg font-medium">{new Date().toLocaleDateString()}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {testState === "completed" && testResult && (
+            <TestCompletionFlow
+              testType="n-back-2"
+              testResult={testResult}
+              baselineResult={baselineResult}
+              testId={testId}
+              onReturnToDashboard={goToDashboard}
+              onTakeAnotherTest={() => setTestState("intro")}
+            />
           )}
         </CardContent>
-        
-        {testState === "completed" && (
-          <CardFooter>
-            <Button onClick={goToDashboard} className="w-full">
-              Go to Dashboard
-            </Button>
-          </CardFooter>
-        )}
       </Card>
-      
+
       <AlertDialog open={showFullScreen}>
         <AlertDialogContent>
           <AlertDialogHeader>

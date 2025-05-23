@@ -1,0 +1,13 @@
+# Example configuration file for your Supabase project
+# Copy this file to config.toml and fill in your actual values
+# IMPORTANT: Do not commit the actual config.toml with real credentials to version control
+
+[auth]
+  # Enable Google OAuth
+  [auth.external.google]
+    enabled = true
+    client_id = "your-google-client-id"
+    secret = "your-google-client-secret"
+    # Make sure these URLs are correct for your environment
+    redirect_uri = "https://your-project-id.supabase.co/auth/v1/callback"
+    url = "https://accounts.google.com/o/oauth2/v2/auth"

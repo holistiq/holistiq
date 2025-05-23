@@ -24,11 +24,44 @@ supabase/google-oauth-config.json
 *.sln
 *.sw?
 
-# Added by Claude Task Master
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*
+!.env.example
+
+# Supabase configuration with real credentials
+supabase/config.toml
+supabase/.temp/*
+supabase/google-oauth-config.json
+
+# Debug logs
 dev-debug.log
+debug.log
+*.debug.*
+
 # Dependency directories
 node_modules/
-# Environment variables
-.env
+
+# Package manager files
+bun.lockb
+
+# Editor directories and files
 .vscode
+.cursor
+.idea
+*.sublime-*
+
 # OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~

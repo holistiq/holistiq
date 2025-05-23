@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="128" fill="#7c3aed"/>
+  <path d="M256 128C185.307 128 128 185.307 128 256C128 326.693 185.307 384 256 384C326.693 384 384 326.693 384 256C384 185.307 326.693 128 256 128ZM256 352C203.065 352 160 308.935 160 256C160 203.065 203.065 160 256 160C308.935 160 352 203.065 352 256C352 308.935 308.935 352 256 352Z" fill="white"/>
+  <circle cx="256" cy="256" r="64" fill="white"/>
+  <path d="M256 112V64" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  <path d="M256 448V400" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  <path d="M400 256L448 256" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  <path d="M64 256L112 256" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  <path d="M354.059 157.941L387.393 124.607" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  <path d="M124.607 387.393L157.941 354.059" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  <path d="M354.059 354.059L387.393 387.393" stroke="white" stroke-width="24" stroke-linecap="round"/>
+  <path d="M124.607 124.607L157.941 157.941" stroke="white" stroke-width="24" stroke-linecap="round"/>
+</svg>

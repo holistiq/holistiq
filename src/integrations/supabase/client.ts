@@ -2,10 +2,122 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://wnqyqnkynyombyngzdcq.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InducXlxbmt5bnlvbWJ5bmd6ZGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MjU5MTMsImV4cCI6MjA2MjMwMTkxM30.707QSiDM7e5pV5Vpc7oHXNwEvar3m_ATW-J_TZ23rXE"; // You'll need to get this from your Supabase dashboard
+// Define environment
+const isDevelopment = typeof process !== 'undefined' &&
+  (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined);
+
+// Log environment for debugging
+if (isDevelopment) {
+  console.log('Supabase client initializing in development mode');
+}
+
+// Get Supabase URL and anon key from environment variables
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+// Validate that environment variables are set
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.error('Supabase environment variables are not set. Please check your .env file.');
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Create a hybrid storage mechanism that tries both localStorage and sessionStorage
+const hybridStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      // Try localStorage first
+      const localValue = localStorage.getItem(key);
+      if (localValue) {
+        if (isDevelopment) {
+          console.log(`Retrieved key ${key} from localStorage`);
+        }
+        return localValue;
+      }
+
+      // Fall back to sessionStorage
+      const sessionValue = sessionStorage.getItem(key);
+      if (sessionValue) {
+        if (isDevelopment) {
+          console.log(`Retrieved key ${key} from sessionStorage`);
+        }
+        return sessionValue;
+      }
+
+      if (isDevelopment) {
+        console.log(`Key ${key} not found in either storage`);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error accessing storage:', error);
+      return null;
+    }
+  },
+
+  setItem: (key: string, value: string): void => {
+    try {
+      // Try to store in both localStorage and sessionStorage for maximum compatibility
+      localStorage.setItem(key, value);
+      sessionStorage.setItem(key, value);
+
+      if (isDevelopment) {
+        console.log(`Stored key ${key} in both localStorage and sessionStorage`);
+      }
+    } catch (error) {
+      console.error('Error writing to storage:', error);
+
+      // If localStorage fails, try sessionStorage as fallback
+      try {
+        sessionStorage.setItem(key, value);
+        if (isDevelopment) {
+          console.log(`Fallback: Stored key ${key} in sessionStorage only`);
+        }
+      } catch (innerError) {
+        console.error('Error writing to sessionStorage as fallback:', innerError);
+      }
+    }
+  },
+
+  removeItem: (key: string): void => {
+    try {
+      // Remove from both storage types
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+
+      if (isDevelopment) {
+        console.log(`Removed key ${key} from both storage types`);
+      }
+    } catch (error) {
+      console.error('Error removing from storage:', error);
+    }
+  }
+};
+
+// Create client with enhanced persistence options
+export const supabase = createClient<Database>(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'implicit', // Use implicit flow which is more reliable for Google OAuth
+      storage: hybridStorage,
+      debug: isDevelopment, // Enable debug mode in development
+      storageKey: 'holistiq-auth-token', // Use a consistent key for storage
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'holistiq-web-app'
+      }
+    },
+    // Retry failed requests
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    }
+  }
+);
