@@ -258,7 +258,7 @@ function removeDuplicates(results: TestResult[]): TestResult[] {
  * Format test results for chart display
  */
 function formatTestResults(results: TestResult[]): FormattedTestResult[] {
-  return results.map((result, index) => {
+  return results.map((result) => {
     try {
       // Parse the date
       const dateValue = parseDate(result.date);
@@ -296,7 +296,7 @@ function formatTestResults(results: TestResult[]): FormattedTestResult[] {
 /**
  * Parse a date value to a timestamp
  */
-function parseDate(dateValue: any): number {
+function parseDate(dateValue: string | number | Date): number {
   if (typeof dateValue === 'number') {
     return dateValue;
   } else if (typeof dateValue === 'string') {
@@ -321,7 +321,7 @@ function parseDate(dateValue: any): number {
 /**
  * Parse a numeric value with bounds
  */
-function parseNumericValue(value: any, min: number, max: number): number {
+function parseNumericValue(value: string | number | null | undefined, min: number, max: number): number {
   let parsedValue = 0;
 
   if (typeof value === 'number') {

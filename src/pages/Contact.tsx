@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,8 +34,8 @@ export default function Contact() {
   const [formIsValid, setFormIsValid] = useState(false);
   const { toast } = useToast();
 
-  // Email validation regex
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Email validation regex - memoized to prevent re-creation on each render
+  const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
 
   // Helper function to get validation classes for input fields
   const getInputValidationClass = (isValid: boolean, isDirty: boolean): string => {
@@ -68,7 +68,7 @@ export default function Contact() {
       isCaptchaValid &&
       privacyConsent
     );
-  }, [name, email, subject, message, captchaValue, captchaAnswer, privacyConsent]);
+  }, [name, email, subject, message, captchaValue, captchaAnswer, privacyConsent, emailRegex]);
 
   const generateCaptcha = () => {
     const num1 = Math.floor(Math.random() * 10);

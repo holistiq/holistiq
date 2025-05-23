@@ -12,7 +12,7 @@ import { TestFrequencyInfo } from "@/components/tests/TestFrequencyInfo";
 import { checkTestFrequency, TestFrequencyStatus } from "@/services/testFrequencyService";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useTestResults } from "@/hooks/useTestResults";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
 import { Brain, Zap, ArrowRight, Info } from "lucide-react";
 import { NBackGrid } from "@/components/tests/NBackGrid";
@@ -52,25 +52,15 @@ export default function TestSelection() {
     navigate(testPath);
   };
 
-  // Loading skeleton
+  // Lightweight loading indicator for fast initial render
   const renderLoadingSkeleton = () => (
     <div className="container max-w-4xl py-10">
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-8 w-64 mb-2" />
-          <Skeleton className="h-4 w-full" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">Loading tests...</p>
+        </div>
+      </div>
     </div>
   );
 

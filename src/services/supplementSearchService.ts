@@ -14,8 +14,8 @@ export interface SupplementSearchResult {
   image?: string;
   dosage?: string;
   ingredients?: string;
-  nutrientLevels?: Record<string, any>;
-  nutriments?: Record<string, any>;
+  nutrientLevels?: Record<string, unknown>;
+  nutriments?: Record<string, unknown>;
   formulation_type?: string;
   certification?: string;
 }
@@ -34,8 +34,8 @@ interface OpenFoodFactsResponse {
     image_url?: string;
     quantity?: string;
     ingredients_text?: string;
-    nutrient_levels?: Record<string, any>;
-    nutriments?: Record<string, any>;
+    nutrient_levels?: Record<string, unknown>;
+    nutriments?: Record<string, unknown>;
     packaging?: string;
     labels?: string;
     manufacturing_places?: string;

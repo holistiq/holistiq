@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useCallback } from 'react';
 import { SessionTimeoutWarning } from './SessionTimeoutWarning';
 import { SessionExpiredModal } from './SessionExpiredModal';
 import { useToast, sessionRecoveryToast } from '@/hooks/use-toast';
@@ -6,7 +6,7 @@ import { useAuthNavigation } from '@/hooks/useAuthNavigation';
 import { prefetchService } from '@/services/prefetchService';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { getDirectSessionFromStorage, extractUserFromSession } from '@/utils/sessionUtils';
+import { getDirectSessionFromStorage, extractUserFromSession, SupabaseSession } from '@/utils/sessionUtils';
 
 interface SessionProviderProps {
   children: ReactNode;
@@ -30,11 +30,36 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
   useAuthNavigation();
 
   /**
+   * Attempts to get the current session as a last resort
+   * @returns True if a valid session was found
+   */
+  const tryGetCurrentSession = useCallback(async (): Promise<boolean> => {
+    try {
+      console.log("Attempting to get a new session...");
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (sessionData?.session) {
+        console.log("Successfully retrieved current session");
+
+        // Show session recovery toast notification
+        sessionRecoveryToast();
+        return true;
+      }
+
+      console.log("No current session found");
+      return false;
+    } catch (getSessionError) {
+      console.error("Error getting current session:", getSessionError);
+      return false;
+    }
+  }, []);
+
+  /**
    * Attempts to set a session using tokens from a direct session
    * @param directSession The session retrieved directly from storage
    * @returns True if session was successfully set
    */
-  const trySetSessionFromDirectTokens = async (directSession: any): Promise<boolean> => {
+  const trySetSessionFromDirectTokens = useCallback(async (directSession: SupabaseSession): Promise<boolean> => {
     if (!directSession.access_token) {
       console.log("No access token in direct session");
       return false;
@@ -51,8 +76,11 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
         ...(directSession.refresh_token && { refresh_token: directSession.refresh_token })
       };
 
-      // Use type assertion to handle the optional refresh_token
-      const { data, error } = await supabase.auth.setSession(sessionData as any);
+      // Use proper typing for the session data
+      const { data, error } = await supabase.auth.setSession({
+        access_token: sessionData.access_token,
+        refresh_token: sessionData.refresh_token || ''
+      });
 
       if (error) {
         console.error("Error setting session from direct tokens:", error);
@@ -77,32 +105,7 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
       console.error("Error setting session from direct tokens:", setSessionError);
       return false;
     }
-  };
-
-  /**
-   * Attempts to get the current session as a last resort
-   * @returns True if a valid session was found
-   */
-  const tryGetCurrentSession = async (): Promise<boolean> => {
-    try {
-      console.log("Attempting to get a new session...");
-      const { data: sessionData } = await supabase.auth.getSession();
-
-      if (sessionData?.session) {
-        console.log("Successfully retrieved current session");
-
-        // Show session recovery toast notification
-        sessionRecoveryToast();
-        return true;
-      }
-
-      console.log("No current session found");
-      return false;
-    } catch (getSessionError) {
-      console.error("Error getting current session:", getSessionError);
-      return false;
-    }
-  };
+  }, [tryGetCurrentSession]);
 
   // Initialize session manager and perform fallback session check
   useEffect(() => {
@@ -137,7 +140,7 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
     };
 
     initializeWithFallback();
-  }, [user, toast]);
+  }, [user, toast, trySetSessionFromDirectTokens, tryGetCurrentSession]);
 
   // Prefetch data when user is authenticated
   useEffect(() => {

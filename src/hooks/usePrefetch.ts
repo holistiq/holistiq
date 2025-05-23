@@ -5,6 +5,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { prefetchService, PrefetchConfig, DEFAULT_PREFETCH_CONFIG } from '@/services/prefetchService';
 import { useSupabaseAuth } from './useSupabaseAuth';
 
+// Define PrefetchMetrics interface based on the one in prefetchService
+interface PrefetchMetrics {
+  startTime: number;
+  endTime: number | null;
+  totalItems: number;
+  successfulItems: number;
+  failedItems: number;
+  itemMetrics: Record<string, {
+    startTime: number;
+    endTime: number | null;
+    success: boolean;
+    error?: string;
+  }>;
+}
+
 interface UsePrefetchOptions {
   // Whether to enable prefetching
   enabled?: boolean;
@@ -18,7 +33,7 @@ interface UsePrefetchResult {
   isPrefetching: boolean;
 
   // Prefetching metrics
-  metrics: any;
+  metrics: PrefetchMetrics;
 
   // Current prefetch configuration
   config: PrefetchConfig;
@@ -38,7 +53,14 @@ interface UsePrefetchResult {
 export function usePrefetch(options: UsePrefetchOptions = {}): UsePrefetchResult {
   const { user } = useSupabaseAuth();
   const [isPrefetching, setIsPrefetching] = useState(false);
-  const [metrics, setMetrics] = useState<any>({});
+  const [metrics, setMetrics] = useState<PrefetchMetrics>({
+    startTime: 0,
+    endTime: null,
+    totalItems: 0,
+    successfulItems: 0,
+    failedItems: 0,
+    itemMetrics: {}
+  });
   const [config, setConfig] = useState<PrefetchConfig>({
     ...DEFAULT_PREFETCH_CONFIG,
     ...options.config,

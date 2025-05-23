@@ -13,9 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Settings, LogOut } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface UserNavProps {
-  user: any;
+  readonly user: SupabaseUser;
 }
 
 /**

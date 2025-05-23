@@ -26,6 +26,12 @@ export enum SyncMessageType {
   LOCK_RELEASED = 'lock_released'
 }
 
+// Metadata type for sync messages
+export type SyncMetadataValue = string | number | boolean | null | undefined;
+export interface SyncMetadata {
+  [key: string]: SyncMetadataValue | SyncMetadataValue[] | Record<string, SyncMetadataValue>;
+}
+
 // Sync message structure
 export interface SyncMessage {
   type: SyncMessageType;
@@ -34,7 +40,7 @@ export interface SyncMessage {
   timestamp: number;
   tabId: string;
   version: string;
-  metadata?: Record<string, any>;
+  metadata?: SyncMetadata;
 }
 
 // Sync configuration
@@ -83,15 +89,15 @@ export type SyncEventListener = (message: SyncMessage) => void;
 export class CacheSyncManager {
   private config: SyncConfig;
   private metrics: SyncMetrics;
-  private tabId: string;
+  private readonly tabId: string;
   private isInitialized: boolean = false;
   private syncInProgress: boolean = false;
   private heartbeatIntervalId: number | null = null;
   private lockTimeoutId: number | null = null;
-  private eventListeners: Map<SyncMessageType, SyncEventListener[]> = new Map();
-  private activeTabs: Set<string> = new Set();
+  private readonly eventListeners: Map<SyncMessageType, SyncEventListener[]> = new Map();
+  private readonly activeTabs: Set<string> = new Set();
   private lockOwner: string | null = null;
-  private lockQueue: Array<{ resolve: (value: boolean) => void, reject: (reason: any) => void }> = [];
+  private readonly lockQueue: Array<{ resolve: (value: boolean) => void, reject: (reason: Error) => void }> = [];
 
   /**
    * Create a new CacheSyncManager
@@ -199,7 +205,10 @@ export class CacheSyncManager {
     if (!this.eventListeners.has(type)) {
       this.eventListeners.set(type, []);
     }
-    this.eventListeners.get(type)!.push(listener);
+    const listeners = this.eventListeners.get(type);
+    if (listeners) {
+      listeners.push(listener);
+    }
   }
 
   /**
@@ -210,10 +219,12 @@ export class CacheSyncManager {
   removeEventListener(type: SyncMessageType, listener: SyncEventListener): void {
     if (!this.eventListeners.has(type)) return;
 
-    const listeners = this.eventListeners.get(type)!;
-    const index = listeners.indexOf(listener);
-    if (index !== -1) {
-      listeners.splice(index, 1);
+    const listeners = this.eventListeners.get(type);
+    if (listeners) {
+      const index = listeners.indexOf(listener);
+      if (index !== -1) {
+        listeners.splice(index, 1);
+      }
     }
   }
 
@@ -222,7 +233,7 @@ export class CacheSyncManager {
    * @param key The cache key that was updated
    * @param metadata Additional metadata about the update
    */
-  broadcastUpdate(key: string, metadata?: Record<string, any>): void {
+  broadcastUpdate(key: string, metadata?: SyncMetadata): void {
     if (!this.config.enabled || !this.isInitialized) return;
 
     this.broadcastMessage({
@@ -240,7 +251,7 @@ export class CacheSyncManager {
    * @param key The cache key that was deleted
    * @param metadata Additional metadata about the deletion
    */
-  broadcastDelete(key: string, metadata?: Record<string, any>): void {
+  broadcastDelete(key: string, metadata?: SyncMetadata): void {
     if (!this.config.enabled || !this.isInitialized) return;
 
     this.broadcastMessage({
@@ -257,7 +268,7 @@ export class CacheSyncManager {
    * Broadcast a cache clear to other tabs
    * @param metadata Additional metadata about the clear
    */
-  broadcastClear(metadata?: Record<string, any>): void {
+  broadcastClear(metadata?: SyncMetadata): void {
     if (!this.config.enabled || !this.isInitialized) return;
 
     this.broadcastMessage({
@@ -274,7 +285,7 @@ export class CacheSyncManager {
    * @param keys The cache keys that were updated
    * @param metadata Additional metadata about the updates
    */
-  broadcastBulkUpdate(keys: string[], metadata?: Record<string, any>): void {
+  broadcastBulkUpdate(keys: string[], metadata?: SyncMetadata): void {
     if (!this.config.enabled || !this.isInitialized || keys.length === 0) return;
 
     this.broadcastMessage({
@@ -292,7 +303,7 @@ export class CacheSyncManager {
    * @param keys The cache keys that were deleted
    * @param metadata Additional metadata about the deletions
    */
-  broadcastBulkDelete(keys: string[], metadata?: Record<string, any>): void {
+  broadcastBulkDelete(keys: string[], metadata?: SyncMetadata): void {
     if (!this.config.enabled || !this.isInitialized || keys.length === 0) return;
 
     this.broadcastMessage({
@@ -449,8 +460,11 @@ export class CacheSyncManager {
 
       // Process next item in queue
       if (this.lockQueue.length > 0) {
-        const { resolve } = this.lockQueue.shift()!;
-        this.acquireLock().then(resolve);
+        const nextItem = this.lockQueue.shift();
+        if (nextItem) {
+          const { resolve } = nextItem;
+          this.acquireLock().then(resolve);
+        }
       }
 
       return true;
@@ -520,7 +534,7 @@ export class CacheSyncManager {
   /**
    * Handle beforeunload event
    */
-  private handleBeforeUnload = (): void => {
+  private readonly handleBeforeUnload = (): void => {
     // Release lock if we own it
     if (this.lockOwner === this.tabId) {
       this.releaseLock();
@@ -530,7 +544,7 @@ export class CacheSyncManager {
   /**
    * Handle storage events from other tabs
    */
-  private handleStorageEvent = (event: StorageEvent): void => {
+  private readonly handleStorageEvent = (event: StorageEvent): void => {
     if (!event.key || !event.newValue) return;
 
     // Handle sync events
@@ -572,7 +586,10 @@ export class CacheSyncManager {
   private notifyListeners(message: SyncMessage): void {
     if (!this.eventListeners.has(message.type)) return;
 
-    for (const listener of this.eventListeners.get(message.type)!) {
+    const listeners = this.eventListeners.get(message.type);
+    if (!listeners) return;
+
+    for (const listener of listeners) {
       try {
         listener(message);
       } catch (error) {

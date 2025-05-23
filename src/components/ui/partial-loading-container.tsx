@@ -1,11 +1,15 @@
 /**
  * Component for handling partial loading states
  */
-import React from 'react';
+import React, { memo } from 'react';
 import { cn } from '@/lib/utils';
 import { LoadingStatus } from '@/hooks/useLoadingState';
 import { LoadingIndicator } from './loading-indicator';
 import { Skeleton } from './skeleton';
+import { createLogger } from '@/lib/logger';
+
+// Create a logger for the PartialLoadingContainer component
+const logger = createLogger({ namespace: 'PartialLoadingContainer' });
 
 /**
  * Props for the PartialLoadingContainer component
@@ -53,21 +57,21 @@ interface PartialLoadingContainerProps {
 
 /**
  * Component for handling partial loading states
- * 
+ *
  * This component handles different loading states and displays appropriate UI:
  * - Shows a loading indicator when loading and no data is available
  * - Shows children with an optional loading indicator when loading and data is available
  * - Shows an empty state when no data is available and not loading
  * - Shows an error state when an error occurs
- * 
+ *
  * @example
  * ```tsx
  * const { status, data, error, execute } = useLoadingState<User[]>();
- * 
+ *
  * useEffect(() => {
  *   execute(fetchUsers());
  * }, [execute]);
- * 
+ *
  * return (
  *   <PartialLoadingContainer
  *     status={status}
@@ -83,7 +87,7 @@ interface PartialLoadingContainerProps {
  * );
  * ```
  */
-export function PartialLoadingContainer({
+export const PartialLoadingContainer = memo(function PartialLoadingContainer({
   status,
   hasData,
   loadingMessage = 'Loading...',
@@ -106,7 +110,7 @@ export function PartialLoadingContainer({
 }: Readonly<PartialLoadingContainerProps>): JSX.Element {
   // Convert height to string with px if it's a number
   const heightStyle = typeof height === 'number' ? `${height}px` : height;
-  
+
   // Loading state with no data
   if (status === LoadingStatus.LOADING && !hasData) {
     return (
@@ -132,7 +136,7 @@ export function PartialLoadingContainer({
       </div>
     );
   }
-  
+
   // Error state
   if (status === LoadingStatus.ERROR) {
     return (
@@ -157,7 +161,7 @@ export function PartialLoadingContainer({
       </div>
     );
   }
-  
+
   // Timeout state
   if (status === LoadingStatus.TIMEOUT) {
     return (
@@ -180,7 +184,7 @@ export function PartialLoadingContainer({
       </div>
     );
   }
-  
+
   // Empty state (no data and not loading)
   if (!hasData && status !== LoadingStatus.LOADING) {
     return (
@@ -197,12 +201,12 @@ export function PartialLoadingContainer({
       </div>
     );
   }
-  
+
   // Data is available, render children
   return (
     <div className={className} id={id} data-testid={testId}>
       {children}
-      
+
       {/* Show loading indicator on top of content if loading and showLoadingWithData is true */}
       {status === LoadingStatus.LOADING && showLoadingWithData && (
         <div className="mt-2">
@@ -218,4 +222,4 @@ export function PartialLoadingContainer({
       )}
     </div>
   );
-}
+});

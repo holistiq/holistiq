@@ -1,8 +1,9 @@
 /**
  * Component for controlling and monitoring cache synchronization
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { cache, DEFAULT_CACHE_CONFIG } from '@/lib/cache';
+import { SyncMetrics } from '@/lib/cacheSyncManager';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -34,7 +35,7 @@ export function CacheSyncControl({
 }: CacheSyncControlProps) {
   const [syncEnabled, setSyncEnabled] = useState(cache.isSyncEnabled());
   const [activeTabCount, setActiveTabCount] = useState(cache.getActiveTabCount());
-  const [metrics, setMetrics] = useState<any>(cache.getSyncMetrics());
+  const [metrics, setMetrics] = useState<SyncMetrics>(cache.getSyncMetrics());
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [logLevel, setLogLevel] = useState(DEFAULT_CACHE_CONFIG.logLevel);
   const [resolveConflicts, setResolveConflicts] = useState(DEFAULT_CACHE_CONFIG.resolveConflicts);

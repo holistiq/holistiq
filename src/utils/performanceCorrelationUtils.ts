@@ -97,7 +97,7 @@ export function generatePeriods(
       const startDate = new Date(supplement.intake_time);
 
       // Determine end date based on frequency
-      let endDate: Date | null = new Date(startDate);
+      const endDate: Date | null = new Date(startDate);
 
       if (supplement.frequency === 'daily') {
         endDate.setDate(endDate.getDate() + 1);

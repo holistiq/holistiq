@@ -6,14 +6,13 @@
 
 /**
  * Achievement categories
+ *
+ * Simplified to focus on core user behaviors for MVP
  */
 export enum AchievementCategory {
-  TEST_COMPLETION = 'test_completion',
-  TEST_CONSISTENCY = 'test_consistency',
-  SUPPLEMENT_TRACKING = 'supplement_tracking',
-  SUPPLEMENT_EVALUATION = 'supplement_evaluation',
-  DATA_QUALITY = 'data_quality',
-  ACCOUNT = 'account'
+  TESTING = 'testing',
+  SUPPLEMENTS = 'supplements',
+  ENGAGEMENT = 'engagement'
 }
 
 /**
@@ -48,7 +47,7 @@ export interface Achievement {
   readonly requiredCount: number;
   readonly points: number;
   readonly trigger: AchievementTrigger;
-  readonly metadata?: Record<string, any>;
+  readonly metadata?: Record<string, unknown>;
   readonly secret?: boolean;
 }
 
@@ -103,31 +102,36 @@ export interface AchievementProgressUpdate {
 
 /**
  * Achievement trigger types
+ *
+ * Comprehensive triggers for MVP core behaviors
  */
 export enum AchievementTrigger {
-  // Test related triggers
+  // Testing triggers
   TEST_COMPLETED = 'test_completed',
+  TESTS_COMPLETED = 'tests_completed',
   BASELINE_COMPLETED = 'baseline_completed',
   DAILY_STREAK = 'daily_streak',
   WEEKLY_STREAK = 'weekly_streak',
   CONSISTENT_TIME_OF_DAY = 'consistent_time_of_day',
+  TEST_PERFECT_SCORE = 'test_perfect_score',
 
-  // Supplement related triggers
+  // Supplement triggers
   SUPPLEMENT_LOGGED = 'supplement_logged',
+  SUPPLEMENTS_LOGGED = 'supplements_logged',
   SUPPLEMENT_LOGGED_WITH_NOTES = 'supplement_logged_with_notes',
   SUPPLEMENT_CYCLE_COMPLETED = 'supplement_cycle_completed',
   SUPPLEMENT_EVALUATION_COMPLETED = 'supplement_evaluation_completed',
-
-  // Data quality triggers
-  DETAILED_NOTES_ADDED = 'detailed_notes_added',
-  CONFOUNDING_FACTORS_LOGGED = 'confounding_factors_logged',
   COMPLETE_SUPPLEMENT_DATA = 'complete_supplement_data',
 
-  // Social sharing triggers
-  RESULT_SHARED = 'result_shared',
-
-  // Account related triggers
-  PROFILE_COMPLETED = 'profile_completed'
+  // Engagement triggers
+  DAILY_LOGIN = 'daily_login',
+  PROFILE_COMPLETED = 'profile_completed',
+  ACCOUNT_CREATED = 'account_created',
+  EXPLORE_APP = 'explore_app',
+  LOGIN_STREAK = 'login_streak',
+  CONFOUNDING_FACTORS_LOGGED = 'confounding_factors_logged',
+  DETAILED_NOTES_ADDED = 'detailed_notes_added',
+  FACTOR_VARIETY = 'factor_variety'
 }
 
 /**
@@ -136,7 +140,7 @@ export enum AchievementTrigger {
 export interface AchievementTriggerData {
   readonly trigger: AchievementTrigger;
   readonly userId: string;
-  readonly metadata?: Record<string, any>;
+  readonly metadata?: Record<string, unknown>;
 }
 
 /**

@@ -5,7 +5,7 @@ import { NBackTestResult } from "@/components/tests/NBackTest";
 import { ReactionTimeTestResult } from "@/components/tests/ReactionTimeTest";
 import { ConfoundingFactorsPrompt } from "@/components/confoundingFactors/ConfoundingFactorsPrompt";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { triggerAchievement, processConfoundingFactors } from "@/services/achievementService";
+import { processAchievementTrigger } from "@/services/achievementService";
 import { AchievementTrigger } from "@/types/achievement";
 import { linkTestWithConfoundingFactors } from "@/services/testResultService";
 import { trackSocialShare } from "@/services/socialShareService";
@@ -78,18 +78,21 @@ export function TestCompletionFlow({
           if (result.success) {
             console.log('Successfully linked test with confounding factor');
 
-            // Process confounding factors achievements
-            processConfoundingFactors(user.id, testId, true);
-
             // Trigger achievement for logging confounding factors
-            triggerAchievement(AchievementTrigger.CONFOUNDING_FACTOR_LOGGED);
+            processAchievementTrigger({
+              trigger: AchievementTrigger.TEST_COMPLETED,
+              userId: user.id
+            });
           } else {
             console.error('Error linking test with confounding factor:', result.error);
           }
         });
     } else if (user) {
       // Just trigger the achievement if we don't have a test ID
-      triggerAchievement(AchievementTrigger.CONFOUNDING_FACTOR_LOGGED);
+      processAchievementTrigger({
+        trigger: AchievementTrigger.TEST_COMPLETED,
+        userId: user.id
+      });
     }
 
     // Return to results view

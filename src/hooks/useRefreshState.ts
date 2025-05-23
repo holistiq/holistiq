@@ -1,4 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { createLogger } from '@/lib/logger';
+
+// Create a logger for the useRefreshState hook
+const logger = createLogger({ namespace: 'useRefreshState' });
 
 interface RefreshState {
   /** Whether a refresh operation is in progress */
@@ -42,16 +46,60 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
     startTime: 0
   });
 
-  // Debug logging helper
-  const log = useCallback((message: string, data?: any) => {
-    if (debug && process.env.NODE_ENV === 'development') {
-      if (data) {
-        console.log(`[useRefreshState] ${message}`, data);
-      } else {
-        console.log(`[useRefreshState] ${message}`);
-      }
+  // Debug logging helper - use our centralized logger
+  const log = useCallback((message: string, data?: unknown) => {
+    if (debug) {
+      logger.debug(message, data);
     }
   }, [debug]);
+
+  // Complete the refresh operation
+  const completeRefresh = useCallback(() => {
+    if (!refreshRef.current.isRefreshing) return;
+
+    // Clear any existing timeout
+    if (refreshRef.current.timeoutId) {
+      window.clearTimeout(refreshRef.current.timeoutId);
+      refreshRef.current.timeoutId = null;
+    }
+
+    // Update the ref immediately
+    refreshRef.current.isRefreshing = false;
+
+    // Calculate the elapsed time
+    const elapsed = Date.now() - refreshRef.current.startTime;
+    log(`Refresh completed in ${elapsed}ms`);
+
+    // Update the state with a small delay to allow for a smooth transition
+    // Only update if the state actually needs to change to prevent unnecessary re-renders
+    setState(prev => {
+      if (!prev.isRefreshing && prev.progress === 100) return prev;
+      return {
+        ...prev,
+        isRefreshing: false,
+        progress: 100
+      };
+    });
+  }, [log]);
+
+  // Update the progress of the current refresh operation
+  const updateProgress = useCallback((progress: number) => {
+    if (!refreshRef.current.isRefreshing) return;
+
+    // Normalize the progress value
+    const normalizedProgress = Math.min(Math.max(0, progress), 100);
+
+    // Only update state if the progress has actually changed
+    setState(prev => {
+      if (prev.progress === normalizedProgress) return prev;
+      return {
+        ...prev,
+        progress: normalizedProgress
+      };
+    });
+
+    log(`Progress updated: ${normalizedProgress}%`);
+  }, [log]);
 
   // Start a refresh operation
   const startRefresh = useCallback(() => {
@@ -75,71 +123,34 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
     refreshRef.current.startTime = now;
 
     // Update the state (this will cause a re-render)
-    setState(prev => ({
-      ...prev,
+    setState({
       isRefreshing: true,
       lastRefreshTime: now,
       progress: 0
-    }));
+    });
 
-    // Set up auto-reset timeout
-    if (refreshRef.current.timeoutId) {
-      window.clearTimeout(refreshRef.current.timeoutId);
-    }
-
-    refreshRef.current.timeoutId = window.setTimeout(() => {
-      if (refreshRef.current.isRefreshing) {
-        log('Auto-reset timeout triggered');
-        completeRefresh();
-      }
-    }, autoResetTimeout);
-
-    log('Refresh started');
-    return true;
-  }, [state.lastRefreshTime, minRefreshInterval, autoResetTimeout, log]);
-
-  // Update the progress of the current refresh operation
-  const updateProgress = useCallback((progress: number) => {
-    if (!refreshRef.current.isRefreshing) return;
-
-    setState(prev => ({
-      ...prev,
-      progress: Math.min(Math.max(0, progress), 100)
-    }));
-
-    log(`Progress updated: ${progress}%`);
-  }, [log]);
-
-  // Complete the refresh operation
-  const completeRefresh = useCallback(() => {
-    if (!refreshRef.current.isRefreshing) return;
-
-    // Clear any existing timeout
+    // We're removing the auto-reset timeout to prevent automatic completion
+    // This will require explicit calls to completeRefresh from the component
+    // that started the refresh operation
     if (refreshRef.current.timeoutId) {
       window.clearTimeout(refreshRef.current.timeoutId);
       refreshRef.current.timeoutId = null;
     }
 
-    // Update the ref immediately
-    refreshRef.current.isRefreshing = false;
-
-    // Calculate the elapsed time
-    const elapsed = Date.now() - refreshRef.current.startTime;
-    log(`Refresh completed in ${elapsed}ms`);
-
-    // Update the state with a small delay to allow for a smooth transition
-    setState(prev => ({
-      ...prev,
-      isRefreshing: false,
-      progress: 100
-    }));
-  }, [log]);
+    log('Refresh started');
+    return true;
+  }, [state.lastRefreshTime, minRefreshInterval, log]);
 
   // Clean up on unmount
   useEffect(() => {
+    // Capture the ref object inside the effect to avoid issues with it changing
+    const refreshRefValue = refreshRef;
+
     return () => {
-      if (refreshRef.current.timeoutId) {
-        window.clearTimeout(refreshRef.current.timeoutId);
+      // Use the captured ref value in the cleanup function
+      const timeoutId = refreshRefValue.current.timeoutId;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
       }
     };
   }, []);

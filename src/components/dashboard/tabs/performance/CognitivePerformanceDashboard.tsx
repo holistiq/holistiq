@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Pill, Activity } from 'lucide-react';
 import { TestResult } from '@/lib/testResultUtils';
@@ -13,6 +13,11 @@ import { ConfoundingFactorsAnalysisTab } from './ConfoundingFactorsAnalysisTab';
 import { usePerformanceData } from '@/hooks/usePerformanceData';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters';
 import { LoadingStatus } from '@/hooks/useLoadingState';
+import { createLogger } from '@/lib/logger';
+import { RenderProfiler } from '@/components/debug/RenderProfiler';
+
+// Create a logger for the CognitivePerformanceDashboard component
+const logger = createLogger({ namespace: 'CognitivePerformanceDashboard' });
 
 /**
  * Props for the CognitivePerformanceDashboard component
@@ -31,7 +36,7 @@ interface CognitivePerformanceDashboardProps {
  * Main dashboard component for visualizing cognitive performance data
  * Shows performance metrics, supplement analysis, and confounding factors analysis
  */
-export function CognitivePerformanceDashboard({
+export const CognitivePerformanceDashboard = memo(function CognitivePerformanceDashboard({
   testResults,
   supplements,
   factors,
@@ -173,37 +178,43 @@ export function CognitivePerformanceDashboard({
 
         {/* Performance Metrics Tab */}
         <TabsContent value="metrics" className="space-y-4">
-          <PerformanceMetricsTab
-            testResults={testResults}
-            baselineResult={baselineResult}
-            isLoading={isLoading}
-            onLoadingStateChange={handleMetricsLoadingChange}
-          />
+          <RenderProfiler id="metrics-tab-content">
+            <PerformanceMetricsTab
+              testResults={testResults}
+              baselineResult={baselineResult}
+              isLoading={isLoading}
+              onLoadingStateChange={handleMetricsLoadingChange}
+            />
+          </RenderProfiler>
         </TabsContent>
 
         {/* Supplement Analysis Tab */}
         <TabsContent value="supplements" className="space-y-4">
-          <SupplementAnalysisTab
-            testResults={testResults}
-            supplements={supplements}
-            washoutPeriods={washoutPeriods}
-            periods={periods}
-            dateRange={dateRange}
-            uniqueSupplements={uniqueSupplements}
-            isLoading={isLoading}
-          />
+          <RenderProfiler id="supplements-tab-content">
+            <SupplementAnalysisTab
+              testResults={testResults}
+              supplements={supplements}
+              washoutPeriods={washoutPeriods}
+              periods={periods}
+              dateRange={dateRange}
+              uniqueSupplements={uniqueSupplements}
+              isLoading={isLoading}
+            />
+          </RenderProfiler>
         </TabsContent>
 
         {/* Confounding Factors Analysis Tab */}
         <TabsContent value="factors" className="space-y-4">
-          <ConfoundingFactorsAnalysisTab
-            testResults={testResults}
-            factors={factors}
-            dateRange={dateRange}
-            isLoading={isLoadingFactors}
-          />
+          <RenderProfiler id="factors-tab-content">
+            <ConfoundingFactorsAnalysisTab
+              testResults={testResults}
+              factors={factors}
+              dateRange={dateRange}
+              isLoading={isLoadingFactors}
+            />
+          </RenderProfiler>
         </TabsContent>
       </Tabs>
     </div>
   );
-}
+});

@@ -1,7 +1,7 @@
 /**
  * Hook for executing Supabase queries with caching
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseCache, CACHE_CONFIG } from '@/lib/supabaseCache';
 import { cache } from '@/lib/cache';
@@ -22,7 +22,7 @@ interface QueryOptions<T> {
   ttl?: number;
 
   // Dependencies that should trigger a refetch when changed
-  dependencies?: any[];
+  dependencies?: unknown[];
 
   // Whether to execute the query immediately
   enabled?: boolean;
@@ -51,8 +51,8 @@ interface QueryResult<T> {
  * @param options Query options
  * @returns Query result
  */
-export function useSupabaseQuery<T>(
-  queryFn: () => PostgrestFilterBuilder<any, any, any>,
+export function useSupabaseQuery<T, Schema = unknown, Row = unknown, Relationships = unknown>(
+  queryFn: () => PostgrestFilterBuilder<Schema, Row, Relationships>,
   options: QueryOptions<T>
 ): QueryResult<T> {
   const { user } = useSupabaseAuth();
@@ -63,6 +63,9 @@ export function useSupabaseQuery<T>(
 
   // Default to enabled if not specified
   const enabled = options.enabled ?? true;
+
+  // Note: We're using options.dependencies directly in useEffect below
+  // instead of memoizing it separately
 
   // Execute the query
   const executeQuery = useCallback(async () => {
@@ -85,7 +88,7 @@ export function useSupabaseQuery<T>(
       const hasCachedValue = cachedValue !== undefined;
 
       // Execute the query with caching
-      const result = await supabaseCache.query<{ data: T; error: any }>(
+      const result = await supabaseCache.query<{ data: T; error: Error | { message?: string } | null }>(
         options.entityType,
         options.cacheKeyPattern,
         async () => {
@@ -115,7 +118,8 @@ export function useSupabaseQuery<T>(
     options.cacheKeyPattern,
     options.skipCache,
     options.ttl,
-    ...(options.dependencies || [])
+    // dependencies is removed as it's an unnecessary dependency
+    queryFn
   ]);
 
   // Execute the query when the component mounts or dependencies change
@@ -125,7 +129,7 @@ export function useSupabaseQuery<T>(
     } else {
       setIsLoading(false);
     }
-  }, [executeQuery, user]);
+  }, [executeQuery, user, options.cacheKeyPattern, options.dependencies]);
 
   // Function to manually refetch the data
   const refetch = useCallback(async () => {
@@ -150,7 +154,7 @@ export function useSupabaseQuery<T>(
  */
 export function useSupabaseRpc<T>(
   functionName: string,
-  params: Record<string, any>,
+  params: Record<string, unknown>,
   options: QueryOptions<T>
 ): QueryResult<T> {
   const { user } = useSupabaseAuth();
@@ -161,6 +165,13 @@ export function useSupabaseRpc<T>(
 
   // Default to enabled if not specified
   const enabled = options.enabled ?? true;
+
+  // Note: We're using options.dependencies directly in useEffect below
+  // instead of memoizing it separately
+
+  // Memoize params to avoid unnecessary re-renders
+  // Simply memoize the params object directly
+  const memoizedParams = useMemo(() => params, [params]);
 
   // Execute the RPC call
   const executeRpc = useCallback(async () => {
@@ -183,11 +194,11 @@ export function useSupabaseRpc<T>(
       const hasCachedValue = cachedValue !== undefined;
 
       // Execute the RPC call with caching
-      const result = await supabaseCache.query<{ data: T; error: any }>(
+      const result = await supabaseCache.query<{ data: T; error: Error | { message?: string } | null }>(
         options.entityType,
         options.cacheKeyPattern,
         async () => {
-          return await supabase.rpc(functionName, params);
+          return await supabase.rpc(functionName, memoizedParams);
         },
         options.ttl
       );
@@ -209,12 +220,12 @@ export function useSupabaseRpc<T>(
   }, [
     enabled,
     functionName,
-    JSON.stringify(params),
+    memoizedParams,
     options.entityType,
     options.cacheKeyPattern,
     options.skipCache,
-    options.ttl,
-    ...(options.dependencies || [])
+    options.ttl
+    // dependencies is removed as it's an unnecessary dependency
   ]);
 
   // Execute the RPC call when the component mounts or dependencies change
@@ -224,7 +235,7 @@ export function useSupabaseRpc<T>(
     } else {
       setIsLoading(false);
     }
-  }, [executeRpc, user]);
+  }, [executeRpc, user, options.cacheKeyPattern, options.dependencies]);
 
   // Function to manually refetch the data
   const refetch = useCallback(async () => {

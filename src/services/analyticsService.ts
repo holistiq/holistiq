@@ -244,7 +244,7 @@ export async function convertAnalyticsToStatisticalAnalyses(
         typeCount[selectedType]++;
 
         // Remove this item from processedAnalytics to avoid reusing it
-        processedAnalytics[index] = null as any;
+        processedAnalytics[index] = null;
       });
 
       // Second pass: distribute remaining items

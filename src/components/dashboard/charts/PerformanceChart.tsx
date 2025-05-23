@@ -4,11 +4,8 @@
  * A flexible chart component that displays cognitive performance metrics
  * with support for multiple visualization modes.
  */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// The above line disables unused variable warnings for this file
-// This is needed because we're temporarily disabling the annotation feature
-// but want to preserve the code for future implementation
-import { useState } from 'react';
+// Note: Annotation feature is temporarily disabled but code is preserved for future implementation
+import { useState, useMemo, memo } from 'react';
 import { TestResult } from '@/lib/testResultUtils';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -36,6 +33,11 @@ import { Annotation } from './components/ChartAnnotation';
 import { ComprehensiveChartRenderer } from './components/ComprehensiveChartRenderer';
 import { SingleMetricChartRenderer } from './components/SingleMetricChartRenderer';
 import { calculateMATrendData } from './utils/chartHelpers';
+import { ProcessedChartData } from './types/chartTypes';
+import { createLogger } from '@/lib/logger';
+
+// Create a logger for the PerformanceChart component
+const logger = createLogger({ namespace: 'PerformanceChart' });
 
 /**
  * Props for the PerformanceChart component
@@ -90,7 +92,7 @@ export interface PerformanceChartProps {
  * A flexible chart component that can display cognitive performance metrics
  * in different modes and configurations.
  */
-export function PerformanceChart({
+export const PerformanceChart = memo(function PerformanceChart({
   // Data inputs
   testResults,
   baselineResult = null,
@@ -160,7 +162,7 @@ export function PerformanceChart({
     }
   };
 
-  // Process chart data and calculate derived values
+  // Process chart data and calculate derived values - memoized to prevent unnecessary recalculations
   const {
     processedData,
     trendData,
@@ -172,7 +174,7 @@ export function PerformanceChart({
     chartId,
     chartTitle,
     chartDescription
-  } = processChartDataAndDeriveValues({
+  } = useMemo(() => processChartDataAndDeriveValues({
     testResults,
     baselineResult,
     effectiveTimeRange,
@@ -180,7 +182,15 @@ export function PerformanceChart({
     mode,
     dataKey,
     title
-  });
+  }), [
+    testResults,
+    baselineResult,
+    effectiveTimeRange,
+    effectiveShowMA,
+    mode,
+    dataKey,
+    title
+  ]);
 
   // Render loading state
   if (isLoading) {
@@ -255,8 +265,8 @@ function processChartDataAndDeriveValues({
   // Calculate min/max values for better axis scaling - non-memoized
   const dataStats = calculateDataStats(processedData.chartData);
 
-  // Generate a unique ID for accessibility - non-memoized
-  const chartId = `chart-${mode}-${dataKey || 'performance'}-${Math.random().toString(36).substring(2, 9)}`;
+  // Generate a stable ID for accessibility - using a deterministic approach
+  const chartId = `chart-${mode}-${dataKey || 'performance'}-${testResults.length}`;
 
   // Generate a title for the chart - non-memoized
   let chartTitle = title || 'Performance Trend';
@@ -282,8 +292,8 @@ function processChartDataAndDeriveValues({
 
       chartDescription += ` Contains ${data.length} data points from ${startDate} to ${endDate}.`;
     } catch (error) {
-      // Keep console.error for actual errors, but make it more informative
-      console.error('Error formatting dates for chart description:', error);
+      // Use our logger for errors
+      logger.error('Error formatting dates for chart description:', error);
       chartDescription += ` Contains ${processedData.finalChartData.length} data points.`;
     }
   }
@@ -304,6 +314,8 @@ function processChartDataAndDeriveValues({
 
   // Render the chart content based on the mode
   const chartContent = mode === 'single' ? renderSingleMetricChart() : renderComprehensiveChart();
+
+
 
   // Render the complete chart with legend and additional components
   return (
@@ -351,9 +363,13 @@ function processChartDataAndDeriveValues({
 
   // Render a comprehensive chart with all metrics
   function renderComprehensiveChart() {
+    // Type assertion to match the expected type in ComprehensiveChartRenderer
+    // Using double assertion through unknown to safely convert between similar but incompatible types
+    const typedProcessedData = processedData as unknown as ProcessedChartData;
+
     return (
       <ComprehensiveChartRenderer
-        processedData={processedData}
+        processedData={typedProcessedData}
         chartId={chartId}
         chartTitle={chartTitle}
         chartDescription={chartDescription}
@@ -385,9 +401,13 @@ function processChartDataAndDeriveValues({
 
   // Render a single metric chart
   function renderSingleMetricChart() {
+    // Type assertion to match the expected type in SingleMetricChartRenderer
+    // Using double assertion through unknown to safely convert between similar but incompatible types
+    const typedProcessedData = processedData as unknown as ProcessedChartData;
+
     return (
       <SingleMetricChartRenderer
-        processedData={processedData}
+        processedData={typedProcessedData}
         chartId={chartId}
         chartTitle={chartTitle}
         chartDescription={chartDescription}
@@ -406,4 +426,4 @@ function processChartDataAndDeriveValues({
       />
     );
   }
-}
+});

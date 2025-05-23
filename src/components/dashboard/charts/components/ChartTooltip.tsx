@@ -6,7 +6,7 @@
 import { format } from 'date-fns';
 import { debugError } from '@/utils/debugUtils';
 
-interface TooltipProps {
+export interface TooltipProps {
   readonly active?: boolean;
   readonly payload?: Array<{
     name: string;

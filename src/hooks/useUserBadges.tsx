@@ -9,7 +9,8 @@ import {
   getUserBadges,
   addUserBadge,
   removeUserBadge,
-  updateBadgeOrder
+  updateBadgeOrder,
+  invalidateUserBadgesCache
 } from '@/services/badgeService';
 import { useSupabaseAuth } from './useSupabaseAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -193,6 +194,7 @@ export function useUserBadges() {
   const isFetchingRef = React.useRef(false);
 
   // Fetch user badges
+  // IMPORTANT: Removed 'badges' from dependency array to prevent circular dependency
   const fetchBadges = useCallback(async (): Promise<BadgeOperationResult<UserBadgeWithDetails[]>> => {
     // If no user, return empty array
     if (!user) {
@@ -204,6 +206,7 @@ export function useUserBadges() {
 
     // Prevent duplicate fetches
     if (isFetchingRef.current) {
+      // Return current badges without triggering a re-render
       return { success: true, data: badges };
     }
 
@@ -215,7 +218,19 @@ export function useUserBadges() {
       const response = await getUserBadges(user.id);
 
       if (response.success && response.data) {
-        setBadges(response.data);
+        // Only update state if the data has actually changed
+        // This prevents unnecessary re-renders
+        const newBadges = response.data;
+        setBadges(prevBadges => {
+          // Check if the badges have actually changed
+          if (prevBadges.length === newBadges.length &&
+              JSON.stringify(prevBadges.map(b => b.id).sort()) ===
+              JSON.stringify(newBadges.map(b => b.id).sort())) {
+            return prevBadges; // Return the same reference to prevent re-render
+          }
+          return newBadges; // Only update if changed
+        });
+
         setLoading(false);
         return { success: true, data: response.data };
       } else if (response.error) {
@@ -306,7 +321,7 @@ export function useUserBadges() {
       logError('adding badge', error, errorInfo);
       return { success: false, error: errorInfo };
     }
-  }, [user, fetchBadges, showErrorToast, logError]);
+  }, [user, fetchBadges, showErrorToast, logError, toast]);
 
   // Remove a badge
   const removeBadge = useCallback(async (badgeId: string): Promise<BadgeOperationResult> => {
@@ -369,7 +384,7 @@ export function useUserBadges() {
       logError('removing badge', error, errorInfo);
       return { success: false, error: errorInfo };
     }
-  }, [user, fetchBadges, showErrorToast, logError]);
+  }, [user, fetchBadges, showErrorToast, logError, toast]);
 
   // Update badge order
   const updateOrder = useCallback(async (badgeId: string, newOrder: number): Promise<BadgeOperationResult> => {
@@ -458,23 +473,42 @@ export function useUserBadges() {
     setError(null);
   }, []);
 
-  // Refresh badges - with shorter debounce to prevent multiple rapid calls
+  // Refresh badges - with debounce to prevent multiple rapid calls
   const refreshTimeoutRef = React.useRef<number | null>(null);
+  // Track the last refresh time to prevent too frequent refreshes
+  const lastRefreshTimeRef = React.useRef<number>(0);
+  // Minimum time between refreshes (500ms)
+  const MIN_REFRESH_INTERVAL = 500;
 
   const refreshBadges = useCallback(async () => {
+    // Check if we've refreshed recently
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastRefreshTimeRef.current;
+
+    // If we've refreshed too recently and a fetch is already in progress, skip this refresh
+    if (timeSinceLastRefresh < MIN_REFRESH_INTERVAL && isFetchingRef.current) {
+      return;
+    }
+
     // Clear any existing timeout
     if (refreshTimeoutRef.current !== null) {
       window.clearTimeout(refreshTimeoutRef.current);
     }
 
-    // Set a new timeout with shorter debounce
+    // Set a new timeout with debounce
     refreshTimeoutRef.current = window.setTimeout(async () => {
-      // Force a refresh by setting isFetchingRef to false first
-      isFetchingRef.current = false;
-      await fetchBadges();
+      // Only refresh if we're not already fetching
+      if (!isFetchingRef.current && user) {
+        // Invalidate cache before refreshing
+        invalidateUserBadgesCache(user.id);
+
+        // Update the last refresh time
+        lastRefreshTimeRef.current = Date.now();
+        await fetchBadges();
+      }
       refreshTimeoutRef.current = null;
-    }, 100); // 100ms debounce for faster response
-  }, [fetchBadges]);
+    }, 300); // 300ms debounce for better performance
+  }, [fetchBadges, user]);
 
   return {
     // Data

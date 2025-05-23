@@ -237,7 +237,7 @@ export default function EditSupplement() {
 
     try {
       // Format the intake time
-      let intake_time = intakeDate ? new Date(intakeDate) : new Date();
+      const intake_time = intakeDate ? new Date(intakeDate) : new Date();
 
       // If specific time is provided, update the intake time
       if (specificTime) {

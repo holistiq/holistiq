@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Moon, 
-  Activity, 
-  Coffee, 
-  Dumbbell, 
-  MapPin, 
-  Plus, 
+import {
+  Moon,
+  Activity,
+  Coffee,
+  Dumbbell,
+  MapPin,
+  Plus,
   Calendar,
   Thermometer,
   Smile,
@@ -39,15 +39,9 @@ export default function ConfoundingFactors() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
-    if (user) {
-      loadFactors();
-    }
-  }, [user]);
-
-  const loadFactors = async () => {
+  const loadFactors = useCallback(async () => {
     if (!user) return;
-    
+
     setIsLoading(true);
     try {
       const result = await getConfoundingFactors(user.id);
@@ -61,24 +55,30 @@ export default function ConfoundingFactors() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadFactors();
+    }
+  }, [user, loadFactors]);
 
   const runAnalysis = async () => {
     if (!user || factors.length < 5) return;
-    
+
     setIsAnalyzing(true);
     try {
       // Use last 30 days for analysis
       const endDate = new Date().toISOString();
       const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      
+
       const result = await analyzeConfoundingFactors(
         user.id,
         "n-back-2", // Default test type
         startDate,
         endDate
       );
-      
+
       if (result.success && result.analysis) {
         setAnalysis(result.analysis);
       } else {
@@ -93,7 +93,7 @@ export default function ConfoundingFactors() {
 
   const getFilteredFactors = () => {
     if (activeTab === "all") return factors;
-    
+
     return factors.filter(factor => {
       switch (activeTab) {
         case "sleep":
@@ -103,7 +103,7 @@ export default function ConfoundingFactors() {
         case "exercise":
           return factor.exercise_duration !== null || factor.exercise_intensity !== null;
         case "diet":
-          return factor.caffeine_intake !== null || factor.alcohol_intake !== null || 
+          return factor.caffeine_intake !== null || factor.alcohol_intake !== null ||
                  factor.water_intake !== null || (factor.meal_timing && factor.meal_timing.length > 0);
         case "environment":
           return factor.location !== null || factor.noise_level !== null || factor.temperature !== null;
@@ -364,8 +364,8 @@ export default function ConfoundingFactors() {
               <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">No factors found</h2>
               <p className="text-muted-foreground mb-6">
-                {activeTab === "all" 
-                  ? "You haven't logged any confounding factors yet." 
+                {activeTab === "all"
+                  ? "You haven't logged any confounding factors yet."
                   : `You haven't logged any ${activeTab} factors yet.`}
               </p>
               <Link to="/log-confounding-factor">

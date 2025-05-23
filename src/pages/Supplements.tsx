@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export default function Supplements() {
   }, [user, loading, navigate]);
 
   // Function to load supplements
-  const loadSupplements = async () => {
+  const loadSupplements = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -53,12 +53,12 @@ export default function Supplements() {
       } finally {
         setIsLoading(false);
       }
-    };
+    }, [user, setIsLoading, setSupplements]);
 
   // Load supplements on component mount
   useEffect(() => {
     loadSupplements();
-  }, [user]);
+  }, [user, loadSupplements]);
 
   // Render loading state
   if (loading) {

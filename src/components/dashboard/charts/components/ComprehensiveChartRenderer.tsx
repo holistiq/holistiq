@@ -1,4 +1,4 @@
-import React from 'react';
+// React is used for JSX
 import {
   LineChart,
   CartesianGrid,
@@ -10,6 +10,7 @@ import {
   YAxis
 } from 'recharts';
 import { format } from 'date-fns';
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 import { MAToggle } from './MAToggle';
 import { TimeRangeSelector } from './TimeRangeSelector';
@@ -18,16 +19,28 @@ import { InteractiveLegend } from './InteractiveLegend';
 // import { ChartAnnotations } from './AnnotationMarker';
 import { ComprehensiveChartTooltipContent } from './ChartTooltipHandlers';
 import { TimeRangeOption } from '../PerformanceChart';
-import { MetricKey } from '../utils/chartUtils';
+import { MetricKey, FormattedTestResult } from '../utils/chartUtils';
 import { createReferenceLineData } from '../utils/chartHelpers';
-import { debugError } from '@/utils/debugUtils';
+import { createLogger } from '@/lib/logger';
+import {
+  ProcessedChartData,
+  ChartConfig,
+  BaselineValues,
+  ChartTrendData,
+  MATrendData,
+  ChartDataStats,
+  ChartTooltipProps
+} from '../types/chartTypes';
+
+// Create a logger for the ComprehensiveChartRenderer component
+const logger = createLogger({ namespace: 'ComprehensiveChartRenderer' });
 
 interface ComprehensiveChartRendererProps {
-  processedData: any;
+  processedData: ProcessedChartData;
   chartId: string;
   chartTitle: string;
   chartDescription: string;
-  chartConfig: any;
+  chartConfig: ChartConfig;
   height: number | string;
   className: string;
   hideTitle: boolean;
@@ -39,19 +52,19 @@ interface ComprehensiveChartRendererProps {
   handleTimeRangeChange: (range: TimeRangeOption) => void;
   showInteractiveLegend: boolean;
   metrics: string[];
-  baselineValues: any;
+  baselineValues: BaselineValues;
   showBaselineReference: boolean;
   highlightedMetric: string | null;
   setHighlightedMetric: (metric: string | null) => void;
-  trendData: any;
-  maTrendData: any;
-  dataStats: any;
+  trendData: ChartTrendData;
+  maTrendData: MATrendData;
+  dataStats: ChartDataStats;
   // Annotation props temporarily disabled but preserved for future implementation
   // showAnnotations: boolean;
   // annotations: any[];
 }
 
-export function ComprehensiveChartRenderer({
+export const ComprehensiveChartRenderer = memo(function ComprehensiveChartRenderer({
   processedData,
   chartId,
   chartTitle,
@@ -156,7 +169,7 @@ export function ComprehensiveChartRenderer({
                   // Add an asterisk to indicate this is a spread out data point
                   return hasOriginalDate ? `${formattedDate}*` : formattedDate;
                 } catch (error) {
-                  debugError("Error formatting X-axis timestamp:", error, timestamp);
+                  logger.error("Error formatting X-axis timestamp:", error);
                   return 'Invalid';
                 }
               }}
@@ -239,7 +252,7 @@ export function ComprehensiveChartRenderer({
 
             {/* Enhanced Tooltips */}
             <Tooltip
-              content={(props) => ComprehensiveChartTooltipContent(props, maTrendData)}
+              content={(props: ChartTooltipProps) => ComprehensiveChartTooltipContent(props, maTrendData)}
             />
 
             {/* Override the default legend with an empty one */}
@@ -250,12 +263,12 @@ export function ComprehensiveChartRenderer({
               <Legend
                 content={
                   <InteractiveLegend
-                    chartConfig={chartConfig}
+                    chartConfig={chartConfig as unknown as Record<string, { label: string; color: string; yAxisId: string; }>}
                     metrics={metrics as MetricKey[]}
-                    baselineValues={baselineValues}
+                    baselineValues={baselineValues as unknown as Record<string, number | null>}
                     onHighlight={setHighlightedMetric}
                     highlightedMetric={highlightedMetric}
-                    trendData={trendData}
+                    trendData={trendData as unknown as Record<string, { direction: 'up' | 'down' | 'neutral'; percentage: number; }>}
                   />
                 }
                 verticalAlign="bottom"
@@ -269,7 +282,7 @@ export function ComprehensiveChartRenderer({
                 key="baseline-score-line"
                 yAxisId="score"
                 name={`Baseline Score: ${baselineValues.score}`}
-                data={createReferenceLineData(processedData.finalChartData, baselineValues.score)}
+                data={createReferenceLineData(processedData.finalChartData as unknown as FormattedTestResult[], baselineValues.score)}
                 dataKey="value"
                 stroke={chartConfig.score.color}
                 strokeWidth={2}
@@ -285,7 +298,7 @@ export function ComprehensiveChartRenderer({
                 key="baseline-reaction-time-line"
                 yAxisId="reactionTime"
                 name={`Baseline Reaction Time: ${baselineValues.reactionTime}ms`}
-                data={createReferenceLineData(processedData.finalChartData, baselineValues.reactionTime)}
+                data={createReferenceLineData(processedData.finalChartData as unknown as FormattedTestResult[], baselineValues.reactionTime)}
                 dataKey="value"
                 stroke={chartConfig.reactionTime.color}
                 strokeWidth={2}
@@ -301,7 +314,7 @@ export function ComprehensiveChartRenderer({
                 key="baseline-accuracy-line"
                 yAxisId="accuracy"
                 name={`Baseline Accuracy: ${baselineValues.accuracy}%`}
-                data={createReferenceLineData(processedData.finalChartData, baselineValues.accuracy)}
+                data={createReferenceLineData(processedData.finalChartData as unknown as FormattedTestResult[], baselineValues.accuracy)}
                 dataKey="value"
                 stroke={chartConfig.accuracy.color}
                 strokeWidth={2}
@@ -513,4 +526,4 @@ export function ComprehensiveChartRenderer({
       </div>
     </div>
   );
-}
+});

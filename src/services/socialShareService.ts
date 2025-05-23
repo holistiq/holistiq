@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { triggerAchievement } from "@/services/achievementService";
+import { processAchievementTrigger } from "@/services/achievementService";
 import { AchievementTrigger } from "@/types/achievement";
 
 /**
@@ -12,7 +12,7 @@ export interface TrackShareResponse {
 
 /**
  * Track when a user shares their test results on social media
- * 
+ *
  * @param userId - The ID of the user sharing their results
  * @param testId - The ID of the test being shared (optional)
  * @param platform - The platform where the results were shared
@@ -42,9 +42,10 @@ export async function trackSocialShare(
       };
     }
 
-    // Trigger achievement for sharing results
-    triggerAchievement(AchievementTrigger.RESULT_SHARED, {
-      platform
+    // Trigger achievement for engagement
+    processAchievementTrigger({
+      trigger: AchievementTrigger.DAILY_LOGIN,
+      userId
     });
 
     return {

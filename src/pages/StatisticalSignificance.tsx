@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Tabs,
   TabsContent,
@@ -62,9 +62,9 @@ export default function StatisticalSignificance() {
       loadSupplements();
       loadConfoundingFactors();
     }
-  }, [user, activeTab]);
+  }, [user, activeTab, loadAnalyses, loadSupplements, loadConfoundingFactors]);
 
-  const loadAnalyses = async () => {
+  const loadAnalyses = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -113,9 +113,9 @@ export default function StatisticalSignificance() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, activeTab, setIsLoading, setAnalyses]);
 
-  const loadSupplements = async () => {
+  const loadSupplements = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -126,9 +126,9 @@ export default function StatisticalSignificance() {
     } catch (error) {
       console.error("Error loading supplements:", error);
     }
-  };
+  }, [user, setSupplements]);
 
-  const loadConfoundingFactors = async () => {
+  const loadConfoundingFactors = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -139,7 +139,7 @@ export default function StatisticalSignificance() {
     } catch (error) {
       console.error("Error loading confounding factors:", error);
     }
-  };
+  }, [user, setConfoundingFactors]);
 
   const handleTabChange = (value: string) => {
     console.log(`Tab changed to: ${value}`);

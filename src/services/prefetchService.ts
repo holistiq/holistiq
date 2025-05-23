@@ -226,7 +226,7 @@ class PrefetchService {
         cache.set(allResultsKey, { success: true, data }, CACHE_CONFIG.TEST_RESULTS.TTL);
 
         // Group test results by type for type-specific caching
-        const resultsByType: Record<string, any[]> = {};
+        const resultsByType: Record<string, unknown[]> = {};
         data.forEach(result => {
           if (!resultsByType[result.test_type]) {
             resultsByType[result.test_type] = [];

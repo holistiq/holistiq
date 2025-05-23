@@ -3,7 +3,7 @@
  *
  * Displays analysis of how confounding factors affect cognitive performance
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -75,15 +75,8 @@ export function ConfoundingFactorsAnalysisTab({
     { type: 'energy', name: 'Energy' }
   ], []);
 
-  // Analyze factors when tab is active
-  useEffect(() => {
-    if (activeInnerTab === 'correlation' && factorCorrelations.length === 0 && !isAnalyzing && factors.length > 0) {
-      analyzeFactors();
-    }
-  }, [activeInnerTab, factors.length, factorCorrelations.length, isAnalyzing]);
-
-  // Function to analyze factors
-  const analyzeFactors = async () => {
+  // Function to analyze factors - wrapped in useCallback to prevent infinite loops
+  const analyzeFactors = useCallback(async () => {
     if (!user || factors.length === 0 || testResults.length === 0) {
       return;
     }
@@ -123,7 +116,14 @@ export function ConfoundingFactorsAnalysisTab({
     } finally {
       setIsAnalyzing(false);
     }
-  };
+  }, [user, factors.length, testResults.length, dateRange]);
+
+  // Analyze factors when tab is active
+  useEffect(() => {
+    if (activeInnerTab === 'correlation' && factorCorrelations.length === 0 && !isAnalyzing && factors.length > 0) {
+      analyzeFactors();
+    }
+  }, [activeInnerTab, factors.length, factorCorrelations.length, isAnalyzing, analyzeFactors]);
 
   return (
     <Card>
