@@ -9,6 +9,8 @@
     "build": "npm run validate-env && cross-env NODE_ENV=production vite build",
     "build:dev": "npm run validate-env && cross-env NODE_ENV=development vite build --mode development",
     "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests specified yet\" && exit 0",
     "preview": "vite preview",
     "generate-favicons": "node scripts/generate-favicons.js",
     "check-db": "node scripts/check-db.js",
