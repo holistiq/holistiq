@@ -15,8 +15,8 @@ config();
 // Required environment variables
 const requiredEnvVars = [
   'VITE_APP_NAME',
-  'VITE_PUBLIC_SUPABASE_URL',
-  'VITE_PUBLIC_SUPABASE_ANON_KEY'
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_ANON_KEY'
 ];
 
 // Optional environment variables with defaults
