@@ -23,11 +23,13 @@ Add these environment variables to your **staging site**:
 
 ```env
 VITE_APP_NAME=HolistiQ Staging
-VITE_SUPABASE_URL=https://wnqyqnkynyombyngzdcq.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InducXlxbmt5bnlvbWJ5bmd6ZGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MjU5MTMsImV4cCI6MjA2MjMwMTkxM30.707QSiDM7e5pV5Vpc7oHXNwEvar3m_ATW-J_TZ23rXE
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 NODE_ENV=development
 VITE_ENABLE_DEBUG_LOGGING=true
 ```
+
+> **Note**: Copy the actual values from your `.env` file or Netlify production site environment variables.
 
 ## Step 3: Add Custom Domain
 
@@ -42,11 +44,11 @@ VITE_ENABLE_DEBUG_LOGGING=true
 
 ## Benefits of This Approach
 
-✅ **Professional URLs**: staging.myholistiq.com  
-✅ **Separate configs**: Different env vars per environment  
-✅ **Independent deploys**: Staging won't affect production  
-✅ **Free tier compatible**: Uses 2 of 100 allowed sites  
-✅ **Easy rollbacks**: Independent deployment history  
+✅ **Professional URLs**: staging.myholistiq.com
+✅ **Separate configs**: Different env vars per environment
+✅ **Independent deploys**: Staging won't affect production
+✅ **Free tier compatible**: Uses 2 of 100 allowed sites
+✅ **Easy rollbacks**: Independent deployment history
 
 ## Verification
 
