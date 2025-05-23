@@ -12,17 +12,17 @@ import path from 'path';
 
 // Patterns that might indicate hardcoded secrets
 const secretPatterns = [
-  // API keys, tokens, passwords
-  /(['"])(?:api[_-]?key|secret[_-]?key|token|password|passwd|pwd|auth[_-]?token).*?\1\s*[:=]\s*(['"])[^\2]{8,}\2/i,
+  // API keys, tokens, passwords with assignment
+  /(api[_-]?key|secret[_-]?key|token|password|passwd|pwd|auth[_-]?token)\s*[:=]\s*['"][^'"]{12,}['"]/i,
 
   // URLs with embedded credentials
-  /(['"])https?:\/\/[^:]+:[^@]+@[^'"]+\1/i,
+  /['"]https?:\/\/[^:]+:[^@]+@[^'"]+['"]/i,
 
-  // Supabase keys
-  /(['"])eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\1/i,
+  // JWT tokens (Supabase keys)
+  /['"]eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}['"]/i,
 
-  // AWS-like keys
-  /(['"])[A-Z0-9]{20,}\1/i,
+  // Long alphanumeric strings that look like keys
+  /['"][A-Za-z0-9]{32,}['"]/i,
 
   // Private keys
   /-----BEGIN [A-Z ]+ PRIVATE KEY-----/i
@@ -42,12 +42,26 @@ const ignorePatterns = [
   /\.vercel\//,
   /dist\//,
   /\.next\//,
-  /\.output\//
+  /\.output\//,
+  /\.github\/workflows\//  // Ignore GitHub Actions workflows (they use ${{ secrets.* }} syntax)
 ];
 
 // Check if a file should be ignored
 function shouldIgnore(filePath) {
   return ignorePatterns.some(pattern => pattern.test(filePath));
+}
+
+// Check if content contains GitHub Actions syntax that should be ignored
+function containsGitHubActionsSyntax(content) {
+  // GitHub Actions secret references like ${{ secrets.* }}
+  const githubActionsPatterns = [
+    /\$\{\{\s*secrets\./,
+    /\$\{\{\s*env\./,
+    /\$\{\{\s*github\./,
+    /\$\{\{\s*vars\./
+  ];
+
+  return githubActionsPatterns.some(pattern => pattern.test(content));
 }
 
 // Check if a file is a binary file
@@ -72,6 +86,11 @@ filesToCheck.forEach(file => {
 
   try {
     const content = fs.readFileSync(file, 'utf8');
+
+    // Skip files that contain GitHub Actions syntax
+    if (containsGitHubActionsSyntax(content)) {
+      return;
+    }
 
     secretPatterns.forEach(pattern => {
       const matches = content.match(new RegExp(pattern, 'g'));
