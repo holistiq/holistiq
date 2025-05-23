@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "validate-env": "node scripts/validate-env.js",
-    "dev": "npm run validate-env && cross-env NODE_ENV=development vite",
-    "build": "npm run validate-env && cross-env NODE_ENV=production vite build",
-    "build:dev": "npm run validate-env && cross-env NODE_ENV=development vite build --mode development",
+    "dev": "npm run validate-env && vite",
+    "build": "npm run validate-env && vite build",
+    "build:dev": "npm run validate-env && vite build --mode development",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "echo \"No tests specified yet\" && exit 0",
