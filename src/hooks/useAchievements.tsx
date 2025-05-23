@@ -54,10 +54,13 @@ export function useAchievements() {
     }
   }, [user]);
 
+  // Define a type for achievement metadata
+  type AchievementMetadata = Record<string, string | number | boolean | null | undefined>;
+
   // Trigger an achievement
   const triggerAchievement = useCallback(async (
     trigger: AchievementTrigger,
-    metadata?: Record<string, any>
+    metadata?: AchievementMetadata
   ) => {
     if (!user) return;
 

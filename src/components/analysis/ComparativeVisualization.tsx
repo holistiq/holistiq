@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, AlertCircle } from 'lucide-react';
@@ -11,6 +11,7 @@ import { ComparisonChart } from './ComparisonChart';
 import {
   ComparisonType,
   ComparisonData,
+  ComparisonMetrics,
   generateOnOffComparisonData,
   generateBetweenSupplementsComparisonData,
   generateBeforeAfterComparisonData,
@@ -31,73 +32,76 @@ export function ComparativeVisualization({
   isLoading = false
 }: Readonly<ComparativeVisualizationProps>) {
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
-  const [comparisonMetrics, setComparisonMetrics] = useState<any>(null);
+  const [comparisonMetrics, setComparisonMetrics] = useState<ComparisonMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle comparison change
-  const handleComparisonChange = (
-    comparisonType: ComparisonType,
-    supplementId1: string,
-    supplementId2?: string,
-    _dateRange?: { from: Date; to: Date } // Unused for now, but kept for future implementation
-  ) => {
-    setError(null);
+  // Handle comparison change - wrapped in useCallback to prevent unnecessary re-renders
+  const handleComparisonChange = useCallback(
+    (
+      comparisonType: ComparisonType,
+      supplementId1: string,
+      supplementId2?: string,
+      _dateRange?: { from: Date; to: Date } // Unused for now, but kept for future implementation
+    ) => {
+      setError(null);
 
-    try {
-      let data: ComparisonData | null = null;
+      try {
+        let data: ComparisonData | null = null;
 
-      switch (comparisonType) {
-        case ComparisonType.ON_OFF:
-          data = generateOnOffComparisonData(
-            testResults,
-            supplements,
-            washoutPeriods,
-            supplementId1
-          );
-          break;
-        case ComparisonType.BETWEEN_SUPPLEMENTS:
-          if (supplementId2) {
-            data = generateBetweenSupplementsComparisonData(
+        switch (comparisonType) {
+          case ComparisonType.ON_OFF:
+            data = generateOnOffComparisonData(
+              testResults,
+              supplements,
+              washoutPeriods,
+              supplementId1
+            );
+            break;
+          case ComparisonType.BETWEEN_SUPPLEMENTS:
+            if (supplementId2) {
+              data = generateBetweenSupplementsComparisonData(
+                testResults,
+                supplements,
+                washoutPeriods,
+                supplementId1,
+                supplementId2
+              );
+            }
+            break;
+          case ComparisonType.BEFORE_AFTER:
+            data = generateBeforeAfterComparisonData(
               testResults,
               supplements,
               washoutPeriods,
               supplementId1,
-              supplementId2
+              30 // Default to 30 days before/after
             );
-          }
-          break;
-        case ComparisonType.BEFORE_AFTER:
-          data = generateBeforeAfterComparisonData(
-            testResults,
-            supplements,
-            washoutPeriods,
-            supplementId1,
-            30 // Default to 30 days before/after
-          );
-          break;
-      }
+            break;
+        }
 
-      if (data) {
-        const metrics = calculateComparisonMetrics(data.baselineData, data.comparisonData);
-        setComparisonData(data);
-        setComparisonMetrics(metrics);
-      } else {
-        setComparisonData(null);
-        setComparisonMetrics(null);
-        setError('Not enough data for comparison. Try a different supplement or comparison type.');
+        if (data) {
+          const metrics = calculateComparisonMetrics(data.baselineData, data.comparisonData);
+          setComparisonData(data);
+          setComparisonMetrics(metrics);
+        } else {
+          setComparisonData(null);
+          setComparisonMetrics(null);
+          setError('Not enough data for comparison. Try a different supplement or comparison type.');
+        }
+      } catch (err) {
+        console.error('Error generating comparison data:', err);
+        setError('An error occurred while generating comparison data.');
       }
-    } catch (err) {
-      console.error('Error generating comparison data:', err);
-      setError('An error occurred while generating comparison data.');
-    }
-  };
+    },
+    [testResults, supplements, washoutPeriods]
+  );
 
   // Initialize with first supplement when data loads
   useEffect(() => {
     if (!isLoading && supplements.length > 0 && testResults.length > 0) {
       handleComparisonChange(ComparisonType.ON_OFF, supplements[0].id);
     }
-  }, [isLoading, supplements, testResults]);
+  }, [isLoading, supplements, testResults, handleComparisonChange]);
 
   if (isLoading) {
     return (

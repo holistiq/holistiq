@@ -11,6 +11,7 @@ import { getSupplements, loadSupplementsFromLocalStorage } from "@/services/supp
 import { getConfoundingFactors } from "@/services/confoundingFactorService";
 import { getWashoutPeriods } from "@/services/washoutPeriodService";
 import { debounce } from "@/lib/utils";
+import { createLogger } from "@/lib/logger";
 
 // Components
 import { DashboardLayout } from "@/components/dashboard/layout";
@@ -20,12 +21,16 @@ import { ModernDashboardOverview } from "@/components/dashboard/tabs/overview";
 import { CognitivePerformanceDashboard } from "@/components/dashboard/tabs/performance";
 import { BaselinePrompt, LoadingState } from "@/components/dashboard/common";
 import { RefreshIndicator } from "@/components/dashboard/common/RefreshIndicator";
+import { RenderProfiler } from "@/components/debug/RenderProfiler";
 
 // Types
 import { Supplement } from "@/types/supplement";
 import { ConfoundingFactor } from "@/types/confoundingFactor";
 import { ActiveWashoutPeriod } from "@/types/washoutPeriod";
 import { DashboardTabValue } from "@/components/dashboard/layout/DashboardLayout";
+
+// Create a logger for the Dashboard component
+const logger = createLogger({ namespace: 'Dashboard' });
 
 export default function Dashboard() {
   const { user, loading } = useSupabaseAuth();
@@ -57,7 +62,7 @@ export default function Dashboard() {
   } = useRefreshState({
     minRefreshInterval: 2000,
     autoResetTimeout: 8000,
-    debug: process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true'
+    debug: false // Disable debug logging in the hook to prevent excessive console output
   });
 
   // Use refs to prevent double fetching and track state
@@ -77,19 +82,17 @@ export default function Dashboard() {
   // Check if we have any test results - memoize to prevent unnecessary recalculations
   const hasAnyTestResults = useMemo(() => testHistory.length > 0, [testHistory.length]);
 
-  // Add debug logging to help diagnose loading state issues
+  // Add debug logging to help diagnose loading state issues, but only in development
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-      console.log("Dashboard loading state changed:", {
-        isLoadingTests,
-        isLoadingSupplements,
-        isLoadingFactors,
-        isLoadingWashoutPeriods,
-        isFetching: isFetchingRef.current,
-        isRefreshing,
-        testHistoryLength: testHistory.length
-      });
-    }
+    logger.debug("Loading state changed:", {
+      isLoadingTests,
+      isLoadingSupplements,
+      isLoadingFactors,
+      isLoadingWashoutPeriods,
+      isFetching: isFetchingRef.current,
+      isRefreshing,
+      testHistoryLength: testHistory.length
+    });
   }, [isLoadingTests, isLoadingSupplements, isLoadingFactors, isLoadingWashoutPeriods, isRefreshing, testHistory.length]);
 
   // Redirect to login if not authenticated
@@ -99,11 +102,14 @@ export default function Dashboard() {
     }
   }, [user, loading, navigate]);
 
+  // Define a type for legacy tab values that have been removed
+  type LegacyTabValue = 'supplements' | 'factors';
+
   // Handle case where activeTab might be set to the removed tabs
   useEffect(() => {
-    if (activeTab === 'supplements' as any) {
+    if (activeTab === 'supplements' as LegacyTabValue) {
       navigate('/supplements');
-    } else if (activeTab === 'factors' as any) {
+    } else if (activeTab === 'factors' as LegacyTabValue) {
       navigate('/confounding-factors');
     }
   }, [activeTab, navigate]);
@@ -118,9 +124,7 @@ export default function Dashboard() {
       // This is a safety measure in case the TestResultsContext doesn't properly reset it
       setTimeout(() => {
         if (isFetchingRef.current) {
-          if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-            console.log("Safety reset of isFetchingRef after debounced refresh");
-          }
+          logger.debug("Safety reset of isFetchingRef after debounced refresh");
           isFetchingRef.current = false;
         }
       }, 3000); // 3 second safety timeout
@@ -131,9 +135,7 @@ export default function Dashboard() {
   const fetchTestResults = useCallback((forceRefresh = false) => {
     // Prevent double fetching unless forced
     if (isFetchingRef.current && !forceRefresh) {
-      if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-        console.log("Skipping duplicate fetch request - already fetching");
-      }
+      logger.debug("Skipping duplicate fetch request - already fetching");
       return () => {}; // Return empty cleanup function
     }
 
@@ -147,10 +149,7 @@ export default function Dashboard() {
       // Set a safety timeout to ensure we don't get stuck in loading state
       const safetyTimeout = setTimeout(() => {
         if (isFetchingRef.current) {
-          // Only log in development or if it's a real issue
-          if (process.env.NODE_ENV === 'development') {
-            console.warn("Test results fetch safety timeout triggered - resetting loading state");
-          }
+          logger.warn("Test results fetch safety timeout triggered - resetting loading state");
           isFetchingRef.current = false;
         }
       }, 8000); // 8 second safety timeout (reduced from 10s)
@@ -167,7 +166,7 @@ export default function Dashboard() {
         clearTimeout(resetTimeout);
       };
     } catch (error) {
-      console.error("Error refreshing test results:", error);
+      logger.error("Error refreshing test results:", error);
       // Reset fetching flag immediately on error
       isFetchingRef.current = false;
       return () => {}; // Return empty cleanup function
@@ -236,12 +235,12 @@ export default function Dashboard() {
   // Create a memoized handler for tab changes
   const handleTabChange = useCallback((tab: DashboardTabValue) => {
     // If someone tries to access the removed supplements tab, redirect to the main supplements page
-    if (tab === 'supplements' as any) {
+    if (tab === 'supplements' as LegacyTabValue) {
       navigate('/supplements');
       return;
     }
     // If someone tries to access the removed factors tab, redirect to the confounding factors page
-    if (tab === 'factors' as any) {
+    if (tab === 'factors' as LegacyTabValue) {
       navigate('/confounding-factors');
       return;
     }
@@ -252,9 +251,7 @@ export default function Dashboard() {
   const refreshAllData = useCallback((forceRefresh = false) => {
     // Prevent multiple simultaneous refreshes
     if (isRefreshing) {
-      if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-        console.log("Refresh already in progress, skipping duplicate refresh");
-      }
+      logger.debug("Refresh already in progress, skipping duplicate refresh");
       return;
     }
 
@@ -281,16 +278,15 @@ export default function Dashboard() {
           completionStatus.supplements &&
           completionStatus.factors &&
           completionStatus.washouts) {
-        if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-          console.log("All data refresh operations completed successfully");
-        }
+        logger.debug("All data refresh operations completed successfully");
 
         // Set progress to 100% and complete the refresh
         updateProgress(100);
-        setTimeout(() => {
-          completeRefresh();
-          isFetchingRef.current = false;
-        }, 300); // Small delay for visual feedback
+
+        // Complete the refresh immediately without setTimeout
+        // This prevents potential race conditions and state inconsistencies
+        completeRefresh();
+        isFetchingRef.current = false;
       }
     };
 
@@ -298,24 +294,20 @@ export default function Dashboard() {
     const refreshTimeout = setTimeout(() => {
       if (isRefreshing) {
         hasTimedOut = true;
-        console.warn("Dashboard refresh timeout triggered - forcing reset of loading state");
+        logger.warn("Dashboard refresh timeout triggered - forcing reset of loading state");
 
         // Log which operations didn't complete
-        if (process.env.NODE_ENV === 'development') {
-          const pendingOps = [];
-          if (!completionStatus.tests) pendingOps.push('tests');
-          if (!completionStatus.supplements) pendingOps.push('supplements');
-          if (!completionStatus.factors) pendingOps.push('factors');
-          if (!completionStatus.washouts) pendingOps.push('washouts');
-          console.warn(`Incomplete operations: ${pendingOps.join(', ')}`);
-        }
+        const pendingOps = [];
+        if (!completionStatus.tests) pendingOps.push('tests');
+        if (!completionStatus.supplements) pendingOps.push('supplements');
+        if (!completionStatus.factors) pendingOps.push('factors');
+        if (!completionStatus.washouts) pendingOps.push('washouts');
+        logger.warn(`Incomplete operations: ${pendingOps.join(', ')}`);
 
-        // Force complete the refresh
+        // Force complete the refresh immediately without setTimeout
         updateProgress(100);
-        setTimeout(() => {
-          completeRefresh();
-          isFetchingRef.current = false;
-        }, 300);
+        completeRefresh();
+        isFetchingRef.current = false;
       }
     }, 8000); // 8 second safety timeout
 
@@ -326,7 +318,7 @@ export default function Dashboard() {
     try {
       testCleanup = fetchTestResults(forceRefresh);
     } catch (error) {
-      console.error("Error fetching test results:", error);
+      logger.error("Error fetching test results:", error);
       completionStatus.tests = true;
       checkAllComplete();
     }
@@ -343,9 +335,7 @@ export default function Dashboard() {
     // Add event listener to detect when test results are loaded
     const handleTestResultsLoaded = () => {
       if (!completionStatus.tests && !hasTimedOut && !isCleanedUp) {
-        if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-          console.log("Test results loaded event received");
-        }
+        logger.debug("Test results loaded event received");
         completionStatus.tests = true;
         updateProgress(25); // Update progress indicator
         checkAllComplete();
@@ -366,7 +356,7 @@ export default function Dashboard() {
         }
       })
       .catch((error) => {
-        console.error("Error fetching supplements:", error);
+        logger.error("Error fetching supplements:", error);
         if (!isCleanedUp) {
           completionStatus.supplements = true; // Mark as complete even on error
           updateProgress(50); // Update progress indicator
@@ -384,7 +374,7 @@ export default function Dashboard() {
         }
       })
       .catch((error) => {
-        console.error("Error fetching confounding factors:", error);
+        logger.error("Error fetching confounding factors:", error);
         if (!isCleanedUp) {
           completionStatus.factors = true; // Mark as complete even on error
           updateProgress(75); // Update progress indicator
@@ -402,7 +392,7 @@ export default function Dashboard() {
         }
       })
       .catch((error) => {
-        console.error("Error fetching washout periods:", error);
+        logger.error("Error fetching washout periods:", error);
         if (!isCleanedUp) {
           completionStatus.washouts = true; // Mark as complete even on error
           updateProgress(90); // Update progress indicator
@@ -427,15 +417,13 @@ export default function Dashboard() {
 
       // Ensure we reset loading states on cleanup
       if (isRefreshing && !hasTimedOut) {
-        // Complete the refresh with a smooth transition
+        // Complete the refresh immediately without setTimeout
         updateProgress(100);
-        setTimeout(() => {
-          completeRefresh();
-          isFetchingRef.current = false;
-        }, 300);
-      } else {
-        isFetchingRef.current = false;
+        completeRefresh();
       }
+
+      // Always reset the fetching flag
+      isFetchingRef.current = false;
     };
   }, [
     fetchTestResults,
@@ -449,7 +437,13 @@ export default function Dashboard() {
 
   // Create a memoized handler for user-initiated refresh
   const handleRefresh = useCallback(() => {
-    // Use our new refresh state hook to manage the refresh state
+    // Prevent refresh if already refreshing
+    if (isRefreshing || isFetchingRef.current) {
+      logger.debug("Refresh already in progress, ignoring request");
+      return;
+    }
+
+    // Use our refresh state hook to manage the refresh state
     if (startRefresh()) {
       // Only proceed with data fetching if startRefresh returns true
       // (it will return false if a refresh is already in progress or if it's too soon)
@@ -460,7 +454,7 @@ export default function Dashboard() {
       // When user explicitly clicks refresh, we should force refresh
       refreshAllData(true);
     }
-  }, [startRefresh, updateProgress, refreshAllData]);
+  }, [startRefresh, updateProgress, refreshAllData, isRefreshing, isFetchingRef]);
 
   // Main data fetching effect - only runs once on mount and when user changes
   useEffect(() => {
@@ -489,25 +483,29 @@ export default function Dashboard() {
         isFetchingRef.current = false;
 
         // Check if we're already in a refreshing state before initiating a new refresh
-        if (!isRefreshing) {
+        if (!isRefreshing && !isFetchingRef.current) {
           // Use our consolidated refresh function with regular (non-forced) refresh
           // to allow caching and prevent duplicate calls
-          refreshAllData(false);
+          logger.debug("Dashboard data fetching initiated for user:", user?.id);
 
-          // Only log in development and only when debugging is needed
-          if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-            console.log("Dashboard data fetching initiated for user:", user?.id);
+          // Start the refresh state first
+          if (startRefresh()) {
+            refreshAllData(false);
           }
         } else {
-          console.warn("Skipping initial data fetch because a refresh is already in progress");
+          logger.warn("Skipping initial data fetch because a refresh is already in progress");
         }
 
         // Add a global safety timeout to reset loading state if something goes wrong
         const globalSafetyTimeout = setTimeout(() => {
           if (isFetchingRef.current || isRefreshing) {
-            console.warn("Global safety timeout triggered - resetting all loading states");
+            logger.warn("Global safety timeout triggered - resetting all loading states");
             isFetchingRef.current = false;
-            completeRefresh(); // Use completeRefresh instead of setIsRefreshing
+
+            // Only complete refresh if it's actually in progress
+            if (isRefreshing) {
+              completeRefresh();
+            }
           }
         }, 8000); // 8 second global safety timeout
 
@@ -519,12 +517,12 @@ export default function Dashboard() {
         // Ensure we clean up loading states when the component unmounts
         isFetchingRef.current = false;
         if (isRefreshing) {
-          completeRefresh(); // Use completeRefresh instead of setIsRefreshing
+          completeRefresh();
         }
       };
     }
-  // Include completeRefresh in the dependency array
-  }, [loading, user?.id, refreshAllData, completeRefresh]);
+  // Remove isRefreshing from the dependency array to prevent unnecessary re-runs
+  }, [loading, user?.id, refreshAllData, completeRefresh, startRefresh]);
 
   // Add a global safety timeout to ensure we never get stuck in a loading state
   useEffect(() => {
@@ -538,14 +536,19 @@ export default function Dashboard() {
                              isFetchingRef.current;
 
       if (anyLoadingState) {
-        console.warn("ABSOLUTE MAXIMUM TIMEOUT REACHED - Forcing reset of all loading states");
+        logger.warn("CRITICAL: ABSOLUTE MAXIMUM TIMEOUT REACHED - Forcing reset of all loading states");
 
         // Reset all loading states
         setIsLoadingTests(false);
         setIsLoadingSupplements(false);
         setIsLoadingFactors(false);
         setIsLoadingWashoutPeriods(false);
-        completeRefresh(); // Use completeRefresh instead of setIsRefreshing
+
+        // Only complete refresh if it's actually in progress
+        if (isRefreshing) {
+          completeRefresh();
+        }
+
         isFetchingRef.current = false;
 
         // Force a refresh of the page as a last resort
@@ -556,7 +559,8 @@ export default function Dashboard() {
     }, 20000); // 20 second absolute maximum timeout
 
     return () => clearTimeout(absoluteMaxTimeout);
-  }, [isLoadingTests, isLoadingSupplements, isLoadingFactors, isLoadingWashoutPeriods, isRefreshing, completeRefresh]);
+  // Remove isRefreshing from the dependency array to prevent unnecessary re-runs
+  }, [isLoadingTests, isLoadingSupplements, isLoadingFactors, isLoadingWashoutPeriods, completeRefresh]);
 
   // Check if we're coming from an authentication flow
   useEffect(() => {
@@ -570,12 +574,7 @@ export default function Dashboard() {
       // Mark as handled to prevent multiple refreshes
       hasHandledAuthCallback.current = true;
 
-      // Only log in development and only when debugging is needed
-      const shouldLog = process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true';
-
-      if (shouldLog) {
-        console.log("Detected navigation from auth callback, ensuring fresh state (one-time)");
-      }
+      logger.debug("Detected navigation from auth callback, ensuring fresh state (one-time)");
 
       // Clear any cached data to ensure we have fresh state
       if (user?.id) {
@@ -583,16 +582,14 @@ export default function Dashboard() {
         import('@/lib/cache').then(cacheModule => {
           const cache = cacheModule.cache;
           if (cache) {
-            if (shouldLog) {
-              console.log("Clearing cache after authentication for user:", user.id);
-            }
+            logger.debug("Clearing cache after authentication for user:", user.id);
             cache.clear();
 
             // Force refresh all data after clearing cache
             refreshAllData(true);
           }
         }).catch(error => {
-          console.error("Error importing cache module after authentication:", error);
+          logger.error("Error importing cache module after authentication:", error);
         });
       }
     } else {
@@ -609,7 +606,7 @@ export default function Dashboard() {
       // Set a timeout to prevent getting stuck in the loading state
       authTimeoutId = window.setTimeout(() => {
         // Always log this warning as it's a critical issue
-        console.warn("Authentication check timed out after 10 seconds");
+        logger.warn("CRITICAL: Authentication check timed out after 10 seconds");
         // Force refresh the page if we're stuck in loading state for too long
         window.location.reload();
       }, 10000); // 10 seconds timeout
@@ -625,39 +622,8 @@ export default function Dashboard() {
   // We no longer need the effect to reset refreshing state
   // as it's now handled by the useRefreshState hook
 
-  // Add an effect to check if all data is loaded and complete the refresh
-  useEffect(() => {
-    // If we're not refreshing, nothing to do
-    if (!isRefreshing) {
-      return;
-    }
-
-    // Check if all data is loaded
-    if (!isLoadingTests &&
-        !isLoadingSupplements &&
-        !isLoadingFactors &&
-        !isLoadingWashoutPeriods &&
-        !isFetchingRef.current) {
-      // Only log in development and only when debugging is needed
-      if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-        console.log("All data loaded, completing refresh");
-      }
-
-      // Set progress to 100% and complete the refresh
-      updateProgress(100);
-      setTimeout(() => {
-        completeRefresh();
-      }, 300); // Small delay for visual feedback
-    }
-  }, [
-    isRefreshing,
-    isLoadingTests,
-    isLoadingSupplements,
-    isLoadingFactors,
-    isLoadingWashoutPeriods,
-    updateProgress,
-    completeRefresh
-  ]);
+  // We don't need this effect anymore as the refresh completion is handled in refreshAllData
+  // This was causing redundant state updates and potential flickering
 
   // Render loading state for auth
   if (loading) {
@@ -675,13 +641,11 @@ export default function Dashboard() {
   // We'll show the loading indicator inline when refreshing, so we don't need this block anymore
 
   // Log the current state for debugging in development only when debug_logging is enabled
-  if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
-    console.log("Dashboard state:", {
-      hasBaseline: !!baselineResult,
-      testCount: testHistory.length,
-      isLoading: currentLoadingState
-    });
-  }
+  logger.debug("Dashboard state:", {
+    hasBaseline: !!baselineResult,
+    testCount: testHistory.length,
+    isLoading: currentLoadingState
+  });
 
   // Render baseline prompt ONLY if we have no test results at all and we're not loading
   if (testHistory.length === 0) {
@@ -719,49 +683,55 @@ export default function Dashboard() {
 
   // Render the dashboard content
   return (
-    <DashboardLayout
-      activeTab={activeTab}
-      onTabChange={handleTabChange}
-      onRefresh={handleRefresh}
-      isLoading={currentLoadingState}
-    >
-      {/* Use our new RefreshIndicator component for a non-disruptive loading indicator */}
-      <RefreshIndicator
-        isRefreshing={isRefreshing}
-        position="top-center"
-        size="medium"
-        showLabel={true}
-        className="mb-4"
-      />
+    <RenderProfiler id="dashboard-page">
+      <DashboardLayout
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onRefresh={handleRefresh}
+        isLoading={currentLoadingState}
+      >
+        {/* Use our new RefreshIndicator component for a non-disruptive loading indicator */}
+        <RefreshIndicator
+          isRefreshing={isRefreshing}
+          position="top-center"
+          size="medium"
+          showLabel={true}
+          className="mb-4"
+        />
 
-      {/* Dashboard Content */}
-      {activeTab === "overview" && (
-        <ModernDashboardOverview
-          baselineResult={baselineResult}
-          latestResult={latestResult}
-          recentSupplements={recentSupplements}
-          recentFactors={recentFactors}
-          activeWashoutPeriods={activeWashoutPeriods}
-          testHistory={testHistory}
-          isLoadingTests={isLoadingTests}
-          isLoadingSupplements={isLoadingSupplements}
-          isLoadingFactors={isLoadingFactors}
-          isLoadingWashoutPeriods={isLoadingWashoutPeriods}
-        />
-      )}
-      {activeTab === "performance" && (
-        <CognitivePerformanceDashboard
-          testResults={testHistory}
-          supplements={recentSupplements}
-          factors={recentFactors}
-          washoutPeriods={activeWashoutPeriods}
-          baselineResult={baselineResult}
-          isLoading={isLoadingTests || isLoadingSupplements || isLoadingWashoutPeriods}
-          isLoadingFactors={isLoadingFactors}
-        />
-      )}
-      {/* Supplements tab removed to simplify navigation */}
-      {/* Factors tab removed to simplify navigation */}
-    </DashboardLayout>
+        {/* Dashboard Content */}
+        {activeTab === "overview" && (
+          <RenderProfiler id="overview-tab">
+            <ModernDashboardOverview
+              baselineResult={baselineResult}
+              latestResult={latestResult}
+              recentSupplements={recentSupplements}
+              recentFactors={recentFactors}
+              activeWashoutPeriods={activeWashoutPeriods}
+              testHistory={testHistory}
+              isLoadingTests={isLoadingTests}
+              isLoadingSupplements={isLoadingSupplements}
+              isLoadingFactors={isLoadingFactors}
+              isLoadingWashoutPeriods={isLoadingWashoutPeriods}
+            />
+          </RenderProfiler>
+        )}
+        {activeTab === "performance" && (
+          <RenderProfiler id="performance-tab">
+            <CognitivePerformanceDashboard
+              testResults={testHistory}
+              supplements={recentSupplements}
+              factors={recentFactors}
+              washoutPeriods={activeWashoutPeriods}
+              baselineResult={baselineResult}
+              isLoading={isLoadingTests || isLoadingSupplements || isLoadingWashoutPeriods}
+              isLoadingFactors={isLoadingFactors}
+            />
+          </RenderProfiler>
+        )}
+        {/* Supplements tab removed to simplify navigation */}
+        {/* Factors tab removed to simplify navigation */}
+      </DashboardLayout>
+    </RenderProfiler>
   );
 }

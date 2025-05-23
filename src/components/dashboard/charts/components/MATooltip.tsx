@@ -1,12 +1,12 @@
 /**
  * Moving Average Tooltip Component
- * 
+ *
  * Displays trend analysis when hovering over moving average lines
  */
 import React from 'react';
 import { format } from 'date-fns';
 
-interface MATooltipProps {
+export interface MATooltipProps {
   readonly active?: boolean;
   readonly payload?: Array<{
     name: string;
@@ -34,49 +34,49 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
 
   // Get the data point
   const data = payload[0].payload;
-  
+
   // Format the date
   const dateString = data.formattedDate || format(new Date(data.date), 'MMM d, yyyy');
-  
+
   // Determine which MA metric is being displayed
   const isScoreMA = payload.some(p => p.dataKey === 'scoreMA');
   const isReactionTimeMA = payload.some(p => p.dataKey === 'reactionTimeMA');
   const isAccuracyMA = payload.some(p => p.dataKey === 'accuracyMA');
-  
+
   // Get trend information
   const getTrendInfo = (value: number | undefined, trend: number | undefined, isReactionTime = false) => {
     if (value === undefined || trend === undefined) return null;
-    
+
     // For reaction time, lower is better, so we invert the trend direction
     const isPositiveTrend = isReactionTime ? trend < 0 : trend > 0;
     const trendClass = isPositiveTrend ? "text-green-500" : "text-red-500";
     const trendIcon = isPositiveTrend ? "↑" : "↓";
-    
+
     return (
       <span className={`${trendClass} ml-1`}>
         {trendIcon} {Math.abs(trend).toFixed(1)}%
       </span>
     );
   };
-  
+
   // Get trend description
   const getTrendDescription = (trend: number | undefined, isReactionTime = false) => {
     if (trend === undefined) return null;
-    
+
     if (Math.abs(trend) < 1) {
       return "Stable performance (less than 1% change)";
     }
-    
+
     // For reaction time, lower is better, so we invert the trend direction
     const isPositiveTrend = isReactionTime ? trend < 0 : trend > 0;
-    
+
     if (isReactionTime) {
-      return isPositiveTrend 
-        ? "Improving reaction speed (faster responses)" 
+      return isPositiveTrend
+        ? "Improving reaction speed (faster responses)"
         : "Declining reaction speed (slower responses)";
     } else {
-      return isPositiveTrend 
-        ? "Improving performance trend" 
+      return isPositiveTrend
+        ? "Improving performance trend"
         : "Declining performance trend";
     }
   };
@@ -87,7 +87,7 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
         <p className="font-medium">{dateString}</p>
         <p className="text-xs text-muted-foreground">Moving Average</p>
       </div>
-      
+
       <div className="space-y-2">
         {isScoreMA && data.scoreMA !== undefined && (
           <div>
@@ -103,7 +103,7 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
             </p>
           </div>
         )}
-        
+
         {isReactionTimeMA && data.reactionTimeMA !== undefined && (
           <div>
             <p className="text-sm flex justify-between">
@@ -118,7 +118,7 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
             </p>
           </div>
         )}
-        
+
         {isAccuracyMA && data.accuracyMA !== undefined && (
           <div>
             <p className="text-sm flex justify-between">
@@ -134,7 +134,7 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
           </div>
         )}
       </div>
-      
+
       <div className="mt-3 pt-2 border-t text-xs text-muted-foreground">
         <p>This line shows the 3-point moving average, smoothing out daily fluctuations to reveal your true performance trend.</p>
       </div>

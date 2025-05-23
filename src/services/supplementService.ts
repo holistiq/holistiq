@@ -314,7 +314,7 @@ export async function updateSupplementCycleStatus(
     }
 
     // Prepare update data based on status
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, string> = {
       cycle_status: status
     };
 

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sessionManager } from "@/services/sessionManager";
 import { useToast, sessionRecoveryToast } from "@/hooks/use-toast";
 import { getDirectSessionFromStorage, extractUserFromSession } from "@/utils/sessionUtils";
+import { User, Session } from '@supabase/supabase-js';
 
 // Custom event for auth state changes
 export const AUTH_EVENTS = {
@@ -10,8 +11,6 @@ export const AUTH_EVENTS = {
   SESSION_EXPIRED: 'auth:session_expired',
   AUTH_ERROR: 'auth:error'
 };
-
-import { User } from '@supabase/supabase-js';
 
 // Global state to track initialization across hook instances
 interface GlobalAuthState {
@@ -161,7 +160,7 @@ export function useSupabaseAuth() {
     return () => {
       clearTimeout(initializationTimeout);
     };
-  }, []);
+  }, [clearStaleAuthData, toast]);
 
   // Track if this instance has set up a listener
   const hasSetupListener = useRef(false);
@@ -169,6 +168,36 @@ export function useSupabaseAuth() {
   // Get session and set up auth state listener
   useEffect(() => {
     if (!sessionInitialized) return;
+
+    // Define a function to handle session timeout
+    const handleSessionTimeout = () => {
+      console.warn("Session retrieval timed out after 5 seconds");
+      globalAuthState.loading = false;
+      setLoading(false);
+
+      // Clear stale auth data when session retrieval times out
+      clearStaleAuthData();
+
+      // Dispatch auth error event
+      window.dispatchEvent(new CustomEvent(AUTH_EVENTS.AUTH_ERROR, {
+        detail: {
+          message: 'Session retrieval timed out. Please try signing in again.',
+          code: 'SESSION_TIMEOUT'
+        }
+      }));
+
+      // Show toast notification
+      toast({
+        title: "Authentication Error",
+        description: "Session retrieval timed out. Please try signing in again.",
+        variant: "destructive",
+      });
+
+      // Redirect to sign-in page after a short delay
+      setTimeout(() => {
+        window.location.href = '/signin?error=session_timeout';
+      }, 1500);
+    };
 
     let listener: { subscription: { unsubscribe: () => void } } | null = null;
 
@@ -183,32 +212,7 @@ export function useSupabaseAuth() {
       // Set a timeout to prevent getting stuck in loading state
       const sessionTimeout = setTimeout(() => {
         if (globalAuthState.loading) {
-          console.warn("Session retrieval timed out after 5 seconds");
-          globalAuthState.loading = false;
-          setLoading(false);
-
-          // Clear stale auth data when session retrieval times out
-          clearStaleAuthData();
-
-          // Dispatch auth error event
-          window.dispatchEvent(new CustomEvent(AUTH_EVENTS.AUTH_ERROR, {
-            detail: {
-              message: 'Session retrieval timed out. Please try signing in again.',
-              code: 'SESSION_TIMEOUT'
-            }
-          }));
-
-          // Show toast notification
-          toast({
-            title: "Authentication Error",
-            description: "Session retrieval timed out. Please try signing in again.",
-            variant: "destructive",
-          });
-
-          // Redirect to sign-in page after a short delay
-          setTimeout(() => {
-            window.location.href = '/signin?error=session_timeout';
-          }, 1500);
+          handleSessionTimeout();
         }
       }, 5000); // 5 seconds timeout
 
@@ -400,8 +404,12 @@ export function useSupabaseAuth() {
       hasSetupListener.current = true;
 
       // Create a static variable to track if any instance has set up a listener
-      if (!(window as any).__authListenerSetup) {
-        (window as any).__authListenerSetup = true;
+      interface ExtendedWindow extends Window {
+        __authListenerSetup?: boolean;
+      }
+
+      if (!(window as ExtendedWindow).__authListenerSetup) {
+        (window as ExtendedWindow).__authListenerSetup = true;
 
         // Helper functions to reduce cognitive complexity
         const handleSignOut = () => {
@@ -415,7 +423,7 @@ export function useSupabaseAuth() {
           }));
         };
 
-        const handleSignInOrUpdate = (session: any) => {
+        const handleSignInOrUpdate = (session: Session | null) => {
           // Handle sign in or user update - update global state
           const userData = session?.user ?? null;
 
@@ -495,7 +503,7 @@ export function useSupabaseAuth() {
         listener.subscription.unsubscribe();
       }
     };
-  }, [sessionInitialized]);
+  }, [sessionInitialized, clearStaleAuthData, toast]);
 
   // Track if this instance has set up a session expiration handler
   const hasSetupExpirationHandler = useRef(false);
@@ -509,8 +517,12 @@ export function useSupabaseAuth() {
       hasSetupExpirationHandler.current = true;
 
       // Create a static variable to track if any instance has set up a handler
-      if (!(window as any).__sessionExpirationHandlerSetup) {
-        (window as any).__sessionExpirationHandlerSetup = true;
+      interface ExtendedWindow extends Window {
+        __sessionExpirationHandlerSetup?: boolean;
+      }
+
+      if (!(window as ExtendedWindow).__sessionExpirationHandlerSetup) {
+        (window as ExtendedWindow).__sessionExpirationHandlerSetup = true;
 
         sessionManager.onSessionExpired(() => {
           // Update global state

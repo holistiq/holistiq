@@ -6,39 +6,39 @@ export interface ConfoundingFactor {
   id: string;
   user_id: string;
   recorded_at: string;
-  
+
   // Sleep-related factors
   sleep_duration?: number; // in minutes
   sleep_quality?: number; // 1-10 scale
-  
+
   // Stress-related factors
   stress_level?: number; // 1-10 scale
-  
+
   // Exercise-related factors
   exercise_duration?: number; // in minutes
   exercise_intensity?: number; // 1-10 scale
   exercise_type?: string; // e.g., 'cardio', 'strength', 'yoga'
-  
+
   // Diet-related factors
   meal_timing?: { time: string; type: string }[]; // array of meal timestamps and types
   caffeine_intake?: number; // in mg
   alcohol_intake?: number; // in standard drinks
   water_intake?: number; // in ml
-  
+
   // Environmental factors
   location?: string; // e.g., 'home', 'office', 'cafe'
   noise_level?: number; // 1-10 scale
   temperature?: number; // in celsius
-  
+
   // Health factors
   mood?: number; // 1-10 scale
   energy_level?: number; // 1-10 scale
   illness?: boolean; // whether the user is feeling ill
   illness_details?: string; // description of illness if any
-  
+
   // Additional factors
   notes?: string; // any additional notes
-  
+
   // Metadata
   created_at: string;
   updated_at: string;
@@ -70,7 +70,7 @@ export interface FactorCorrelation {
   factor: string;
   correlation: number;
   sample_size: number;
-  [key: string]: any; // For additional correlation metrics specific to each factor
+  [key: string]: number | string | boolean | null; // For additional correlation metrics specific to each factor
 }
 
 export interface FactorAnalysisResult {

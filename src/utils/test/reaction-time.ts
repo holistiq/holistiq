@@ -1,6 +1,6 @@
 /**
  * Reaction Time Test Calculation Utilities
- * 
+ *
  * This file contains utility functions for calculating reaction time test results.
  */
 
@@ -15,7 +15,7 @@ interface EnvironmentalFactors {
 
 /**
  * Calculate reaction time test results from raw test data
- * 
+ *
  * @param trials The trial data from the reaction time test
  * @param environmentalFactors Environmental factors that may affect test results
  * @returns Calculated test results
@@ -73,7 +73,7 @@ export function calculateReactionTestResults(
 
   // Calculate final score
   // 60% reaction time, 40% accuracy
-  let finalScore = Math.round(
+  const finalScore = Math.round(
     (reactionTimeScore * 0.6) +
     (accuracyPercentage * 0.4) -
     tooEarlyPenalty

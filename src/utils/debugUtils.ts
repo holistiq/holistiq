@@ -6,6 +6,12 @@
  */
 
 /**
+ * Type for console log arguments
+ * Using unknown[] instead of any[] for better type safety
+ */
+type LogArgs = unknown[];
+
+/**
  * Check if debug logging is enabled
  *
  * Debug logging is enabled if:
@@ -73,9 +79,9 @@ export function toggleDebugLogging(): boolean {
  * It's a wrapper around console.log that only logs if debug logging is enabled.
  *
  * @param {string} message - The message to log
- * @param {any[]} args - Additional arguments to log
+ * @param {unknown[]} args - Additional arguments to log
  */
-export function debugLog(message: string, ...args: any[]): void {
+export function debugLog(message: string, ...args: LogArgs): void {
   if (isDebugLoggingEnabled()) {
     console.log(message, ...args);
   }
@@ -88,9 +94,9 @@ export function debugLog(message: string, ...args: any[]): void {
  * It's a wrapper around console.error that only logs if debug logging is enabled.
  *
  * @param {string} message - The error message to log
- * @param {any[]} args - Additional arguments to log
+ * @param {unknown[]} args - Additional arguments to log
  */
-export function debugError(message: string, ...args: any[]): void {
+export function debugError(message: string, ...args: LogArgs): void {
   if (isDebugLoggingEnabled()) {
     console.error(message, ...args);
   }
@@ -103,9 +109,9 @@ export function debugError(message: string, ...args: any[]): void {
  * It's a wrapper around console.warn that only logs if debug logging is enabled.
  *
  * @param {string} message - The warning message to log
- * @param {any[]} args - Additional arguments to log
+ * @param {unknown[]} args - Additional arguments to log
  */
-export function debugWarn(message: string, ...args: any[]): void {
+export function debugWarn(message: string, ...args: LogArgs): void {
   if (isDebugLoggingEnabled()) {
     console.warn(message, ...args);
   }

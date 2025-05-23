@@ -1,54 +1,36 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { TestResult, normalizeDate } from '@/lib/testResultUtils';
 import { UserBaseline, BaselineCalculationOptions } from '@/types/baseline';
 import { debounce } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { cache, DEFAULT_CACHE_TTL } from '@/lib/cache';
+import { ErrorObject, DatabaseRecord } from '@/types/utility-types';
+import { TestResultsContext } from './TestResultsContextDef';
+import { LoadingState, LoadingProgress } from '@/types/loading';
+import { useTestResults } from './useTestResults';
 
-// Define loading states for the state machine
-export type LoadingState =
-  | 'idle'           // No loading in progress
-  | 'initializing'   // First-time data loading
-  | 'fetching_local' // Fetching from localStorage
-  | 'fetching_remote' // Fetching from Supabase
-  | 'processing'     // Processing fetched data
-  | 'refreshing'     // Refreshing existing data
-  | 'error'          // Error state
-  | 'complete';      // Loading complete
-
-// Define loading progress for user feedback
-export interface LoadingProgress {
-  stage: LoadingState;
-  message: string;
-  progress: number; // 0-100
-  error?: string;
-  startTime: number;
-  elapsedTime: number;
+// Define the shape of the baseline data as it comes from Supabase
+interface SupabaseUserBaseline {
+  id: string;
+  user_id: string;
+  test_type: string;
+  baseline_score: number;
+  baseline_reaction_time: number;
+  baseline_accuracy: number;
+  calculation_method: string;
+  sample_size: number;
+  confidence_level: number;
+  variance_score: number;
+  variance_reaction_time: number;
+  variance_accuracy: number;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
 }
 
-interface TestResultsContextType {
-  baselineResult: TestResult | null;
-  testHistory: TestResult[];
-  latestResult: TestResult | null;
-  userBaseline: UserBaseline | null;
-
-  // New granular loading states
-  loadingState: LoadingState;
-  loadingProgress: LoadingProgress;
-
-  // Legacy loading states (kept for backward compatibility)
-  isLoadingTests: boolean;
-  isLoadingLocal: boolean;
-  isLoadingSupabase: boolean;
-  isCalculatingBaseline: boolean;
-  isDataStale: boolean;
-
-  refreshTestResults: (forceRefresh?: boolean) => void;
-  calculateUserBaseline: (options?: BaselineCalculationOptions) => Promise<UserBaseline | null>;
-}
-
-export const TestResultsContext = createContext<TestResultsContextType | undefined>(undefined);
+// These types have been moved to separate files
 
 /**
  * Fetch test results from localStorage
@@ -181,16 +163,16 @@ async function fetchFromSupabase(userId: string): Promise<{ baseline: TestResult
       // Convert from Supabase format to our TestResult format
       results = cachedData.data
         // Do NOT filter by test_type to ensure we get all test results
-        .map((result: any) => {
+        .map((result: DatabaseRecord) => {
           // Normalize the date for consistent handling
-          const normalizedDate = normalizeDate(result.timestamp);
+          const normalizedDate = normalizeDate(result.timestamp as string);
 
           return {
             date: normalizedDate,
-            score: result.score,
-            reactionTime: result.reaction_time,
-            accuracy: result.accuracy,
-            test_type: result.test_type // Include test_type in the result
+            score: result.score as number,
+            reactionTime: result.reaction_time as number,
+            accuracy: result.accuracy as number,
+            test_type: result.test_type as string // Include test_type in the result
           };
         });
 
@@ -415,9 +397,10 @@ async function getUserBaseline(
 /**
  * Check if an error is a "no rows" error
  */
-function isNoRowsError(error: any): boolean {
-  const hasNoRowsMessage = error.message?.includes('No rows found') ?? false;
-  const hasNoRowsCode = error.code === 'PGRST116';
+function isNoRowsError(error: ErrorObject): boolean {
+  const errorObj = error as { message?: string; code?: string };
+  const hasNoRowsMessage = errorObj.message?.includes('No rows found') ?? false;
+  const hasNoRowsCode = errorObj.code === 'PGRST116';
   return Boolean(hasNoRowsMessage ?? hasNoRowsCode);
 }
 
@@ -434,8 +417,8 @@ async function handleBackoff(retryCount: number): Promise<void> {
  * Handle errors from Supabase queries
  */
 function handleQueryError<T>(
-  error: any,
-  errorHandler?: (error: any) => { success: boolean, data?: T | null, error?: string } | null
+  error: ErrorObject,
+  errorHandler?: (error: ErrorObject) => { success: boolean, data?: T | null, error?: string } | null
 ): { success: boolean, data?: T | null, error?: string } | null {
   // Check if this is a "no rows" error, which is not a real error
   if (isNoRowsError(error)) {
@@ -453,7 +436,7 @@ function handleQueryError<T>(
 /**
  * Format error message for retry failures
  */
-function formatRetryError(error: any): string {
+function formatRetryError(error: ErrorObject): string {
   return error instanceof Error ? error.message : 'Unknown error after multiple retries';
 }
 
@@ -461,8 +444,8 @@ function formatRetryError(error: any): string {
  * Execute a Supabase RPC call with retry logic
  */
 async function executeWithRetry<T>(
-  fn: () => Promise<{ data: any, error: any }>,
-  errorHandler?: (error: any) => { success: boolean, data?: T | null, error?: string } | null
+  fn: () => Promise<{ data: unknown, error: ErrorObject | null }>,
+  errorHandler?: (error: ErrorObject) => { success: boolean, data?: T | null, error?: string } | null
 ): Promise<{ success: boolean, data?: T | null, error?: string }> {
   const maxRetries = 3;
   let retryCount = 0;
@@ -480,7 +463,7 @@ async function executeWithRetry<T>(
         throw error;
       }
 
-      return { success: true, data };
+      return { success: true, data: data as T };
     } catch (err) {
       lastError = err;
       retryCount++;
@@ -495,7 +478,7 @@ async function executeWithRetry<T>(
   console.error('Failed after multiple retries:', lastError);
   return {
     success: false,
-    error: formatRetryError(lastError),
+    error: formatRetryError(lastError as ErrorObject),
     data: null
   };
 }
@@ -522,7 +505,7 @@ async function calculateBaseline(
     cache.delete(`user_baseline_${userId}_${testType}`);
 
     // Call the Supabase function with retry logic
-    const result = await executeWithRetry<any>(
+    const result = await executeWithRetry<SupabaseUserBaseline>(
       async () => {
         const response = await supabase.rpc(
           'calculate_user_baseline',
@@ -610,6 +593,9 @@ const updateLoadingProgress = (
   };
 };
 
+// Re-export the useTestResults hook
+export { useTestResults };
+
 export function TestResultsProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user } = useSupabaseAuth();
   const [baselineResult, setBaselineResult] = useState<TestResult | null>(null);
@@ -638,7 +624,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
   const fetchingTestsRef = useRef(false);
 
   // Debug logging helpers
-  const debugLog = useCallback((message: string, data?: any) => {
+  const debugLog = useCallback((message: string, data?: unknown) => {
     if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
       if (data) {
         console.log(`[TestResults] ${message}`, data);
@@ -648,7 +634,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     }
   }, []);
 
-  const debugWarn = useCallback((message: string, data?: any) => {
+  const debugWarn = useCallback((message: string, data?: unknown) => {
     if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
       if (data) {
         console.warn(`[TestResults] ${message}`, data);
@@ -658,7 +644,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     }
   }, []);
 
-  const debugError = useCallback((message: string, data?: any) => {
+  const debugError = useCallback((message: string, data?: unknown) => {
     // Always log errors, but with different verbosity based on environment
     if (data) {
       console.error(`[TestResults] ${message}`, data);
@@ -739,14 +725,15 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
   /**
    * Helper function to validate a test result
    */
-  const isValidTestResult = useCallback((result: any): boolean => {
-    return (
-      result &&
-      typeof result === 'object' &&
-      result.date &&
-      typeof result.score === 'number' && !isNaN(result.score) &&
-      typeof result.reactionTime === 'number' && !isNaN(result.reactionTime) &&
-      typeof result.accuracy === 'number' && !isNaN(result.accuracy)
+  const isValidTestResult = useCallback((result: unknown): boolean => {
+    if (!result || typeof result !== 'object') return false;
+
+    const testResult = result as Partial<TestResult>;
+    return !!(
+      testResult.date &&
+      typeof testResult.score === 'number' && !isNaN(testResult.score) &&
+      typeof testResult.reactionTime === 'number' && !isNaN(testResult.reactionTime) &&
+      typeof testResult.accuracy === 'number' && !isNaN(testResult.accuracy)
     );
   }, []);
 
@@ -772,7 +759,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     }
 
     return localData;
-  }, [transitionLoadingState]);
+  }, [transitionLoadingState, setIsLoadingLocal]);
 
   /**
    * Helper function to fetch data from Supabase
@@ -801,7 +788,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     }
 
     return supabaseData;
-  }, [transitionLoadingState, debugLog, debugWarn, debugError]);
+  }, [transitionLoadingState, debugLog, debugWarn, debugError, setIsLoadingSupabase]);
 
   /**
    * Helper function to merge and deduplicate test results
@@ -830,7 +817,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     debugLog(`Merged ${validLocalResults.length} local and ${validSupabaseResults.length} Supabase results into ${mergedResults.length} unique results`);
 
     return mergedResults;
-  }, [isValidTestResult]);
+  }, [isValidTestResult, debugLog]);
 
   /**
    * Helper function to sort test results by date
@@ -860,7 +847,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
         return 0;
       }
     });
-  }, []);
+  }, [debugWarn, debugError]);
 
   /**
    * Helper function to create a latest result
@@ -890,15 +877,20 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
 
   /**
    * Helper function to check if data is fresh
+   *
+   * IMPORTANT: We've removed testHistory from the dependency array to prevent
+   * unnecessary recreation of this function, which was causing continuous fetching.
+   * Instead, we access testHistory.length directly in the function body.
    */
   const isDataFresh = useCallback((forceRefresh: boolean, timeSinceLastFetch: number) => {
-    const REFRESH_THRESHOLD = 60 * 1000; // 1 minute
+    const REFRESH_THRESHOLD = 300 * 1000; // 5 minutes (increased from 1 minute)
 
     if (forceRefresh) {
       return false; // Force refresh always fetches fresh data
     }
 
     // Check if we have data and it's recent enough
+    // We access testHistory.length directly instead of including it in dependencies
     const hasData = testHistory.length > 0;
     const isRecent = timeSinceLastFetch < REFRESH_THRESHOLD && !isDataStale;
     const isFresh = isRecent && hasData;
@@ -912,7 +904,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     }
 
     return isFresh;
-  }, [isDataStale, testHistory, debugLog]);
+  }, [isDataStale, debugLog]);
 
   /**
    * Helper function to process test results and create test history
@@ -961,7 +953,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     }
 
     return baselineToUse;
-  }, []);
+  }, [debugLog]);
 
   /**
    * Main fetch function with conditional fetching
@@ -980,12 +972,21 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
       // Skip fetching if data is fresh
       if (isDataFresh(forceRefresh, timeSinceLastFetch)) {
         debugLog("Data is fresh, skipping fetch");
-        // Ensure we reset loading states even when skipping
-        setIsLoadingTests(false);
-        fetchingTestsRef.current = false;
 
-        // Dispatch an event to notify that test results are "loaded" (from cache)
-        window.dispatchEvent(new CustomEvent('test-results-loaded'));
+        // Only update loading states if they're actually loading
+        // This prevents unnecessary state updates that cause re-renders
+        if (isLoadingTests) {
+          setIsLoadingTests(false);
+        }
+
+        if (fetchingTestsRef.current) {
+          fetchingTestsRef.current = false;
+
+          // Only dispatch the event if we were actually fetching
+          // This prevents unnecessary event dispatches that cause re-renders
+          window.dispatchEvent(new CustomEvent('test-results-loaded'));
+        }
+
         return;
       }
 
@@ -1088,33 +1089,52 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
   ]);
 
   // Create a debounced version of fetchTestResults
-  const debouncedFetchTestResults = useCallback(
-    debounce((forceRefresh: boolean = false) => {
-      // Check if we're already loading
-      if (isLoadingTests || fetchingTestsRef.current) {
-        debugWarn("Already loading test results, setting safety timeout");
+  // First, create a function that will be debounced
+  const handleFetchTestResults = useCallback((forceRefresh: boolean = false) => {
+    // Check if we're already loading
+    if (isLoadingTests || fetchingTestsRef.current) {
+      debugWarn("Already loading test results, skipping duplicate fetch");
 
-        // If we're already loading, set a safety timeout to reset the loading state
-        // This prevents the UI from getting stuck in a loading state
-        setTimeout(() => {
-          if (fetchingTestsRef.current || isLoadingTests) {
-            debugWarn("Safety timeout triggered - resetting loading state");
+      // We'll still set a safety timeout, but we won't trigger another fetch
+      // This prevents the UI from getting stuck in a loading state
+      const safetyTimeoutId = setTimeout(() => {
+        if (fetchingTestsRef.current || isLoadingTests) {
+          debugWarn("Safety timeout triggered - resetting loading state");
+
+          // Only update state if it's actually loading
+          if (isLoadingTests) {
             setIsLoadingTests(false);
+          }
+
+          if (fetchingTestsRef.current) {
             fetchingTestsRef.current = false;
 
-            // Dispatch an event to notify that test results loading has completed (forced by timeout)
+            // Only dispatch event if we were actually fetching
             window.dispatchEvent(new CustomEvent('test-results-loaded'));
           }
-        }, 8000); // 8 second safety timeout (reduced from 15s)
+        }
+      }, 8000); // 8 second safety timeout
 
-        return;
-      }
+      // Return a cleanup function to clear the timeout if the component unmounts
+      return () => clearTimeout(safetyTimeoutId);
+    }
 
-      // If not already loading, proceed with fetch
-      fetchTestResults(forceRefresh);
-    }, 300),
-    [isLoadingTests, fetchTestResults, debugWarn]
-  );
+    // If not already loading, proceed with fetch
+    fetchTestResults(forceRefresh);
+  }, [isLoadingTests, fetchTestResults, debugWarn, setIsLoadingTests]);
+
+  // Then create the debounced version using a ref to avoid recreation on every render
+  const debouncedFetchTestResultsRef = useRef<(forceRefresh: boolean) => void>();
+
+  // Update the ref whenever handleFetchTestResults changes
+  useEffect(() => {
+    debouncedFetchTestResultsRef.current = debounce(handleFetchTestResults, 300);
+  }, [handleFetchTestResults]);
+
+  // Create a stable function that uses the ref
+  const debouncedFetchTestResults = useCallback((forceRefresh: boolean = false) => {
+    debouncedFetchTestResultsRef.current?.(forceRefresh);
+  }, []);
 
   // Function to refresh test results with optional force refresh
   const refreshTestResults = useCallback((forceRefresh: boolean = false) => {
@@ -1123,9 +1143,10 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
       setIsDataStale(true);
     }
 
-    // Check if we're already loading
+    // Check if we're already loading - if so, don't trigger another fetch
     if (isLoadingTests || fetchingTestsRef.current) {
-      debugWarn("Refresh called while already loading - will set safety timeout");
+      debugWarn("Refresh called while already loading - skipping duplicate fetch");
+      return () => {}; // Return empty cleanup function
     }
 
     // Set a maximum loading time to prevent getting stuck
@@ -1134,13 +1155,20 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
         debugWarn("Maximum loading time exceeded - resetting loading state");
         // Update loading state to error with timeout message
         transitionLoadingState('error', 'Loading timed out - please try again', 0, 'Loading operation took too long');
-        setIsLoadingTests(false);
-        fetchingTestsRef.current = false;
 
-        // Dispatch an event to notify that test results loading has completed (forced by timeout)
-        window.dispatchEvent(new CustomEvent('test-results-loaded'));
+        // Only update state if it's actually loading
+        if (isLoadingTests) {
+          setIsLoadingTests(false);
+        }
+
+        if (fetchingTestsRef.current) {
+          fetchingTestsRef.current = false;
+
+          // Only dispatch event if we were actually fetching
+          window.dispatchEvent(new CustomEvent('test-results-loaded'));
+        }
       }
-    }, 12000); // 12 second maximum loading time (reduced from 20s)
+    }, 12000); // 12 second maximum loading time
 
     // Set a shorter interval check that runs more frequently
     const intervalCheck = setInterval(() => {
@@ -1155,6 +1183,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
       }
     }, 1000); // Check every second
 
+    // Trigger the actual fetch
     debouncedFetchTestResults(forceRefresh);
 
     // Return cleanup function to clear the timeout and interval
@@ -1163,12 +1192,15 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
       clearInterval(intervalCheck);
 
       // Ensure loading states are reset on cleanup
-      if (isLoadingTests || fetchingTestsRef.current) {
+      if (isLoadingTests) {
         setIsLoadingTests(false);
+      }
+
+      if (fetchingTestsRef.current) {
         fetchingTestsRef.current = false;
       }
     };
-  }, [debouncedFetchTestResults, isLoadingTests, transitionLoadingState, debugWarn]);
+  }, [debouncedFetchTestResults, isLoadingTests, transitionLoadingState, debugWarn, setIsDataStale, setIsLoadingTests]);
 
   // Fetch user's baseline from Supabase
   const fetchUserBaseline = useCallback(async () => {
@@ -1202,8 +1234,8 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     }
   }, [user, testHistory]);
 
-  // Calculate user baseline
-  const calculateUserBaseline = async (options?: BaselineCalculationOptions): Promise<UserBaseline | null> => {
+  // Calculate user baseline - wrapped in useCallback to prevent unnecessary re-renders
+  const calculateUserBaseline = useCallback(async (options?: BaselineCalculationOptions): Promise<UserBaseline | null> => {
     if (!user) {
       const localBaseline = calculateBaselineLocally(testHistory, options);
       setUserBaseline(localBaseline);
@@ -1229,7 +1261,7 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     } finally {
       setIsCalculatingBaseline(false);
     }
-  };
+  }, [user, testHistory, setUserBaseline, setIsCalculatingBaseline, debugError]);
 
   // Initial fetch of test results - only run once on mount
   useEffect(() => {
@@ -1239,27 +1271,49 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [/* Run only once on mount */]);
 
-  // Fetch user baseline whenever test history changes, but only if not already loading
+  // Fetch user baseline only when test history length changes, not on every render
+  // This prevents continuous fetching that was causing flickering
+  const testHistoryLengthRef = useRef(0);
+
   useEffect(() => {
-    if (testHistory.length > 0 && !isLoadingTests) {
+    // Only fetch if the length has changed and we have data
+    if (testHistory.length > 0 &&
+        testHistory.length !== testHistoryLengthRef.current &&
+        !isLoadingTests) {
+
+      // Update the ref to the new length
+      testHistoryLengthRef.current = testHistory.length;
+
+      // Fetch the user baseline
       fetchUserBaseline();
     }
-  }, [testHistory, fetchUserBaseline, isLoadingTests]);
+  }, [testHistory.length, fetchUserBaseline, isLoadingTests]);
 
-  // Re-fetch test results when user changes (e.g., after login)
+  // Re-fetch test results when user ID changes (e.g., after login)
+  // We use a ref to track the previous user ID to prevent unnecessary fetches
+  const prevUserIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (user) {
-      // When user logs in or changes, force refresh to get the latest data
-      debugLog("User changed, refreshing test results and baseline data");
+    // Only proceed if we have a user
+    if (!user) {
+      prevUserIdRef.current = null;
+      return;
+    }
+
+    // Check if the user ID has actually changed
+    if (user.id !== prevUserIdRef.current) {
+      // Update the ref with the new user ID
+      prevUserIdRef.current = user.id;
+
+      // When user ID changes, force refresh to get the latest data
+      debugLog("User ID changed, refreshing test results and baseline data");
       fetchTestResults(true);
 
       // Clear any cached baseline data to ensure we get fresh data
-      if (user.id) {
-        cache.delete(`user_baseline_${user.id}_all`);
-        cache.delete(`test_results_${user.id}_all`);
-      }
+      cache.delete(`user_baseline_${user.id}_all`);
+      cache.delete(`test_results_${user.id}_all`);
     }
-  }, [user?.id]); // Only re-run when user ID changes
+  }, [user?.id, debugLog, fetchTestResults]); // Only depend on user?.id, not the entire user object
 
   const value = useMemo(() => ({
     // Data
@@ -1312,10 +1366,4 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
   );
 }
 
-export function useTestResults() {
-  const context = useContext(TestResultsContext);
-  if (context === undefined) {
-    throw new Error('useTestResults must be used within a TestResultsProvider');
-  }
-  return context;
-}
+// The useTestResults hook has been moved to a separate file

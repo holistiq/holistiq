@@ -44,6 +44,24 @@ export const CACHE_CONFIG = {
       ANALYSIS: (userId: string, testType: string) => `confounding_analysis_${userId}_${testType}`
     }
   },
+  ACHIEVEMENTS: {
+    TTL: DEFAULT_CACHE_TTL.MEDIUM, // 30 minutes
+    PREFIX: 'achievements_',
+    PATTERNS: {
+      ALL: (userId: string) => `achievements_${userId}_all`,
+      BY_ID: (achievementId: string) => `achievement_${achievementId}`,
+      BY_CATEGORY: (userId: string, category: string) => `achievements_${userId}_category_${category}`
+    }
+  },
+  USER_BADGES: {
+    TTL: DEFAULT_CACHE_TTL.MEDIUM, // 30 minutes
+    PREFIX: 'user_badges_',
+    PATTERNS: {
+      ALL: (userId: string) => `user_badges_${userId}_all`,
+      BY_ID: (badgeId: string) => `user_badge_${badgeId}`,
+      BY_ACHIEVEMENT: (userId: string, achievementId: string) => `user_badges_${userId}_achievement_${achievementId}`
+    }
+  },
   CORRELATIONS: {
     TTL: DEFAULT_CACHE_TTL.MEDIUM, // 30 minutes
     PREFIX: 'correlations_',
@@ -119,12 +137,25 @@ class SupabaseCache {
     const shouldLog = process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true';
 
     try {
+      // Check if we already have this in cache before calling getOrSet
+      const existingCacheItem = cache.get(cacheKey);
+      const hasCacheItem = existingCacheItem !== undefined;
+
+      // If we're in development mode, add more detailed logging
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[SupabaseCache] Query for ${entityType}: ${cacheKey}`);
+        if (hasCacheItem) {
+          console.log(`[SupabaseCache] Cache HIT - Using cached data`);
+        }
+      }
+
       const result = await cache.getOrSet(
         cacheKey,
         async () => {
           metrics.cacheMisses++;
-          if (shouldLog) {
-            console.log(`Cache miss for ${entityType}: ${cacheKey}`);
+          if (shouldLog || process.env.NODE_ENV === 'development') {
+            console.log(`[SupabaseCache] Cache MISS for ${entityType}: ${cacheKey}`);
+            console.log(`[SupabaseCache] Fetching from database...`);
           }
           return await queryFn();
         },
@@ -135,8 +166,8 @@ class SupabaseCache {
       if (metrics.totalQueries > (metrics.cacheHits + metrics.cacheMisses)) {
         metrics.cacheHits++;
         isCacheHit = true;
-        if (shouldLog) {
-          console.log(`Cache hit for ${entityType}: ${cacheKey}`);
+        if (shouldLog && !hasCacheItem) {
+          console.log(`[SupabaseCache] Cache hit for ${entityType}: ${cacheKey}`);
         }
       }
 
@@ -168,11 +199,36 @@ class SupabaseCache {
     const prefix = CACHE_CONFIG[entityType].PREFIX;
     const pattern = new RegExp(`^${prefix}${userId}`);
     const shouldLog = process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true';
+    const isDevelopment = process.env.NODE_ENV === 'development';
 
-    if (shouldLog) {
-      console.log(`Invalidating cache for ${entityType} and user ${userId}`);
+    if (shouldLog || isDevelopment) {
+      console.log(`[SupabaseCache] Invalidating cache for ${entityType} and user ${userId}`);
+      console.log(`[SupabaseCache] Cache pattern: ${pattern}`);
     }
+
+    // Also clear localStorage cache for this pattern
+    try {
+      const allKeys = Object.keys(localStorage);
+      const cacheKeys = allKeys.filter(key =>
+        key.startsWith('holistiq_cache_') &&
+        key.includes(prefix) &&
+        key.includes(userId)
+      );
+
+      if (cacheKeys.length > 0 && (shouldLog || isDevelopment)) {
+        console.log(`[SupabaseCache] Clearing ${cacheKeys.length} localStorage cache items`);
+      }
+
+      cacheKeys.forEach(key => localStorage.removeItem(key));
+    } catch (e) {
+      console.error('Error clearing localStorage cache:', e);
+    }
+
     cache.delete(pattern);
+
+    if (shouldLog || isDevelopment) {
+      console.log(`[SupabaseCache] Cache invalidation complete for ${entityType}`);
+    }
   }
 
   /**

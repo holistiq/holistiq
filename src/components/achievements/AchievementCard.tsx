@@ -12,7 +12,8 @@ import {
   Trophy, Star, Zap, Brain, Activity, Calendar,
   CalendarCheck, CalendarRange, Repeat, Pill,
   List, User, Rocket, CalendarClock, Lightbulb, Target,
-  Lock
+  Lock, ClipboardList, RefreshCw, BarChart2, CheckCircle,
+  Map, Heart, Layers, Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -70,6 +71,17 @@ export function AchievementCard({
       'list': <List className="h-6 w-6" />,
       'user': <User className="h-6 w-6" />,
       'rocket': <Rocket className="h-6 w-6" />,
+      'lightbulb': <Lightbulb className="h-6 w-6" />,
+      'target': <Target className="h-6 w-6" />,
+      'clipboard-list': <ClipboardList className="h-6 w-6" />,
+      'refresh-cw': <RefreshCw className="h-6 w-6" />,
+      'bar-chart-2': <BarChart2 className="h-6 w-6" />,
+      'check-circle': <CheckCircle className="h-6 w-6" />,
+      'map': <Map className="h-6 w-6" />,
+      'heart': <Heart className="h-6 w-6" />,
+      'layers': <Layers className="h-6 w-6" />,
+      'clock': <Clock className="h-6 w-6" />,
+      // Legacy mappings for backward compatibility
       'flask': <Lightbulb className="h-6 w-6" />,
       'beaker': <Target className="h-6 w-6" />
     };

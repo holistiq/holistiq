@@ -56,7 +56,7 @@ interface CacheEntry<T> {
 }
 
 class ApiCache {
-  private cache: Record<string, CacheEntry<any>> = {};
+  private cache: Record<string, CacheEntry<unknown>> = {};
 
   /**
    * Get data from cache or execute the API call
@@ -67,7 +67,7 @@ class ApiCache {
    */
   async getOrSet<T>(key: string, apiFn: () => Promise<T>, ttlMs: number = 5 * 60 * 1000): Promise<T> {
     const now = Date.now();
-    const entry = this.cache[key];
+    const entry = this.cache[key] as CacheEntry<T> | undefined;
 
     // Return from cache if valid
     if (entry && entry.expiresAt > now) {

@@ -3,7 +3,7 @@
  *
  * Displays performance metrics charts for score, reaction time, and accuracy
  */
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import {
   Card,
   CardContent,
@@ -12,9 +12,14 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { TestResult } from '@/lib/testResultUtils';
-import { PerformanceChart } from '../../charts';
+import { StablePerformanceChart } from '../../charts/StablePerformanceChart';
 import { useLoadingState, LoadingStatus } from '@/hooks/useLoadingState';
 import { PartialLoadingContainer } from '@/components/ui/partial-loading-container';
+import { createLogger } from '@/lib/logger';
+import { RenderProfiler } from '@/components/debug/RenderProfiler';
+
+// Create a logger for the PerformanceMetricsTab component
+const logger = createLogger({ namespace: 'PerformanceMetricsTab' });
 
 /**
  * Props for the PerformanceMetricsTab component
@@ -30,7 +35,7 @@ interface PerformanceMetricsTabProps {
  * Component for rendering the performance metrics tab
  * Shows charts for score, reaction time, and accuracy
  */
-export function PerformanceMetricsTab({
+export const PerformanceMetricsTab = memo(function PerformanceMetricsTab({
   testResults,
   baselineResult = null,
   isLoading = false,
@@ -49,8 +54,7 @@ export function PerformanceMetricsTab({
     id: 'performance-metrics-accuracy'
   });
 
-  // Simulate loading states for demonstration purposes
-  // In a real implementation, these would be actual data fetching operations
+  // Set loading states immediately without artificial delays
   useEffect(() => {
     if (isLoading) {
       // Set all charts to loading state
@@ -58,38 +62,11 @@ export function PerformanceMetricsTab({
       reactionTimeLoadingState.setMessage('Loading reaction time data...');
       accuracyLoadingState.setMessage('Loading accuracy data...');
 
-      // Simulate staggered loading of different metrics
-      const loadScore = async () => {
-        try {
-          await new Promise(resolve => setTimeout(resolve, 800));
-          scoreLoadingState.setSuccess(testResults, 'Score data loaded');
-        } catch (error) {
-          scoreLoadingState.setError(error instanceof Error ? error : new Error('Failed to load score data'));
-        }
-      };
-
-      const loadReactionTime = async () => {
-        try {
-          await new Promise(resolve => setTimeout(resolve, 1200));
-          reactionTimeLoadingState.setSuccess(testResults, 'Reaction time data loaded');
-        } catch (error) {
-          reactionTimeLoadingState.setError(error instanceof Error ? error : new Error('Failed to load reaction time data'));
-        }
-      };
-
-      const loadAccuracy = async () => {
-        try {
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          accuracyLoadingState.setSuccess(testResults, 'Accuracy data loaded');
-        } catch (error) {
-          accuracyLoadingState.setError(error instanceof Error ? error : new Error('Failed to load accuracy data'));
-        }
-      };
-
-      // Start loading all metrics
-      loadScore();
-      loadReactionTime();
-      loadAccuracy();
+      // Set all charts to success state immediately
+      // This eliminates the staggered loading effect that causes flickering
+      scoreLoadingState.setSuccess(testResults, 'Score data loaded');
+      reactionTimeLoadingState.setSuccess(testResults, 'Reaction time data loaded');
+      accuracyLoadingState.setSuccess(testResults, 'Accuracy data loaded');
     } else {
       // If not loading, set all charts to success state with the data
       scoreLoadingState.setSuccess(testResults);
@@ -126,6 +103,15 @@ export function PerformanceMetricsTab({
     scoreLoadingState.status,
     reactionTimeLoadingState.status,
     accuracyLoadingState.status,
+    scoreLoadingState.isLoading,
+    scoreLoadingState.isError,
+    scoreLoadingState.isSuccess,
+    reactionTimeLoadingState.isLoading,
+    reactionTimeLoadingState.isError,
+    reactionTimeLoadingState.isSuccess,
+    accuracyLoadingState.isLoading,
+    accuracyLoadingState.isError,
+    accuracyLoadingState.isSuccess,
     onLoadingStateChange
   ]);
 
@@ -149,16 +135,17 @@ export function PerformanceMetricsTab({
             height={300}
             onRetry={() => scoreLoadingState.setSuccess(testResults)}
           >
-            <PerformanceChart
-              testResults={scoreLoadingState.data || []}
-              baselineResult={baselineResult}
-              mode="single"
-              dataKey="score"
-              title="Score Trend"
-              height={300}
-              showMovingAverage={false}
-              isLoading={false} // We're handling loading state with PartialLoadingContainer
-            />
+            <RenderProfiler id="score-chart">
+              <StablePerformanceChart
+                testResults={scoreLoadingState.data || []}
+                baselineResult={baselineResult}
+                mode="single"
+                dataKey="score"
+                title="Score Trend"
+                height={300}
+                showMA={false}
+              />
+            </RenderProfiler>
           </PartialLoadingContainer>
 
           {/* Reaction Time Chart with partial loading */}
@@ -171,16 +158,17 @@ export function PerformanceMetricsTab({
             height={300}
             onRetry={() => reactionTimeLoadingState.setSuccess(testResults)}
           >
-            <PerformanceChart
-              testResults={reactionTimeLoadingState.data || []}
-              baselineResult={baselineResult}
-              mode="single"
-              dataKey="reactionTime"
-              title="Reaction Time Trend"
-              height={300}
-              showMovingAverage={false}
-              isLoading={false} // We're handling loading state with PartialLoadingContainer
-            />
+            <RenderProfiler id="reaction-time-chart">
+              <StablePerformanceChart
+                testResults={reactionTimeLoadingState.data || []}
+                baselineResult={baselineResult}
+                mode="single"
+                dataKey="reactionTime"
+                title="Reaction Time Trend"
+                height={300}
+                showMA={false}
+              />
+            </RenderProfiler>
           </PartialLoadingContainer>
 
           {/* Accuracy Chart with partial loading */}
@@ -193,19 +181,20 @@ export function PerformanceMetricsTab({
             height={300}
             onRetry={() => accuracyLoadingState.setSuccess(testResults)}
           >
-            <PerformanceChart
-              testResults={accuracyLoadingState.data || []}
-              baselineResult={baselineResult}
-              mode="single"
-              dataKey="accuracy"
-              title="Accuracy Trend"
-              height={300}
-              showMovingAverage={false}
-              isLoading={false} // We're handling loading state with PartialLoadingContainer
-            />
+            <RenderProfiler id="accuracy-chart">
+              <StablePerformanceChart
+                testResults={accuracyLoadingState.data || []}
+                baselineResult={baselineResult}
+                mode="single"
+                dataKey="accuracy"
+                title="Accuracy Trend"
+                height={300}
+                showMA={false}
+              />
+            </RenderProfiler>
           </PartialLoadingContainer>
         </div>
       </CardContent>
     </Card>
   );
-}
+});

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   LineChart,
   CartesianGrid,
@@ -10,17 +9,30 @@ import {
   YAxis
 } from 'recharts';
 import { format } from 'date-fns';
+import { memo } from 'react';
 import { MAToggle } from './MAToggle';
 import { SingleMetricChartTooltipContent } from './ChartTooltipHandlers';
 import { createReferenceLineData } from '../utils/chartHelpers';
-import { debugError } from '@/utils/debugUtils';
+import { FormattedTestResult } from '../utils/chartUtils';
+import { createLogger } from '@/lib/logger';
+import {
+  ProcessedChartData,
+  ChartConfig,
+  BaselineValues,
+  MATrendData,
+  ChartDataStats,
+  ChartTooltipProps
+} from '../types/chartTypes';
+
+// Create a logger for the SingleMetricChartRenderer component
+const logger = createLogger({ namespace: 'SingleMetricChartRenderer' });
 
 interface SingleMetricChartRendererProps {
-  processedData: any;
+  processedData: ProcessedChartData;
   chartId: string;
   chartTitle: string;
   chartDescription: string;
-  chartConfig: any;
+  chartConfig: ChartConfig;
   height: number | string;
   className: string;
   hideTitle: boolean;
@@ -28,13 +40,13 @@ interface SingleMetricChartRendererProps {
   effectiveShowMA: boolean;
   handleMAToggle: (show: boolean) => void;
   dataKey: 'score' | 'reactionTime' | 'accuracy';
-  baselineValues: any;
+  baselineValues: BaselineValues;
   showBaselineReference: boolean;
-  dataStats: any;
-  maTrendData: any;
+  dataStats: ChartDataStats;
+  maTrendData: MATrendData;
 }
 
-export function SingleMetricChartRenderer({
+export const SingleMetricChartRenderer = memo(function SingleMetricChartRenderer({
   processedData,
   chartId,
   chartTitle,
@@ -171,7 +183,7 @@ export function SingleMetricChartRenderer({
                   // Add an asterisk to indicate this is a spread out data point
                   return hasOriginalDate ? `${formattedDate}*` : formattedDate;
                 } catch (error) {
-                  debugError("Error formatting X-axis timestamp:", error, timestamp);
+                  logger.error("Error formatting X-axis timestamp:", error);
                   return format(new Date(timestamp), 'MMM d');
                 }
               }}
@@ -204,7 +216,7 @@ export function SingleMetricChartRenderer({
               stroke={metricColor}
             />
             <Tooltip
-              content={(props) => SingleMetricChartTooltipContent(props, dataKey, maTrendData)}
+              content={(props: unknown) => SingleMetricChartTooltipContent(props as ChartTooltipProps, dataKey, maTrendData)}
             />
             {/* Override the default legend with an empty one */}
             <Legend content={() => null} />
@@ -233,7 +245,7 @@ export function SingleMetricChartRenderer({
                 <Line
                   key={`baseline-${dataKey}-line`}
                   name={`Baseline ${metricName}: ${baselineValue}${unitSuffix}`}
-                  data={createReferenceLineData(processedData.finalChartData, baselineValue)}
+                  data={createReferenceLineData(processedData.finalChartData as unknown as FormattedTestResult[], baselineValue)}
                   dataKey="value"
                   stroke={metricColor}
                   strokeWidth={2}
@@ -311,4 +323,4 @@ export function SingleMetricChartRenderer({
       </div>
     </div>
   );
-}
+});

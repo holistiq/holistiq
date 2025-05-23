@@ -13,10 +13,24 @@ import {
   AchievementWithProgress
 } from '@/types/achievement';
 
+/**
+ * Type definition for user_achievements table row from Supabase
+ */
+interface UserAchievementRow {
+  id: string;
+  user_id: string;
+  achievement_id: string;
+  current_count: number;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Re-export AchievementTrigger for convenience
 export { AchievementTrigger } from '@/types/achievement';
 import { achievements, getAchievementsByTrigger } from '@/data/achievements';
-import { differenceInDays, parseISO } from 'date-fns';
+
+import { supabaseCache, CACHE_CONFIG } from '@/lib/supabaseCache';
 
 /**
  * Trigger an achievement for a user
@@ -25,7 +39,7 @@ import { differenceInDays, parseISO } from 'date-fns';
  */
 export function triggerAchievement(
   trigger: AchievementTrigger,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): void {
   // Get the current user ID from localStorage
   const userString = localStorage.getItem('supabase.auth.token');
@@ -52,6 +66,8 @@ export function triggerAchievement(
 
 /**
  * Get all achievements with user progress
+ *
+ * Uses caching to reduce database calls
  */
 export async function getUserAchievements(userId: string): Promise<AchievementResponse> {
   try {
@@ -59,45 +75,66 @@ export async function getUserAchievements(userId: string): Promise<AchievementRe
       return { success: false, error: 'User ID is required' };
     }
 
-    // Get user achievements from Supabase
-    const { data: userAchievements, error } = await supabase
-      .from('user_achievements')
-      .select('*')
-      .eq('user_id', userId);
+    // Use the cache key pattern from our configuration
+    const cacheKey = CACHE_CONFIG.ACHIEVEMENTS.PATTERNS.ALL(userId);
 
-    if (error) {
-      console.error('Error fetching user achievements:', error);
-      return { success: false, error: error.message };
+    // Enable debug logging in development
+    const enableDebugLogging = process.env.NODE_ENV === 'development';
+    if (enableDebugLogging) {
+      console.log(`[Achievements] Fetching achievements for user ${userId}`);
+      console.log(`[Achievements] Cache key: ${cacheKey}`);
     }
 
-    // Map achievements with user progress
-    const achievementsWithProgress: AchievementWithProgress[] = achievements.map(achievement => {
-      const userAchievement = userAchievements?.find(ua => ua.achievement_id === achievement.id);
+    // Use the enhanced caching system
+    return await supabaseCache.query(
+      'ACHIEVEMENTS',
+      cacheKey,
+      async () => {
+        if (enableDebugLogging) {
+          console.log(`[Achievements] Cache MISS - Fetching from database`);
+        }
+        // Get user achievements from Supabase
+        const { data: userAchievements, error } = await supabase
+          .from('user_achievements')
+          .select('*')
+          .eq('user_id', userId);
 
-      const currentCount = userAchievement?.current_count ?? 0;
-      const completedAt = userAchievement?.completed_at ?? null;
-      const percentComplete = Math.min(100, Math.round((currentCount / achievement.requiredCount) * 100));
+        if (error) {
+          console.error('Error fetching user achievements:', error);
+          return { success: false, error: error.message };
+        }
 
-      let status = AchievementStatus.LOCKED;
-      if (completedAt) {
-        status = AchievementStatus.COMPLETED;
-      } else if (currentCount > 0) {
-        status = AchievementStatus.IN_PROGRESS;
-      }
+        // Map achievements with user progress
+        const achievementsWithProgress: AchievementWithProgress[] = achievements.map(achievement => {
+          const userAchievement = userAchievements?.find(ua => ua.achievement_id === achievement.id);
 
-      return {
-        ...achievement,
-        currentCount,
-        completedAt,
-        status,
-        percentComplete
-      };
-    });
+          const currentCount = userAchievement?.current_count ?? 0;
+          const completedAt = userAchievement?.completed_at ?? null;
+          const percentComplete = Math.min(100, Math.round((currentCount / achievement.requiredCount) * 100));
 
-    return {
-      success: true,
-      achievements: achievementsWithProgress
-    };
+          let status = AchievementStatus.LOCKED;
+          if (completedAt) {
+            status = AchievementStatus.COMPLETED;
+          } else if (currentCount > 0) {
+            status = AchievementStatus.IN_PROGRESS;
+          }
+
+          return {
+            ...achievement,
+            currentCount,
+            completedAt,
+            status,
+            percentComplete
+          };
+        });
+
+        return {
+          success: true,
+          achievements: achievementsWithProgress
+        };
+      },
+      CACHE_CONFIG.ACHIEVEMENTS.TTL
+    );
   } catch (error) {
     console.error('Error in getUserAchievements:', error);
     return {
@@ -108,13 +145,25 @@ export async function getUserAchievements(userId: string): Promise<AchievementRe
 }
 
 /**
+ * Invalidate the achievements cache for a user
+ *
+ * Call this function when achievements are updated
+ */
+export function invalidateAchievementsCache(userId: string): void {
+  if (!userId) return;
+
+  // Invalidate all achievement caches for this user
+  supabaseCache.invalidateForUser('ACHIEVEMENTS', userId);
+}
+
+/**
  * Process an achievement trigger and update user progress
  */
 export async function processAchievementTrigger(
   triggerData: AchievementTriggerData
 ): Promise<AchievementResponse> {
   try {
-    const { trigger, userId, metadata } = triggerData;
+    const { trigger, userId } = triggerData;
 
     if (!userId) {
       return { success: false, error: 'User ID is required' };
@@ -124,7 +173,7 @@ export async function processAchievementTrigger(
     const matchingAchievements = getAchievementsByTrigger(trigger);
 
     if (matchingAchievements.length === 0) {
-      return { success: true, achievements: [] };
+      return { success: true, newAchievements: [] };
     }
 
     // Get current user achievements
@@ -138,152 +187,15 @@ export async function processAchievementTrigger(
       return { success: false, error: error.message };
     }
 
-    // Track newly completed achievements
-    const newlyCompletedAchievements: Achievement[] = [];
+    // Process achievements and get newly completed ones
+    const newlyCompletedAchievements = await processMatchingAchievements(
+      matchingAchievements,
+      userId,
+      userAchievements || []
+    );
 
-    // Process each matching achievement
-    for (const achievement of matchingAchievements) {
-      // Skip if already completed
-      const existingAchievement = userAchievements?.find(ua =>
-        ua.achievement_id === achievement.id && ua.completed_at !== null
-      );
-
-      if (existingAchievement) {
-        continue;
-      }
-
-      // Check if achievement has special metadata requirements
-      if (achievement.metadata) {
-        // For supplement with complete dosage information
-        if (achievement.metadata.completeDosage && metadata?.supplementData) {
-          const supplementData = metadata.supplementData;
-          if (!supplementData.dosage || !supplementData.dosageUnit || !supplementData.frequency) {
-            continue; // Skip if dosage information is incomplete
-          }
-        }
-
-        // For tests with supplements
-        if (achievement.metadata.withSupplement && metadata?.testWithSupplement === false) {
-          continue; // Skip if test was not taken while on a supplement
-        }
-
-        // For control group tests (with and without supplements)
-        if (achievement.metadata.controlGroup && !metadata?.hasControlTests) {
-          continue; // Skip if user doesn't have both types of tests
-        }
-
-        // For consistent time of day
-        if (achievement.trigger === AchievementTrigger.CONSISTENT_TIME_OF_DAY && metadata?.testTime) {
-          // Check if test was taken at a consistent time
-          const { data: testTimes } = await supabase
-            .from('user_achievements_metadata')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('achievement_id', achievement.id)
-            .eq('metadata_key', 'test_time');
-
-          if (testTimes && testTimes.length > 0) {
-            const lastTestTime = parseInt(testTimes[0].metadata_value);
-            const currentTestTime = metadata.testTime;
-
-            // Check if test time is within 1 hour of previous test time
-            if (Math.abs(currentTestTime - lastTestTime) > 60) {
-              continue; // Skip if test time is not consistent
-            }
-          }
-
-          // Store this test time
-          await supabase
-            .from('user_achievements_metadata')
-            .insert({
-              user_id: userId,
-              achievement_id: achievement.id,
-              metadata_key: 'test_time',
-              metadata_value: metadata.testTime.toString()
-            });
-        }
-
-        // For unique supplement achievements
-        if (achievement.metadata.uniqueOnly && metadata?.supplementId) {
-          // Check if this supplement has been logged before
-          const { data: existingSupplements } = await supabase
-            .from('user_achievements_metadata')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('achievement_id', achievement.id)
-            .eq('metadata_key', 'supplement_id')
-            .eq('metadata_value', metadata.supplementId);
-
-          if (existingSupplements && existingSupplements.length > 0) {
-            continue; // Skip if this supplement has been logged before
-          }
-
-          // Store this supplement ID
-          await supabase
-            .from('user_achievements_metadata')
-            .insert({
-              user_id: userId,
-              achievement_id: achievement.id,
-              metadata_key: 'supplement_id',
-              metadata_value: metadata.supplementId
-            });
-        }
-
-        // For consecutive day achievements
-        if (achievement.metadata.consecutiveDays) {
-          // This requires more complex logic that would check the last activity date
-          // For now, we'll just increment the counter
-        }
-      }
-
-      // Get or create user achievement
-      let userAchievement = userAchievements?.find(ua => ua.achievement_id === achievement.id);
-
-      if (!userAchievement) {
-        // Create new user achievement
-        const { data: newUserAchievement, error: insertError } = await supabase
-          .from('user_achievements')
-          .insert({
-            user_id: userId,
-            achievement_id: achievement.id,
-            current_count: 1
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('Error creating user achievement:', insertError);
-          continue;
-        }
-
-        userAchievement = newUserAchievement;
-      } else {
-        // Update existing user achievement
-        const newCount = userAchievement.current_count + 1;
-        const isCompleted = newCount >= achievement.requiredCount;
-
-        const { error: updateError } = await supabase
-          .from('user_achievements')
-          .update({
-            current_count: newCount,
-            completed_at: isCompleted ? new Date().toISOString() : null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userAchievement.id);
-
-        if (updateError) {
-          console.error('Error updating user achievement:', updateError);
-          continue;
-        }
-
-        userAchievement.current_count = newCount;
-
-        if (isCompleted) {
-          userAchievement.completed_at = new Date().toISOString();
-          newlyCompletedAchievements.push(achievement);
-        }
-      }
-    }
+    // Invalidate the achievements cache for this user
+    invalidateAchievementsCache(userId);
 
     return {
       success: true,
@@ -299,181 +211,120 @@ export async function processAchievementTrigger(
 }
 
 /**
- * Process supplement evaluation achievements
+ * Process matching achievements for a user
  */
-export async function processSupplementEvaluation(
+async function processMatchingAchievements(
+  achievements: Achievement[],
   userId: string,
-  supplementId: string,
-  hasBeforeTests: boolean,
-  hasAfterTests: boolean,
-  hasNotes: boolean
-): Promise<AchievementResponse> {
-  try {
-    if (!userId || !supplementId) {
-      return { success: false, error: 'User ID and Supplement ID are required' };
+  userAchievements: UserAchievementRow[]
+): Promise<Achievement[]> {
+  const newlyCompletedAchievements: Achievement[] = [];
+
+  for (const achievement of achievements) {
+    const result = await processIndividualAchievement(achievement, userId, userAchievements);
+    if (result) {
+      newlyCompletedAchievements.push(result);
     }
+  }
 
-    // Check if this is a complete evaluation
-    const isCompleteEvaluation = hasBeforeTests && hasAfterTests && hasNotes;
+  return newlyCompletedAchievements;
+}
 
-    if (isCompleteEvaluation) {
-      // Trigger supplement cycle completed achievement
-      await processAchievementTrigger({
-        trigger: AchievementTrigger.SUPPLEMENT_CYCLE_COMPLETED,
-        userId,
-        metadata: { supplementId }
-      });
+/**
+ * Process an individual achievement for a user
+ */
+async function processIndividualAchievement(
+  achievement: Achievement,
+  userId: string,
+  userAchievements: UserAchievementRow[]
+): Promise<Achievement | null> {
+  // Skip if already completed
+  const existingAchievement = userAchievements.find(ua =>
+    ua.achievement_id === achievement.id && ua.completed_at !== null
+  );
 
-      // Trigger supplement evaluation completed achievement
-      await processAchievementTrigger({
-        trigger: AchievementTrigger.SUPPLEMENT_EVALUATION_COMPLETED,
-        userId,
-        metadata: { supplementId }
-      });
-    }
+  if (existingAchievement) {
+    return null;
+  }
 
-    // If detailed notes were added
-    if (hasNotes) {
-      await processAchievementTrigger({
-        trigger: AchievementTrigger.DETAILED_NOTES_ADDED,
-        userId,
-        metadata: { supplementId }
-      });
-    }
+  // Get or create user achievement
+  const userAchievement = userAchievements.find(ua => ua.achievement_id === achievement.id);
 
-    return { success: true };
-  } catch (error) {
-    console.error('Error in processSupplementEvaluation:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+  if (!userAchievement) {
+    return await createNewUserAchievement(achievement, userId);
+  } else {
+    return await updateExistingUserAchievement(achievement, userAchievement);
   }
 }
 
 /**
- * Process confounding factors achievements
+ * Create a new user achievement
  */
-export async function processConfoundingFactors(
-  userId: string,
-  testId: string,
-  factorsLogged: boolean
-): Promise<AchievementResponse> {
-  try {
-    if (!userId || !testId) {
-      return { success: false, error: 'User ID and Test ID are required' };
-    }
+async function createNewUserAchievement(
+  achievement: Achievement,
+  userId: string
+): Promise<Achievement | null> {
+  const { data: newUserAchievement, error: insertError } = await supabase
+    .from('user_achievements')
+    .insert({
+      user_id: userId,
+      achievement_id: achievement.id,
+      current_count: 1
+    })
+    .select()
+    .single();
 
-    if (factorsLogged) {
-      await processAchievementTrigger({
-        trigger: AchievementTrigger.CONFOUNDING_FACTORS_LOGGED,
-        userId,
-        metadata: { testId }
-      });
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error in processConfoundingFactors:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+  if (insertError) {
+    console.error('Error creating user achievement:', insertError);
+    return null;
   }
+
+  // Check if achievement is completed on first try
+  if (newUserAchievement.current_count >= achievement.requiredCount) {
+    await markAchievementCompleted(newUserAchievement.id);
+    return achievement;
+  }
+
+  return null;
 }
 
 /**
- * Process supplement data quality achievements
+ * Update an existing user achievement
  */
-export async function processSupplementDataQuality(
-  userId: string,
-  supplementId: string,
-  isComplete: boolean
-): Promise<AchievementResponse> {
-  try {
-    if (!userId || !supplementId) {
-      return { success: false, error: 'User ID and Supplement ID are required' };
-    }
+async function updateExistingUserAchievement(
+  achievement: Achievement,
+  userAchievement: UserAchievementRow
+): Promise<Achievement | null> {
+  const newCount = userAchievement.current_count + 1;
+  const isCompleted = newCount >= achievement.requiredCount;
 
-    if (isComplete) {
-      await processAchievementTrigger({
-        trigger: AchievementTrigger.COMPLETE_SUPPLEMENT_DATA,
-        userId,
-        metadata: { supplementId }
-      });
-    }
+  const { error: updateError } = await supabase
+    .from('user_achievements')
+    .update({
+      current_count: newCount,
+      completed_at: isCompleted ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userAchievement.id);
 
-    return { success: true };
-  } catch (error) {
-    console.error('Error in processSupplementDataQuality:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+  if (updateError) {
+    console.error('Error updating user achievement:', updateError);
+    return null;
   }
+
+  return isCompleted ? achievement : null;
 }
 
 /**
- * Check and update streak-based achievements
+ * Mark an achievement as completed
  */
-export async function updateStreakAchievements(userId: string): Promise<AchievementResponse> {
-  try {
-    if (!userId) {
-      return { success: false, error: 'User ID is required' };
-    }
-
-    // Get test results ordered by date
-    const { data: testResults, error } = await supabase
-      .from('test_results')
-      .select('timestamp')
-      .eq('user_id', userId)
-      .order('timestamp', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching test results:', error);
-      return { success: false, error: error.message };
-    }
-
-    if (!testResults || testResults.length === 0) {
-      return { success: true, achievements: [] };
-    }
-
-    // Calculate daily streak
-    let dailyStreak = 1;
-    let lastDate = parseISO(testResults[0].timestamp);
-
-    for (let i = 1; i < testResults.length; i++) {
-      const currentDate = parseISO(testResults[i].timestamp);
-      const dayDifference = differenceInDays(lastDate, currentDate);
-
-      if (dayDifference === 1) {
-        // Consecutive day
-        dailyStreak++;
-        lastDate = currentDate;
-      } else if (dayDifference === 0) {
-        // Same day, skip
-        continue;
-      } else {
-        // Streak broken
-        break;
-      }
-    }
-
-    // Process streak achievements
-    await processAchievementTrigger({
-      trigger: AchievementTrigger.DAILY_STREAK,
-      userId,
-      metadata: { streakDays: dailyStreak }
-    });
-
-    // Weekly streak logic would be similar but checking for tests in consecutive weeks
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error in updateStreakAchievements:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
-  }
+async function markAchievementCompleted(userAchievementId: string): Promise<void> {
+  await supabase
+    .from('user_achievements')
+    .update({
+      completed_at: new Date().toISOString()
+    })
+    .eq('id', userAchievementId);
 }
+
+// Simplified achievement system - removed complex processing functions

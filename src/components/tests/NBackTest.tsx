@@ -375,7 +375,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
       console.log("Restarting animation frame");
       animationFrameRef.current = requestAnimationFrame(handleAnimationFrame);
     }
-  }, [testLoop, testState]);
+  }, [testLoop, testState, handleAnimationFrame]);
 
   // Handle keyboard input
   useEffect(() => {

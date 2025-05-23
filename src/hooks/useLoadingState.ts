@@ -18,7 +18,7 @@ export enum LoadingStatus {
 /**
  * Type for loading state data
  */
-export interface LoadingState<T = any> {
+export interface LoadingState<T = unknown> {
   status: LoadingStatus;
   data: T | null;
   error: Error | null;
@@ -31,20 +31,20 @@ export interface LoadingState<T = any> {
 /**
  * Type for loading state options
  */
-export interface LoadingStateOptions {
+export interface LoadingStateOptions<T = unknown> {
   timeout?: number;
   resetOnSuccess?: boolean;
   initialMessage?: string;
   onTimeout?: () => void;
   onError?: (error: Error) => void;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: T) => void;
   id?: string;
 }
 
 /**
  * Type for loading state result
  */
-export interface LoadingStateResult<T = any> {
+export interface LoadingStateResult<T = unknown> {
   // Current state
   status: LoadingStatus;
   isIdle: boolean;
@@ -53,18 +53,18 @@ export interface LoadingStateResult<T = any> {
   isError: boolean;
   isTimeout: boolean;
   isPartial: boolean;
-  
+
   // Data and error
   data: T | null;
   error: Error | null;
-  
+
   // Metadata
   timestamp: number;
   message: string;
   progress: number;
   elapsedTime: number;
   source?: string;
-  
+
   // Actions
   execute: <R = T>(
     promise: Promise<R>,
@@ -98,10 +98,10 @@ function createInitialState<T>(message: string = 'Idle'): LoadingState<T> {
 
 /**
  * Hook for managing loading states with a state machine approach
- * 
+ *
  * @param options Options for the loading state
  * @returns Loading state result
- * 
+ *
  * @example
  * ```tsx
  * const {
@@ -113,19 +113,19 @@ function createInitialState<T>(message: string = 'Idle'): LoadingState<T> {
  *   execute,
  *   reset
  * } = useLoadingState<User[]>();
- * 
+ *
  * useEffect(() => {
  *   execute(fetchUsers(), { message: 'Fetching users...' });
  * }, [execute]);
- * 
+ *
  * if (isLoading) return <LoadingIndicator message={message} />;
  * if (isError) return <ErrorDisplay error={error} />;
- * 
+ *
  * return <UserList users={data || []} />;
  * ```
  */
-export function useLoadingState<T = any>(
-  options: LoadingStateOptions = {}
+export function useLoadingState<T = unknown>(
+  options: LoadingStateOptions<T> = {}
 ): LoadingStateResult<T> {
   const {
     timeout = 30000, // 30 seconds default timeout
@@ -133,13 +133,12 @@ export function useLoadingState<T = any>(
     initialMessage = 'Idle',
     onTimeout,
     onError,
-    onSuccess,
-    id
+    onSuccess
   } = options;
 
   // State for the loading state
   const [state, setState] = useState<LoadingState<T>>(createInitialState(initialMessage));
-  
+
   // Refs for tracking timeouts and cleanup
   const timeoutRef = useRef<number | null>(null);
   const isMountedRef = useRef(true);
@@ -160,7 +159,7 @@ export function useLoadingState<T = any>(
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     setState(createInitialState(initialMessage));
   }, [initialMessage]);
 
@@ -186,7 +185,7 @@ export function useLoadingState<T = any>(
     setState(prev => ({
       ...prev,
       status: LoadingStatus.PARTIAL,
-      data: { ...((prev.data as any) || {}), ...partialData } as T,
+      data: { ...((prev.data as Record<string, unknown>) ?? {}), ...partialData } as T,
       timestamp: Date.now()
     }));
   }, []);
@@ -197,7 +196,7 @@ export function useLoadingState<T = any>(
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     setState(prev => ({
       ...prev,
       status: LoadingStatus.ERROR,
@@ -205,7 +204,7 @@ export function useLoadingState<T = any>(
       message: message || `Error: ${error.message}`,
       timestamp: Date.now()
     }));
-    
+
     if (onError) {
       onError(error);
     }
@@ -217,7 +216,7 @@ export function useLoadingState<T = any>(
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     setState(prev => ({
       ...prev,
       status: LoadingStatus.SUCCESS,
@@ -227,11 +226,11 @@ export function useLoadingState<T = any>(
       progress: 100,
       timestamp: Date.now()
     }));
-    
+
     if (onSuccess) {
       onSuccess(data);
     }
-    
+
     if (resetOnSuccess) {
       // Reset after a short delay to allow UI to show success state
       setTimeout(() => {
@@ -252,13 +251,13 @@ export function useLoadingState<T = any>(
     } = {}
   ): Promise<R> => {
     const { message = 'Loading...', source, transform } = options;
-    
+
     // Clear any existing timeout
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    
+
     // Set loading state
     setState({
       status: LoadingStatus.LOADING,
@@ -269,7 +268,7 @@ export function useLoadingState<T = any>(
       progress: 0,
       source
     });
-    
+
     // Set timeout
     if (timeout > 0) {
       timeoutRef.current = window.setTimeout(() => {
@@ -280,32 +279,32 @@ export function useLoadingState<T = any>(
             message: `Operation timed out after ${timeout / 1000} seconds`,
             timestamp: Date.now()
           }));
-          
+
           if (onTimeout) {
             onTimeout();
           }
         }
       }, timeout);
     }
-    
+
     try {
       // Execute the promise
       const result = await promise;
-      
+
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         const data = transform ? transform(result) : (result as unknown as T);
-        
+
         setSuccess(data, message.replace('Loading', 'Loaded'));
       }
-      
+
       return result;
     } catch (error) {
       // Only update state if component is still mounted
       if (isMountedRef.current) {
         setError(error instanceof Error ? error : new Error(String(error)));
       }
-      
+
       throw error;
     }
   }, [state.data, timeout, onTimeout, setSuccess, setError]);
@@ -323,18 +322,18 @@ export function useLoadingState<T = any>(
     isError: state.status === LoadingStatus.ERROR,
     isTimeout: state.status === LoadingStatus.TIMEOUT,
     isPartial: state.status === LoadingStatus.PARTIAL,
-    
+
     // Data and error
     data: state.data,
     error: state.error,
-    
+
     // Metadata
     timestamp: state.timestamp,
     message: state.message,
     progress: state.progress,
     elapsedTime,
     source: state.source,
-    
+
     // Actions
     execute,
     reset,

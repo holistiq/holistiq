@@ -61,7 +61,19 @@ import {
 // Custom tooltip component for the charts
 interface ChartTooltipProps {
   active?: boolean;
-  payload?: any[];
+  payload?: Array<{
+    name: string;
+    value: number;
+    dataKey: string;
+    color?: string;
+    payload: {
+      date: number;
+      formattedDate: string;
+      score?: number;
+      reactionTime?: number;
+      accuracy?: number;
+    };
+  }>;
   label?: string;
 }
 

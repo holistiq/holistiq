@@ -44,74 +44,76 @@ export function PerformanceMetricCard({
     }
   }, [latestResult, baselineResult, metricKey, isInverted]);
 
-  // Helper functions to get the appropriate trend icons
-  const getImprovedIcon = (isInverted: boolean) => {
-    return isInverted ?
-      <TrendingDown className="h-4 w-4 inline" /> :
-      <TrendingUp className="h-4 w-4 inline" />;
-  };
-
-  const getDeclinedIcon = (isInverted: boolean) => {
-    return isInverted ?
-      <TrendingUp className="h-4 w-4 inline" /> :
-      <TrendingDown className="h-4 w-4 inline" />;
-  };
-
-  // Handle the case where both values are zero
-  const renderZeroChange = () => {
-    return (
-      <>
-        0.0%<span className="text-gray-500 text-sm ml-1">
-          <TrendingUp className="h-4 w-4 inline" />
-        </span>
-      </>
-    );
-  };
-
-  // Handle the case where baseline is zero but latest is not
-  const renderZeroBaselineChange = (latestValue: number) => {
-    const improved = isInverted ? latestValue < 0 : latestValue > 0;
-    const color = improved ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1";
-    const icon = improved ? getImprovedIcon(isInverted) : getDeclinedIcon(isInverted);
-
-    return (
-      <>
-        {isInverted ? "Faster" : "Improved"}<span className={color}>
-          {icon}
-        </span>
-      </>
-    );
-  };
-
-  // Handle normal percentage change calculation
-  const renderNormalChange = (baselineValue: number, latestValue: number) => {
-    let change: number;
-
-    if (isInverted) {
-      // For inverted metrics, calculate how much faster/better (negative means improvement)
-      change = calculateChange(latestValue, baselineValue);
-      // Invert the sign because lower is better
-      change = -change;
-    } else {
-      // For regular metrics, calculate normal change
-      change = calculateChange(latestValue, baselineValue);
-    }
-
-    const improved = change >= 0;
-    const color = improved ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1";
-    const icon = improved ? getImprovedIcon(isInverted) : getDeclinedIcon(isInverted);
-
-    return (
-      <>
-        {Math.abs(change).toFixed(1)}%<span className={color}>
-          {icon}
-        </span>
-      </>
-    );
-  };
-
   // Main function to calculate and format the percentage change
   const renderPercentageChange = useMemo(() => {
+    // Helper functions moved inside useMemo to avoid dependency issues
+
+    // Helper functions to get the appropriate trend icons
+    const getImprovedIcon = (isInverted: boolean) => {
+      return isInverted ?
+        <TrendingDown className="h-4 w-4 inline" /> :
+        <TrendingUp className="h-4 w-4 inline" />;
+    };
+
+    const getDeclinedIcon = (isInverted: boolean) => {
+      return isInverted ?
+        <TrendingUp className="h-4 w-4 inline" /> :
+        <TrendingDown className="h-4 w-4 inline" />;
+    };
+
+    // Handle the case where both values are zero
+    const renderZeroChange = () => {
+      return (
+        <>
+          0.0%<span className="text-gray-500 text-sm ml-1">
+            <TrendingUp className="h-4 w-4 inline" />
+          </span>
+        </>
+      );
+    };
+
+    // Handle the case where baseline is zero but latest is not
+    const renderZeroBaselineChange = (latestValue: number) => {
+      const improved = isInverted ? latestValue < 0 : latestValue > 0;
+      const color = improved ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1";
+      const icon = improved ? getImprovedIcon(isInverted) : getDeclinedIcon(isInverted);
+
+      return (
+        <>
+          {isInverted ? "Faster" : "Improved"}<span className={color}>
+            {icon}
+          </span>
+        </>
+      );
+    };
+
+    // Handle normal percentage change calculation
+    const renderNormalChange = (baselineValue: number, latestValue: number) => {
+      let change: number;
+
+      if (isInverted) {
+        // For inverted metrics, calculate how much faster/better (negative means improvement)
+        change = calculateChange(latestValue, baselineValue);
+        // Invert the sign because lower is better
+        change = -change;
+      } else {
+        // For regular metrics, calculate normal change
+        change = calculateChange(latestValue, baselineValue);
+      }
+
+      const improved = change >= 0;
+      const color = improved ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1";
+      const icon = improved ? getImprovedIcon(isInverted) : getDeclinedIcon(isInverted);
+
+      return (
+        <>
+          {Math.abs(change).toFixed(1)}%<span className={color}>
+            {icon}
+          </span>
+        </>
+      );
+    };
+
     if (!latestResult || !baselineResult) return null;
 
     // Get the values

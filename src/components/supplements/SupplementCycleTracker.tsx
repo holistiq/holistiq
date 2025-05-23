@@ -1,6 +1,6 @@
 /**
  * Supplement Cycle Tracker Component
- * 
+ *
  * Tracks and displays the progress of a supplement evaluation cycle
  */
 import React, { useState } from 'react';
@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Pill, CheckCircle, BarChart2, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { Supplement, SupplementCycleStatus } from '@/types/supplement';
-import { processSupplementEvaluation } from '@/services/achievementService';
+import { processAchievementTrigger } from '@/services/achievementService';
+import { AchievementTrigger } from '@/types/achievement';
 import { updateSupplementCycleStatus } from '@/services/supplementService';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { toast } from '@/components/ui/use-toast';
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -43,20 +44,20 @@ export function SupplementCycleTracker({
 }: Readonly<SupplementCycleTrackerProps>) {
   const { user } = useSupabaseAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Calculate completion percentage
-  const completionPercentage = 
-    (hasBeforeTests ? 33 : 0) + 
-    (hasAfterTests ? 33 : 0) + 
+  const completionPercentage =
+    (hasBeforeTests ? 33 : 0) +
+    (hasAfterTests ? 33 : 0) +
     (hasDetailedNotes ? 34 : 0);
-  
+
   // Get cycle status
   const cycleStatus = supplement.cycle_status || SupplementCycleStatus.NOT_STARTED;
-  
+
   // Handle completing the evaluation
   const handleCompleteEvaluation = async () => {
     if (!user) return;
-    
+
     setIsSubmitting(true);
     try {
       // Update supplement cycle status
@@ -65,25 +66,22 @@ export function SupplementCycleTracker({
         supplement.id,
         SupplementCycleStatus.COMPLETED
       );
-      
+
       if (!updateResult.success) {
         throw new Error(updateResult.error);
       }
-      
-      // Process achievement
-      await processSupplementEvaluation(
-        user.id,
-        supplement.id,
-        hasBeforeTests,
-        hasAfterTests,
-        hasDetailedNotes
-      );
-      
+
+      // Process achievement for supplement logging
+      await processAchievementTrigger({
+        trigger: AchievementTrigger.SUPPLEMENT_LOGGED,
+        userId: user.id
+      });
+
       toast({
         title: "Evaluation Completed",
         description: "You've successfully completed the evaluation cycle for this supplement."
       });
-      
+
       if (onCycleCompleted) {
         onCycleCompleted();
       }
@@ -98,11 +96,11 @@ export function SupplementCycleTracker({
       setIsSubmitting(false);
     }
   };
-  
+
   // Handle starting the evaluation
   const handleStartEvaluation = async () => {
     if (!user) return;
-    
+
     setIsSubmitting(true);
     try {
       // Update supplement cycle status
@@ -111,16 +109,16 @@ export function SupplementCycleTracker({
         supplement.id,
         SupplementCycleStatus.IN_PROGRESS
       );
-      
+
       if (!updateResult.success) {
         throw new Error(updateResult.error);
       }
-      
+
       toast({
         title: "Evaluation Started",
         description: "You've started the evaluation cycle for this supplement."
       });
-      
+
       if (onCycleCompleted) {
         onCycleCompleted();
       }
@@ -135,7 +133,7 @@ export function SupplementCycleTracker({
       setIsSubmitting(false);
     }
   };
-  
+
   // Render status badge
   const renderStatusBadge = () => {
     switch (cycleStatus) {
@@ -155,7 +153,58 @@ export function SupplementCycleTracker({
         return null;
     }
   };
-  
+
+  // Render action button based on cycle status
+  const renderActionButton = () => {
+    if (cycleStatus === SupplementCycleStatus.NOT_STARTED) {
+      return (
+        <Button
+          onClick={handleStartEvaluation}
+          disabled={isSubmitting}
+          className="w-full"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Start Evaluation"
+          )}
+        </Button>
+      );
+    }
+
+    if (cycleStatus === SupplementCycleStatus.IN_PROGRESS) {
+      return (
+        <Button
+          onClick={handleCompleteEvaluation}
+          disabled={!hasBeforeTests || !hasAfterTests || !hasDetailedNotes || isSubmitting}
+          className="w-full"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Complete Evaluation"
+          )}
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        variant="outline"
+        className="w-full"
+        disabled
+      >
+        Evaluation Completed
+      </Button>
+    );
+  };
+
   // Render compact version
   if (compact) {
     return (
@@ -167,7 +216,7 @@ export function SupplementCycleTracker({
             <div className="mt-1">{renderStatusBadge()}</div>
           </div>
         </div>
-        
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -183,7 +232,7 @@ export function SupplementCycleTracker({
       </div>
     );
   }
-  
+
   // Render full component
   return (
     <Card className={className}>
@@ -209,7 +258,7 @@ export function SupplementCycleTracker({
           </div>
           <Progress value={completionPercentage} />
         </div>
-        
+
         <div className="space-y-2 mt-4">
           <div className="flex items-center gap-2">
             {hasBeforeTests ? (
@@ -238,45 +287,7 @@ export function SupplementCycleTracker({
         </div>
       </CardContent>
       <CardFooter>
-        {cycleStatus === SupplementCycleStatus.NOT_STARTED ? (
-          <Button 
-            onClick={handleStartEvaluation}
-            disabled={isSubmitting}
-            className="w-full"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Start Evaluation"
-            )}
-          </Button>
-        ) : cycleStatus === SupplementCycleStatus.IN_PROGRESS ? (
-          <Button 
-            onClick={handleCompleteEvaluation}
-            disabled={!hasBeforeTests || !hasAfterTests || !hasDetailedNotes || isSubmitting}
-            className="w-full"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Complete Evaluation"
-            )}
-          </Button>
-        ) : (
-          <Button 
-            variant="outline"
-            className="w-full"
-            disabled
-          >
-            Evaluation Completed
-          </Button>
-        )}
+        {renderActionButton()}
       </CardFooter>
     </Card>
   );

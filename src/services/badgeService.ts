@@ -10,6 +10,17 @@ import {
   MAX_DISPLAYED_BADGES
 } from '@/types/achievement';
 import { getAchievementById } from '@/data/achievements';
+import { supabaseCache, CACHE_CONFIG } from '@/lib/supabaseCache';
+
+// Database badge object type
+interface DbBadge {
+  id: string;
+  user_id: string;
+  achievement_id: string;
+  display_order: number;
+  created_at: string;
+  updated_at?: string;
+}
 
 // Common response type for badge operations
 type BadgeServiceResponse<T = undefined> = {
@@ -72,7 +83,7 @@ function validateUserId(userId: string): BadgeServiceResponse | null {
 }
 
 // Helper function to map database badges to UserBadgeWithDetails
-function mapBadgesToDetails(badges: any[]): UserBadgeWithDetails[] {
+function mapBadgesToDetails(badges: DbBadge[]): UserBadgeWithDetails[] {
   return badges
     .map(badge => {
       const achievement = getAchievementById(badge.achievement_id);
@@ -91,7 +102,7 @@ function mapBadgesToDetails(badges: any[]): UserBadgeWithDetails[] {
 }
 
 /**
- * Get all badges for a user
+ * Get all badges for a user with caching
  */
 export async function getUserBadges(
   userId: string
@@ -101,41 +112,63 @@ export async function getUserBadges(
     const validationError = validateUserId(userId);
     if (validationError) return validationError;
 
-    try {
-      // Get user badges from Supabase
-      const { data: userBadges, error } = await supabase
-        .from('user_badges')
-        .select('*')
-        .eq('user_id', userId)
-        .order('display_order', { ascending: true });
+    // Use the cache key pattern from our configuration
+    const cacheKey = CACHE_CONFIG.USER_BADGES.PATTERNS.ALL(userId);
 
-      if (error) {
-        // Check if this is a "relation does not exist" error
-        if (error.code === '42P01') {
-          console.warn('User badges table not set up yet. Using empty badges list.');
-          return { success: true, data: [] };
+    // Enable debug logging in development
+    const enableDebugLogging = process.env.NODE_ENV === 'development';
+    if (enableDebugLogging) {
+      console.log(`[User Badges] Fetching badges for user ${userId}`);
+      console.log(`[User Badges] Cache key: ${cacheKey}`);
+    }
+
+    // Use the enhanced caching system
+    return await supabaseCache.query(
+      'USER_BADGES',
+      cacheKey,
+      async () => {
+        if (enableDebugLogging) {
+          console.log(`[User Badges] Cache MISS - Fetching from database`);
         }
 
-        return handleDatabaseError(error, 'fetching user badges');
-      }
+        try {
+          // Get user badges from Supabase
+          const { data: userBadges, error } = await supabase
+            .from('user_badges')
+            .select('*')
+            .eq('user_id', userId)
+            .order('display_order', { ascending: true });
 
-      // Map badges with achievement details
-      const badgesWithDetails = mapBadgesToDetails(userBadges);
+          if (error) {
+            // Check if this is a "relation does not exist" error
+            if (error.code === '42P01') {
+              console.warn('User badges table not set up yet. Using empty badges list.');
+              return { success: true, data: [] };
+            }
 
-      return {
-        success: true,
-        data: badgesWithDetails
-      };
-    } catch (error) {
-      // Check if this is a "relation does not exist" error
-      if (isTableNotExistError(error)) {
-        console.warn('User badges table not set up yet. Using empty badges list.');
-        return { success: true, data: [] };
-      }
+            return handleDatabaseError(error, 'fetching user badges');
+          }
 
-      // Re-throw other errors
-      throw error;
-    }
+          // Map badges with achievement details
+          const badgesWithDetails = mapBadgesToDetails(userBadges);
+
+          return {
+            success: true,
+            data: badgesWithDetails
+          };
+        } catch (error) {
+          // Check if this is a "relation does not exist" error
+          if (isTableNotExistError(error)) {
+            console.warn('User badges table not set up yet. Using empty badges list.');
+            return { success: true, data: [] };
+          }
+
+          // Re-throw other errors
+          throw error;
+        }
+      },
+      CACHE_CONFIG.USER_BADGES.TTL
+    );
   } catch (error) {
     return handleDatabaseError(error, 'getting user badges');
   }
@@ -162,7 +195,7 @@ function validateAchievementExists(achievementId: string): BadgeServiceResponse 
 async function checkBadgeExists(
   userId: string,
   achievementId: string
-): Promise<BadgeServiceResponse<{ exists: boolean, badge?: any }>> {
+): Promise<BadgeServiceResponse<{ exists: boolean, badge?: DbBadge }>> {
   try {
     const { data: existingBadge, error } = await supabase
       .from('user_badges')
@@ -218,7 +251,7 @@ async function insertBadge(
   userId: string,
   achievementId: string,
   displayOrder: number
-): Promise<BadgeServiceResponse<any>> {
+): Promise<BadgeServiceResponse<DbBadge>> {
   try {
     const { data: newBadge, error } = await supabase
       .from('user_badges')
@@ -299,6 +332,9 @@ export async function addUserBadge(
       achievement
     };
 
+    // Invalidate cache after successful badge addition
+    invalidateUserBadgesCache(userId);
+
     return {
       success: true,
       data: badgeWithDetails
@@ -320,7 +356,7 @@ function validateBadgeId(badgeId: string): BadgeServiceResponse | null {
 async function getBadgeById(
   userId: string,
   badgeId: string
-): Promise<BadgeServiceResponse<any>> {
+): Promise<BadgeServiceResponse<DbBadge | null>> {
   try {
     const { data: badge, error } = await supabase
       .from('user_badges')
@@ -367,7 +403,7 @@ async function deleteBadge(
 }
 
 // Helper function to get all badges for a user
-async function getAllUserBadges(userId: string): Promise<BadgeServiceResponse<any[]>> {
+async function getAllUserBadges(userId: string): Promise<BadgeServiceResponse<DbBadge[]>> {
   try {
     const { data: badges, error } = await supabase
       .from('user_badges')
@@ -387,7 +423,7 @@ async function getAllUserBadges(userId: string): Promise<BadgeServiceResponse<an
 
 // Helper function to update badge display orders
 async function updateBadgeDisplayOrders(
-  badges: any[]
+  badges: DbBadge[]
 ): Promise<BadgeServiceResponse> {
   try {
     // Update each badge's display order
@@ -445,6 +481,9 @@ export async function removeUserBadge(
       if (!updateOrderResult.success) return updateOrderResult;
     }
 
+    // Invalidate cache after successful badge removal
+    invalidateUserBadgesCache(userId);
+
     return { success: true };
   } catch (error) {
     return handleDatabaseError(error, 'removing user badge');
@@ -490,7 +529,7 @@ async function updateSingleBadgeOrder(
 
 // Helper function to shift badge orders when moving a badge to a later position
 async function shiftBadgesDown(
-  badges: any[],
+  badges: DbBadge[],
   startOrder: number,
   endOrder: number
 ): Promise<BadgeServiceResponse> {
@@ -520,7 +559,7 @@ async function shiftBadgesDown(
 
 // Helper function to shift badge orders when moving a badge to an earlier position
 async function shiftBadgesUp(
-  badges: any[],
+  badges: DbBadge[],
   startOrder: number,
   endOrder: number
 ): Promise<BadgeServiceResponse> {
@@ -603,8 +642,23 @@ export async function updateBadgeOrder(
     const updateResult = await updateSingleBadgeOrder(badgeId, newOrder);
     if (!updateResult.success) return updateResult;
 
+    // Invalidate cache after successful badge order update
+    invalidateUserBadgesCache(userId);
+
     return { success: true };
   } catch (error) {
     return handleDatabaseError(error, 'updating badge order');
   }
+}
+
+/**
+ * Invalidate the user badges cache for a user
+ *
+ * Call this function when badges are updated
+ */
+export function invalidateUserBadgesCache(userId: string): void {
+  if (!userId) return;
+
+  // Invalidate all badge caches for this user
+  supabaseCache.invalidateForUser('USER_BADGES', userId);
 }

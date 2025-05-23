@@ -9,7 +9,9 @@ import { UserBadgeWithDetails } from '@/types/achievement';
 import {
   Trophy, Star, Zap, Brain, Activity, Calendar,
   CalendarCheck, CalendarRange, Repeat, Pill,
-  List, User, Rocket, CalendarClock, Lightbulb, Target
+  List, User, Rocket, CalendarClock, Lightbulb, Target,
+  ClipboardList, RefreshCw, BarChart2, CheckCircle,
+  Map, Heart, Layers, Clock
 } from 'lucide-react';
 import {
   Tooltip,
@@ -63,6 +65,17 @@ export function BadgeDisplay({
       'list': <List />,
       'user': <User />,
       'rocket': <Rocket />,
+      'lightbulb': <Lightbulb />,
+      'target': <Target />,
+      'clipboard-list': <ClipboardList />,
+      'refresh-cw': <RefreshCw />,
+      'bar-chart-2': <BarChart2 />,
+      'check-circle': <CheckCircle />,
+      'map': <Map />,
+      'heart': <Heart />,
+      'layers': <Layers />,
+      'clock': <Clock />,
+      // Legacy mappings for backward compatibility
       'flask': <Lightbulb />,
       'beaker': <Target />
     };

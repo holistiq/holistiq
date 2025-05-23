@@ -18,7 +18,7 @@ export interface SupabaseTestResult {
   reaction_time: number;
   accuracy: number;
   timestamp: string;
-  raw_data?: any;
+  raw_data?: Record<string, unknown>;
 }
 
 /**

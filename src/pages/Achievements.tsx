@@ -3,17 +3,17 @@
  *
  * Displays all user achievements and progress
  */
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { AchievementCard } from "@/components/achievements/AchievementCard";
 import { AchievementNotification } from "@/components/achievements/AchievementNotification";
 import { BadgeManagement } from "@/components/achievements/BadgeManagement";
-import { getUserAchievements } from "@/services/achievementService";
+import { getUserAchievements, invalidateAchievementsCache } from "@/services/achievementService";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
 import { useUserBadges } from "@/hooks/useUserBadges";
@@ -23,14 +23,14 @@ import {
   AchievementStatus,
   AchievementWithProgress
 } from "@/types/achievement";
-import { Trophy, Search, Filter, Medal, Award } from "lucide-react";
+import { Trophy, Search, Filter, Medal, Award, RefreshCw } from "lucide-react";
 
 export default function Achievements() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const { loading: badgesLoading } = useUserBadges();
   const [achievements, setAchievements] = useState<AchievementWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
-  const [contentVisible, setContentVisible] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
@@ -40,49 +40,73 @@ export default function Achievements() {
   // Coordinated loading state
   const isLoading = authLoading || loading || badgesLoading;
 
-  // Fetch user achievements
+  // Use state to track cache status
+  const [isFromCache, setIsFromCache] = useState(false);
+
+  // Use refs for tracking fetch status, previous user ID, and cache status
+  const isFetchingRef = useRef(false);
+  const prevUserIdRef = useRef<string | null>(null);
+  const lastFetchTimeRef = useRef<number>(0);
+  const cacheExpiryTimeRef = useRef<number>(0);
+
+  // Cache TTL in milliseconds (30 minutes)
+  const CACHE_TTL = 30 * 60 * 1000;
+
+  // Enable debug logging in development
+  const enableDebugLogging = process.env.NODE_ENV === 'development';
+
+  // Simplified data fetching
   useEffect(() => {
     async function fetchAchievements() {
-      if (!user) return;
+      if (!user || isFetchingRef.current) return;
 
+      const userId = user.id;
+      const userChanged = userId !== prevUserIdRef.current;
+
+      // Skip fetch if user hasn't changed and we have data
+      if (!userChanged && achievements.length > 0) {
+        if (enableDebugLogging) {
+          console.log('[Achievements Component] Using existing data - skipping fetch');
+        }
+        setIsFromCache(true);
+        return;
+      }
+
+      // Update the previous user ID
+      prevUserIdRef.current = userId;
+
+      // Set fetching flag
+      isFetchingRef.current = true;
       setLoading(true);
+      setIsFromCache(false);
+
       try {
-        const response = await getUserAchievements(user.id);
+        if (enableDebugLogging) {
+          console.log(`[Achievements Component] Fetching achievements for user ${userId}`);
+        }
+
+        // Use the cached service which handles caching internally
+        const response = await getUserAchievements(userId);
+
         if (response.success && response.achievements) {
           setAchievements(response.achievements);
+          setIsFromCache(false);
         }
       } catch (error) {
         console.error('Error fetching achievements:', error);
       } finally {
         setLoading(false);
+        isFetchingRef.current = false;
       }
     }
 
-    // Always fetch when user changes
+    // Only fetch when user is available
     if (user) {
       fetchAchievements();
     }
-  }, [user]);
+  }, [user?.id]);
 
-  // Handle content visibility with a slight delay to ensure smooth transition
-  useEffect(() => {
-    let timeoutId: number;
 
-    if (!isLoading && achievements.length > 0) {
-      // Delay showing content to ensure a smooth transition
-      timeoutId = window.setTimeout(() => {
-        setContentVisible(true);
-      }, 300); // Increased delay to ensure data is ready
-    } else {
-      setContentVisible(false);
-    }
-
-    return () => {
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [isLoading, achievements.length]);
 
   // Filter achievements
   const filteredAchievements = achievements.filter(achievement => {
@@ -133,91 +157,108 @@ export default function Achievements() {
     setSelectedAchievement(achievement);
   };
 
-  // Render loading skeleton with fixed heights to prevent layout shifts
+  // Force refresh achievements data
+  const refreshAchievements = async () => {
+    if (!user || isFetchingRef.current) return;
+
+    isFetchingRef.current = true;
+    setLoading(true);
+    setIsFromCache(false);
+
+    try {
+      if (enableDebugLogging) {
+        console.log('[Achievements Component] Manually refreshing achievements data');
+      }
+
+      // Invalidate the cache first
+      const userId = user.id;
+      invalidateAchievementsCache(userId);
+
+      // Also clear localStorage cache
+      const cacheKey = `achievements_${userId}_all`;
+      localStorage.removeItem(`holistiq_cache_${cacheKey}`);
+
+      // Reset cache expiry time
+      cacheExpiryTimeRef.current = 0;
+
+      // Fetch fresh data
+      const response = await getUserAchievements(userId);
+      if (response.success && response.achievements) {
+        setAchievements(response.achievements);
+
+        // Update cache expiry time
+        const now = Date.now();
+        lastFetchTimeRef.current = now;
+        cacheExpiryTimeRef.current = now + CACHE_TTL;
+
+        // Store in localStorage as a backup
+        try {
+          localStorage.setItem(`holistiq_cache_${cacheKey}`, JSON.stringify({
+            value: response,
+            created: now,
+            expiry: now + CACHE_TTL
+          }));
+        } catch (e) {
+          console.error('Error caching achievements in localStorage:', e);
+        }
+
+        if (enableDebugLogging) {
+          console.log(`[Achievements Component] Refresh complete, fetched ${response.achievements.length} achievements`);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing achievements:', error);
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  };
+
+  // Lightweight loading skeleton for fast initial render
   const renderLoadingSkeleton = () => (
     <div className="container max-w-4xl py-10">
-      {/* Badge Management Skeleton */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-5 rounded-full" />
-            <Skeleton className="h-6 w-40" />
-          </div>
-          <Skeleton className="h-4 w-full mt-1" />
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center gap-4 min-h-[56px]">
-            {['badge1', 'badge2', 'badge3', 'badge4'].map((id) => (
-              <Skeleton key={id} className="h-14 w-14 rounded-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Achievement Stats Skeleton */}
-      <Card className="my-6">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-6 w-6 rounded-full" />
-            <Skeleton className="h-6 w-40" />
-          </div>
-          <Skeleton className="h-4 w-full mt-1" />
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['completed', 'inProgress', 'completion', 'points'].map((id) => (
-              <Skeleton key={id} className="h-24 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Achievement List Skeleton */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <Skeleton className="h-6 w-40 mb-1" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-            <Skeleton className="h-9 w-[200px]" />
-          </div>
-          <div className="flex flex-wrap gap-2 mt-2">
-            <Skeleton className="h-8 w-20" />
-            <Skeleton className="h-8 w-[130px]" />
-            <Skeleton className="h-8 w-[130px]" />
-            <Skeleton className="h-8 w-[130px]" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {['achievement1', 'achievement2', 'achievement3', 'achievement4', 'achievement5'].map((id) => (
-              <Skeleton key={id} className="h-24 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Simple loading indicator */}
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">Loading achievements...</p>
+        </div>
+      </div>
     </div>
   );
 
-  // Render content with fade-in transition
+  // Render content
   const renderContent = () => (
-    <div
-      className="container max-w-4xl py-10"
-      style={{
-        opacity: contentVisible ? 1 : 0,
-        transition: 'opacity 300ms ease-in-out',
-      }}
-    >
+    <div className="container max-w-4xl py-10">
       {/* Badge Management */}
       <BadgeManagement achievements={achievements} />
 
       {/* Achievement Stats */}
       <Card className="my-6">
         <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-primary" />
-            <CardTitle>Your Achievements</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trophy className="h-6 w-6 text-primary" />
+              <CardTitle>Your Achievements</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              {isFromCache && (
+                <div className="text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-md flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                  <span>Cached</span>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshAchievements}
+                disabled={isFetchingRef.current}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className={`h-4 w-4 ${isFetchingRef.current ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </Button>
+            </div>
           </div>
           <CardDescription>
             Track your progress and unlock new achievements
@@ -314,12 +355,9 @@ export default function Achievements() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value={AchievementCategory.TEST_COMPLETION}>Test Completion</SelectItem>
-                <SelectItem value={AchievementCategory.TEST_CONSISTENCY}>Test Consistency</SelectItem>
-                <SelectItem value={AchievementCategory.SUPPLEMENT_TRACKING}>Supplement Tracking</SelectItem>
-                <SelectItem value={AchievementCategory.SUPPLEMENT_EVALUATION}>Supplement Evaluation</SelectItem>
-                <SelectItem value={AchievementCategory.DATA_QUALITY}>Data Quality</SelectItem>
-                <SelectItem value={AchievementCategory.ACCOUNT}>Account</SelectItem>
+                <SelectItem value={AchievementCategory.TESTING}>Testing</SelectItem>
+                <SelectItem value={AchievementCategory.SUPPLEMENTS}>Supplements</SelectItem>
+                <SelectItem value={AchievementCategory.ENGAGEMENT}>Engagement</SelectItem>
               </SelectContent>
             </Select>
 
@@ -428,39 +466,19 @@ export default function Achievements() {
     </div>
   );
 
-  // Wrap everything in AuthenticationRequired and handle loading state
+  // Simple loading state like other pages
+  if (isLoading) {
+    return (
+      <AuthenticationRequired>
+        {renderLoadingSkeleton()}
+      </AuthenticationRequired>
+    );
+  }
+
+  // Render content when loaded
   return (
     <AuthenticationRequired>
-      <div className="relative">
-        {/* Always render the skeleton when loading or no achievements */}
-        {(isLoading || achievements.length === 0) && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              zIndex: 10,
-              opacity: 1,
-              transition: 'opacity 300ms ease-in-out',
-            }}
-          >
-            {renderLoadingSkeleton()}
-          </div>
-        )}
-
-        {/* Only render the content when it's visible and we have achievements */}
-        {contentVisible && achievements.length > 0 && (
-          <div
-            style={{
-              opacity: 1,
-              transition: 'opacity 300ms ease-in-out',
-            }}
-          >
-            {renderContent()}
-          </div>
-        )}
-      </div>
+      {renderContent()}
     </AuthenticationRequired>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -103,13 +103,15 @@ export default function SupplementEffectivenessReports() {
     if (user) {
       loadData();
     }
-  }, [user]);
+  }, [user, loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    if (!user) return;
+
     setIsLoading(true);
     try {
       // Load supplements
-      const supplementsResult = await getSupplements(user!.id);
+      const supplementsResult = await getSupplements(user.id);
       if (supplementsResult.success) {
         setSupplements(supplementsResult.supplements);
 
@@ -129,7 +131,7 @@ export default function SupplementEffectivenessReports() {
       }
 
       // Load test results
-      const testResultsResult = await getTestResults(user!.id);
+      const testResultsResult = await getTestResults(user.id);
       if (testResultsResult.success && testResultsResult.data) {
         // Convert Supabase test results to our TestResult format
         const formattedResults = testResultsResult.data.map((result: SupabaseTestResult) => ({
@@ -153,7 +155,7 @@ export default function SupplementEffectivenessReports() {
       }
 
       // Load correlations
-      const correlationsResult = await getCorrelations(user!.id);
+      const correlationsResult = await getCorrelations(user.id);
       if (correlationsResult.success) {
         setCorrelations(correlationsResult.correlations);
       } else {
@@ -170,7 +172,7 @@ export default function SupplementEffectivenessReports() {
       }
 
       // Load statistical analyses
-      const analysesResult = await getStatisticalAnalyses(user!.id);
+      const analysesResult = await getStatisticalAnalyses(user.id);
       if (analysesResult.success) {
         setAnalyses(analysesResult.analyses);
       } else {
@@ -195,7 +197,7 @@ export default function SupplementEffectivenessReports() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, selectedSupplementId, setIsLoading, setSupplements, setSelectedSupplementId, setTestResults, setCorrelations, setAnalyses]);
 
   // Helper function to filter supplements by tab
   const filterByTab = (supplement: Supplement, tab: string, correlations: SupplementCorrelation[]): boolean => {

@@ -3,7 +3,7 @@
  *
  * Allows users to manage their achievement badges
  */
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { AchievementWithProgress } from '@/types/achievement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trophy } from 'lucide-react';
@@ -15,10 +15,16 @@ interface BadgeManagementProps {
   readonly achievements: AchievementWithProgress[];
 }
 
-export function BadgeManagement({
+// Use React.memo to prevent unnecessary re-renders
+export const BadgeManagement = memo(function BadgeManagement({
   achievements
 }: Readonly<BadgeManagementProps>) {
   const { badges, refreshBadges } = useUserBadges();
+
+  // Memoize the onBadgesChanged callback to prevent unnecessary re-renders
+  const handleBadgesChanged = useCallback(() => {
+    refreshBadges();
+  }, [refreshBadges]);
 
   return (
     <Card>
@@ -37,7 +43,7 @@ export function BadgeManagement({
           <BadgeSelector
             achievements={achievements}
             selectedBadges={badges}
-            onBadgesChanged={refreshBadges}
+            onBadgesChanged={handleBadgesChanged}
           />
         </div>
       </CardHeader>
@@ -56,4 +62,4 @@ export function BadgeManagement({
       </CardContent>
     </Card>
   );
-}
+});

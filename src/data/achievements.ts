@@ -2,6 +2,7 @@
  * Achievement Definitions
  *
  * Contains all the achievements available in the application
+ * Simplified to 3 core categories for MVP: Testing, Supplements, Engagement
  */
 import {
   Achievement,
@@ -12,14 +13,15 @@ import {
 
 /**
  * All achievements in the application
+ * Organized by the 3 core categories for MVP
  */
 export const achievements: Achievement[] = [
-  // Test Completion Achievements
+  // TESTING CATEGORY - All cognitive test related achievements
   {
     id: 'first_test',
     title: 'First Steps',
     description: 'Complete your first cognitive test',
-    category: AchievementCategory.TEST_COMPLETION,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.EASY,
     icon: 'brain',
     requiredCount: 1,
@@ -30,42 +32,40 @@ export const achievements: Achievement[] = [
     id: 'test_explorer',
     title: 'Test Explorer',
     description: 'Complete 5 cognitive tests',
-    category: AchievementCategory.TEST_COMPLETION,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.EASY,
     icon: 'target',
     requiredCount: 5,
     points: 20,
-    trigger: AchievementTrigger.TEST_COMPLETED
+    trigger: AchievementTrigger.TESTS_COMPLETED
   },
   {
     id: 'test_enthusiast',
     title: 'Test Enthusiast',
     description: 'Complete 25 cognitive tests',
-    category: AchievementCategory.TEST_COMPLETION,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.MEDIUM,
     icon: 'lightbulb',
     requiredCount: 25,
     points: 50,
-    trigger: AchievementTrigger.TEST_COMPLETED
+    trigger: AchievementTrigger.TESTS_COMPLETED
   },
   {
     id: 'test_master',
     title: 'Test Master',
     description: 'Complete 100 cognitive tests',
-    category: AchievementCategory.TEST_COMPLETION,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.HARD,
     icon: 'trophy',
     requiredCount: 100,
     points: 100,
-    trigger: AchievementTrigger.TEST_COMPLETED
+    trigger: AchievementTrigger.TESTS_COMPLETED
   },
-
-  // Test Consistency Achievements
   {
     id: 'baseline_established',
     title: 'Baseline Established',
     description: 'Complete your baseline cognitive assessment - essential for measuring changes',
-    category: AchievementCategory.TEST_CONSISTENCY,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.EASY,
     icon: 'activity',
     requiredCount: 1,
@@ -73,47 +73,10 @@ export const achievements: Achievement[] = [
     trigger: AchievementTrigger.BASELINE_COMPLETED
   },
   {
-    id: 'consistent_tester',
-    title: 'Consistent Tester',
-    description: 'Complete tests at a similar time of day for 5 days',
-    category: AchievementCategory.TEST_CONSISTENCY,
-    difficulty: AchievementDifficulty.MEDIUM,
-    icon: 'clock',
-    requiredCount: 5,
-    points: 30,
-    trigger: AchievementTrigger.CONSISTENT_TIME_OF_DAY
-  },
-  {
-    id: 'data_scientist',
-    title: 'Data Scientist',
-    description: 'Complete 10 tests while taking a specific supplement',
-    category: AchievementCategory.TEST_CONSISTENCY,
-    difficulty: AchievementDifficulty.MEDIUM,
-    icon: 'bar-chart',
-    requiredCount: 10,
-    points: 40,
-    trigger: AchievementTrigger.TEST_COMPLETED,
-    metadata: { withSupplement: true }
-  },
-  {
-    id: 'controlled_experiment',
-    title: 'Controlled Experiment',
-    description: 'Complete tests both with and without a supplement (5 each)',
-    category: AchievementCategory.TEST_CONSISTENCY,
-    difficulty: AchievementDifficulty.HARD,
-    icon: 'microscope',
-    requiredCount: 10,
-    points: 50,
-    trigger: AchievementTrigger.TEST_COMPLETED,
-    metadata: { controlGroup: true }
-  },
-
-  // Test Consistency Achievements (Streaks)
-  {
     id: 'three_day_streak',
     title: 'Three-Day Streak',
     description: 'Complete tests on three consecutive days - building a reliable data pattern',
-    category: AchievementCategory.TEST_CONSISTENCY,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.EASY,
     icon: 'calendar',
     requiredCount: 3,
@@ -124,7 +87,7 @@ export const achievements: Achievement[] = [
     id: 'weekly_dedication',
     title: 'Weekly Dedication',
     description: 'Complete tests on seven consecutive days - essential for accurate supplement assessment',
-    category: AchievementCategory.TEST_CONSISTENCY,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.MEDIUM,
     icon: 'calendar-check',
     requiredCount: 7,
@@ -135,7 +98,7 @@ export const achievements: Achievement[] = [
     id: 'data_collection_master',
     title: 'Data Collection Master',
     description: 'Complete tests on thirty consecutive days - providing comprehensive data for analysis',
-    category: AchievementCategory.TEST_CONSISTENCY,
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.EXPERT,
     icon: 'calendar-range',
     requiredCount: 30,
@@ -143,23 +106,34 @@ export const achievements: Achievement[] = [
     trigger: AchievementTrigger.DAILY_STREAK
   },
   {
-    id: 'long_term_tracker',
-    title: 'Long-Term Tracker',
-    description: 'Complete at least one test every week for 4 weeks - ideal for tracking gradual supplement effects',
-    category: AchievementCategory.TEST_CONSISTENCY,
+    id: 'consistent_tester',
+    title: 'Consistent Tester',
+    description: 'Complete tests at a similar time of day for 5 days',
+    category: AchievementCategory.TESTING,
     difficulty: AchievementDifficulty.MEDIUM,
-    icon: 'repeat',
-    requiredCount: 4,
-    points: 50,
-    trigger: AchievementTrigger.WEEKLY_STREAK
+    icon: 'clock',
+    requiredCount: 5,
+    points: 30,
+    trigger: AchievementTrigger.CONSISTENT_TIME_OF_DAY
+  },
+  {
+    id: 'perfect_score',
+    title: 'Perfect Score',
+    description: 'Achieve a perfect score on any test',
+    category: AchievementCategory.TESTING,
+    difficulty: AchievementDifficulty.HARD,
+    icon: 'star',
+    requiredCount: 1,
+    points: 100,
+    trigger: AchievementTrigger.TEST_PERFECT_SCORE
   },
 
-  // Supplement Tracking Achievements
+  // SUPPLEMENTS CATEGORY - All supplement tracking and evaluation achievements
   {
     id: 'first_supplement',
     title: 'Supplement Tracker',
     description: 'Log your first supplement - the first step in tracking effectiveness',
-    category: AchievementCategory.SUPPLEMENT_TRACKING,
+    category: AchievementCategory.SUPPLEMENTS,
     difficulty: AchievementDifficulty.EASY,
     icon: 'pill',
     requiredCount: 1,
@@ -170,44 +144,40 @@ export const achievements: Achievement[] = [
     id: 'supplement_variety',
     title: 'Supplement Variety',
     description: 'Log 5 different supplements with complete dosage information',
-    category: AchievementCategory.SUPPLEMENT_TRACKING,
+    category: AchievementCategory.SUPPLEMENTS,
     difficulty: AchievementDifficulty.MEDIUM,
     icon: 'list',
     requiredCount: 5,
     points: 30,
-    trigger: AchievementTrigger.SUPPLEMENT_LOGGED,
-    metadata: { uniqueOnly: true, completeDosage: true }
+    trigger: AchievementTrigger.SUPPLEMENTS_LOGGED
   },
   {
     id: 'supplement_dedication',
     title: 'Supplement Dedication',
     description: 'Log supplements for 14 consecutive days - essential for establishing patterns',
-    category: AchievementCategory.SUPPLEMENT_TRACKING,
+    category: AchievementCategory.SUPPLEMENTS,
     difficulty: AchievementDifficulty.HARD,
     icon: 'calendar-clock',
     requiredCount: 14,
     points: 80,
-    trigger: AchievementTrigger.SUPPLEMENT_LOGGED,
-    metadata: { consecutiveDays: true }
+    trigger: AchievementTrigger.SUPPLEMENTS_LOGGED
   },
   {
     id: 'detailed_logger',
     title: 'Detailed Logger',
     description: 'Log 10 supplements with detailed notes about effects and experience',
-    category: AchievementCategory.SUPPLEMENT_TRACKING,
+    category: AchievementCategory.SUPPLEMENTS,
     difficulty: AchievementDifficulty.MEDIUM,
     icon: 'clipboard-list',
     requiredCount: 10,
     points: 40,
     trigger: AchievementTrigger.SUPPLEMENT_LOGGED_WITH_NOTES
   },
-
-  // Supplement Evaluation Achievements
   {
     id: 'cycle_completer',
     title: 'Cycle Completer',
     description: 'Complete a full supplement cycle (start, consistent use, evaluation)',
-    category: AchievementCategory.SUPPLEMENT_EVALUATION,
+    category: AchievementCategory.SUPPLEMENTS,
     difficulty: AchievementDifficulty.MEDIUM,
     icon: 'refresh-cw',
     requiredCount: 1,
@@ -218,42 +188,18 @@ export const achievements: Achievement[] = [
     id: 'supplement_analyst',
     title: 'Supplement Analyst',
     description: 'Complete 3 supplement evaluations with before/after cognitive tests',
-    category: AchievementCategory.SUPPLEMENT_EVALUATION,
+    category: AchievementCategory.SUPPLEMENTS,
     difficulty: AchievementDifficulty.HARD,
     icon: 'bar-chart-2',
     requiredCount: 3,
     points: 75,
     trigger: AchievementTrigger.SUPPLEMENT_EVALUATION_COMPLETED
   },
-
-  // Data Quality Achievements
-  {
-    id: 'confounding_tracker',
-    title: 'Confounding Factor Tracker',
-    description: 'Log confounding factors (sleep, stress, etc.) alongside 5 tests',
-    category: AchievementCategory.DATA_QUALITY,
-    difficulty: AchievementDifficulty.MEDIUM,
-    icon: 'layers',
-    requiredCount: 5,
-    points: 35,
-    trigger: AchievementTrigger.CONFOUNDING_FACTORS_LOGGED
-  },
-  {
-    id: 'detailed_notes_master',
-    title: 'Detailed Notes Master',
-    description: 'Add comprehensive notes to 10 supplement entries',
-    category: AchievementCategory.DATA_QUALITY,
-    difficulty: AchievementDifficulty.MEDIUM,
-    icon: 'file-text',
-    requiredCount: 10,
-    points: 40,
-    trigger: AchievementTrigger.DETAILED_NOTES_ADDED
-  },
   {
     id: 'complete_data_provider',
     title: 'Complete Data Provider',
     description: 'Log supplements with complete information (brand, dosage, timing) 15 times',
-    category: AchievementCategory.DATA_QUALITY,
+    category: AchievementCategory.SUPPLEMENTS,
     difficulty: AchievementDifficulty.HARD,
     icon: 'check-circle',
     requiredCount: 15,
@@ -261,12 +207,12 @@ export const achievements: Achievement[] = [
     trigger: AchievementTrigger.COMPLETE_SUPPLEMENT_DATA
   },
 
-  // Account Achievements
+  // ENGAGEMENT CATEGORY - Profile, account, and general app usage achievements
   {
     id: 'profile_complete',
     title: 'Identity Established',
     description: 'Complete your user profile - helps personalize your experience',
-    category: AchievementCategory.ACCOUNT,
+    category: AchievementCategory.ENGAGEMENT,
     difficulty: AchievementDifficulty.EASY,
     icon: 'user',
     requiredCount: 1,
@@ -274,10 +220,76 @@ export const achievements: Achievement[] = [
     trigger: AchievementTrigger.PROFILE_COMPLETED
   },
   {
+    id: 'holistiq_beginner',
+    title: 'HolistiQ Beginner',
+    description: 'Create your account and complete onboarding',
+    category: AchievementCategory.ENGAGEMENT,
+    difficulty: AchievementDifficulty.EASY,
+    icon: 'user',
+    requiredCount: 1,
+    points: 5,
+    trigger: AchievementTrigger.ACCOUNT_CREATED
+  },
+  {
+    id: 'holistiq_explorer',
+    title: 'HolistiQ Explorer',
+    description: 'Visit all main sections of the application',
+    category: AchievementCategory.ENGAGEMENT,
+    difficulty: AchievementDifficulty.EASY,
+    icon: 'map',
+    requiredCount: 1,
+    points: 15,
+    trigger: AchievementTrigger.EXPLORE_APP
+  },
+  {
+    id: 'regular_user',
+    title: 'Regular User',
+    description: 'Log in to the app for 7 consecutive days',
+    category: AchievementCategory.ENGAGEMENT,
+    difficulty: AchievementDifficulty.EASY,
+    icon: 'calendar',
+    requiredCount: 7,
+    points: 30,
+    trigger: AchievementTrigger.LOGIN_STREAK
+  },
+  {
+    id: 'holistiq_enthusiast',
+    title: 'HolistiQ Enthusiast',
+    description: 'Use the application for 30 consecutive days',
+    category: AchievementCategory.ENGAGEMENT,
+    difficulty: AchievementDifficulty.HARD,
+    icon: 'heart',
+    requiredCount: 30,
+    points: 100,
+    trigger: AchievementTrigger.LOGIN_STREAK
+  },
+  {
+    id: 'confounding_tracker',
+    title: 'Confounding Factor Tracker',
+    description: 'Log confounding factors (sleep, stress, etc.) alongside 5 tests',
+    category: AchievementCategory.ENGAGEMENT,
+    difficulty: AchievementDifficulty.MEDIUM,
+    icon: 'layers',
+    requiredCount: 5,
+    points: 35,
+    trigger: AchievementTrigger.CONFOUNDING_FACTORS_LOGGED
+  },
+  {
+    id: 'holistic_approach',
+    title: 'Holistic Approach',
+    description: 'Track 3 different types of confounding factors',
+    category: AchievementCategory.ENGAGEMENT,
+    difficulty: AchievementDifficulty.MEDIUM,
+    icon: 'layers',
+    requiredCount: 3,
+    points: 25,
+    trigger: AchievementTrigger.FACTOR_VARIETY
+  },
+  {
     id: 'early_adopter',
     title: 'Early Adopter',
-    description: 'Join during the beta phase of Holistiq - thank you for helping us improve!',
-    category: AchievementCategory.ACCOUNT,
+    description: 'Join during the beta phase of HolistiQ - thank you for helping us improve!',
+    category: AchievementCategory.ENGAGEMENT,
     difficulty: AchievementDifficulty.EASY,
     icon: 'rocket',
     requiredCount: 1,

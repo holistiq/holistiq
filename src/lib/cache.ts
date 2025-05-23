@@ -7,7 +7,8 @@
 
 import {
   CacheSyncManager,
-  SyncMessageType
+  SyncMessageType,
+  SyncMetrics
 } from './cacheSyncManager';
 import * as LZString from 'lz-string';
 
@@ -19,6 +20,9 @@ const MAX_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB default max size
 const MAX_ITEM_SIZE = 500 * 1024; // 500KB max size per item
 const COMPRESSION_THRESHOLD = 10 * 1024; // 10KB - only compress items larger than this
 const DEFAULT_MAX_ITEMS = 1000; // Default maximum number of items in cache
+
+// Type for cache values
+export type CacheValue = string | number | boolean | null | object | Array<unknown>;
 
 // Cache item structure
 interface CacheItem<T> {
@@ -236,7 +240,7 @@ export const DEFAULT_CACHE_CONFIG: CacheConfig = {
 };
 
 class Cache {
-  private readonly memoryCache: Map<string, CacheItem<any>> = new Map();
+  private readonly memoryCache: Map<string, CacheItem<CacheValue>> = new Map();
   private readonly storage: StorageAdapter;
   private readonly syncManager: CacheSyncManager;
   private metadata: CacheMetadata;
@@ -362,7 +366,7 @@ class Cache {
         if (compressedSize < originalSize) {
           // Create cache item with compressed value
           item = {
-            value: compressedValue as any, // Store the compressed string
+            value: compressedValue as unknown as T, // Store the compressed string
             expiry,
             created: now,
             lastAccessed: now,
@@ -510,10 +514,10 @@ class Cache {
 
   // Debounced function to update last accessed time in storage
   private readonly debouncedUpdateAccess = (() => {
-    const updates = new Map<string, CacheItem<any>>();
+    const updates = new Map<string, CacheItem<CacheValue>>();
     let timeoutId: NodeJS.Timeout | null = null;
 
-    return (key: string, item: CacheItem<any>) => {
+    return (key: string, item: CacheItem<CacheValue>) => {
       updates.set(key, item);
 
       if (!timeoutId) {
@@ -879,7 +883,7 @@ class Cache {
       }
 
       // Get all items from storage
-      const items: { key: string, item: CacheItem<any> }[] = [];
+      const items: { key: string, item: CacheItem<CacheValue> }[] = [];
       for (const storageKey of this.storage.keys()) {
         // Skip metadata
         if (storageKey === CACHE_META_KEY) continue;
@@ -923,7 +927,7 @@ class Cache {
         if (sizeExceeded) {
           // Calculate target size (80% of max by default)
           const targetSize = this.config.maxSize * (1 - this.config.evictionPercentage);
-          let sizeToFree = currentSize - targetSize;
+          const sizeToFree = currentSize - targetSize;
           let sizeFreed = 0;
           let itemsForSize = 0;
 
@@ -942,7 +946,7 @@ class Cache {
         // This is handled in cleanupExpiredItems, but we'll still evict LRU if size is exceeded
         if (sizeExceeded) {
           const targetSize = this.config.maxSize * (1 - this.config.evictionPercentage);
-          let sizeToFree = currentSize - targetSize;
+          const sizeToFree = currentSize - targetSize;
           let sizeFreed = 0;
 
           for (const { item } of items) {
@@ -958,7 +962,7 @@ class Cache {
 
         if (sizeExceeded) {
           const targetSize = this.config.maxSize * (1 - this.config.evictionPercentage);
-          let sizeToFree = currentSize - targetSize;
+          const sizeToFree = currentSize - targetSize;
           let sizeFreed = 0;
 
           for (const { item } of items) {
@@ -1165,7 +1169,7 @@ class Cache {
    * Get sync manager metrics
    * @returns The sync manager metrics
    */
-  getSyncMetrics(): any {
+  getSyncMetrics(): SyncMetrics {
     return this.syncManager.getMetrics();
   }
 

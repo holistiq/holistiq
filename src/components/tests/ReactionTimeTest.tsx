@@ -155,7 +155,7 @@ export function ReactionTimeTest({
 
     // Start the test loop
     animationFrameRef.current = requestAnimationFrame(testLoop);
-  }, []);
+  }, [testLoop]);
 
   // Main test loop
   const testLoop = useCallback((timestamp: number) => {
@@ -174,7 +174,7 @@ export function ReactionTimeTest({
 
     // Continue the animation loop
     animationFrameRef.current = requestAnimationFrame(testLoop);
-  }, [testDuration, currentTrial, totalTrials]);
+  }, [testDuration, currentTrial, totalTrials, completeTest]);
 
   // Handle the waiting state
   useEffect(() => {
@@ -226,7 +226,7 @@ export function ReactionTimeTest({
     }, feedbackDuration);
 
     return () => clearTimeout(feedbackTimer);
-  }, [testState, currentTrial, totalTrials]);
+  }, [testState, currentTrial, totalTrials, completeTest]);
 
   // Helper function to get feedback color class
   const getFeedbackColorClass = (type: 'success' | 'error' | 'warning' | null): string => {

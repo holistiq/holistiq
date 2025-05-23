@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { TestResultsContext } from '@/contexts/TestResultsContext';
+import { TestResultsContext } from '@/contexts/TestResultsContextDef';
 
 /**
  * Hook to access test results data from the TestResultsContext

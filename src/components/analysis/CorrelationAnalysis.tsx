@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { CalendarIcon, Brain } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Supplement } from '@/types/supplement';
@@ -29,7 +29,8 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [supplements, setSupplements] = useState<Supplement[]>([]);
-  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  // We store test results but don't directly use them in the UI
+  const [, setTestResults] = useState<TestResult[]>([]);
   const [correlations, setCorrelations] = useState<SupplementCorrelation[]>([]);
   const [selectedSupplementId, setSelectedSupplementId] = useState<string>('');
   const [selectedCorrelation, setSelectedCorrelation] = useState<SupplementCorrelation | null>(null);
@@ -59,7 +60,7 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
         // Load test results
         const testResultsResponse = await getTestResults(userId);
         if (testResultsResponse.success && testResultsResponse.data) {
-          const formattedResults = testResultsResponse.data.map(result => ({
+          const formattedResults = testResultsResponse.data.map((result: { timestamp: string; score: number; reaction_time: number; accuracy: number }) => ({
             date: result.timestamp,
             score: result.score,
             reactionTime: result.reaction_time,
@@ -98,7 +99,7 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
     if (userId) {
       loadData();
     }
-  }, [userId]);
+  }, [userId, selectedSupplementId]);
 
   // Update selected correlation when supplement changes
   useEffect(() => {

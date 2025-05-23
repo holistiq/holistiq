@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { NBackTestResult } from '@/components/tests/NBackTest';
 import { ReactionTimeTestResult } from '@/components/tests/ReactionTimeTest';
 import { supabaseCache, CACHE_CONFIG } from '@/lib/supabaseCache';
-import { TestResult } from '@/lib/testResultUtils';
+import { TestResult, SupabaseTestResult } from '@/lib/testResultUtils';
 
 /**
  * Save a test result to Supabase and local storage
@@ -288,7 +288,7 @@ export async function linkTestWithConfoundingFactors(
 export async function getTestsWithoutConfoundingFactors(
   userId: string,
   limit: number = 10
-): Promise<{ success: boolean; data?: any[]; error?: string }> {
+): Promise<{ success: boolean; data?: SupabaseTestResult[]; error?: string }> {
   try {
     console.log(`Fetching tests without confounding factors for user ${userId}`);
 

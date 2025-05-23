@@ -15,11 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { getFormulationTypes, getCertificationTypes } from '@/utils/supplementUtils';
-
-// Export the types for other components to use
-export const formulationTypes = getFormulationTypes();
-export const certificationTypes = getCertificationTypes();
+import { formulationTypes, certificationTypes } from './brandDetailsConstants';
 
 interface BrandDetailsInputProps {
   readonly manufacturer: string;

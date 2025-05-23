@@ -23,6 +23,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
+// Interface for prefetch item metrics
+interface PrefetchItemMetric {
+  startTime: number;
+  endTime: number | null;
+  success: boolean;
+  error?: string;
+}
+
 interface PrefetchControlProps {
   // Whether to show detailed metrics
   readonly showMetrics?: boolean;
@@ -128,7 +136,7 @@ export function PrefetchControl({
                 <AccordionTrigger>Detailed Metrics</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2">
-                    {Object.entries(metrics.itemMetrics ?? {}).map(([key, metric]: [string, any]) => (
+                    {Object.entries(metrics.itemMetrics ?? {}).map(([key, metric]: [string, PrefetchItemMetric]) => (
                       <div key={key} className="flex justify-between items-center p-2 rounded bg-muted/50">
                         <div>
                           <span className="font-medium">{key}</span>
