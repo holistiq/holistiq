@@ -9,7 +9,8 @@ Welcome to the HolistiQ application documentation. This guide provides comprehen
 
 ## Deployment
 
-- [Vercel Deployment Guide](./vercel-deployment.md) - How our application is deployed
+- [Netlify Deployment Guide](./netlify-deployment.md) - How our application is deployed
+- [Netlify Deployment Checklist](./netlify-checklist.md) - Step-by-step deployment verification
 - [CI/CD Pipeline](./ci-cd-pipeline.md) - Our continuous integration and deployment process
 
 ## Security

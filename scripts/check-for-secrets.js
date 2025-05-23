@@ -39,7 +39,7 @@ const ignorePatterns = [
   /\.husky\//,
   /package-lock\.json/,
   /yarn\.lock/,
-  /\.vercel\//,
+
   /dist\//,
   /\.next\//,
   /\.output\//,

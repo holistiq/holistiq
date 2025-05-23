@@ -183,7 +183,7 @@ This document outlines critical security enhancements that should be implemented
 - [ ] Have a protocol for credential rotation if secrets are accidentally committed
 
 #### Production Deployment
-- [ ] Use platform-specific secrets management (Vercel/Netlify environment variables)
+- [ ] Use platform-specific secrets management (Netlify environment variables)
 - [ ] Implement secret rotation policies
 - [ ] Use a dedicated secrets management service for complex deployments
 - [ ] Implement least-privilege access to production credentials

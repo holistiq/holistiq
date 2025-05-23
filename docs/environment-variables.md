@@ -27,8 +27,8 @@ Environment variables are used to store configuration settings and sensitive cre
 In Vite applications, only variables prefixed with `VITE_` are exposed to the client-side code:
 
 ```
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 - Only expose what's necessary to the client
@@ -54,7 +54,6 @@ Use different environment files for different environments:
 
 For production deployments, use the hosting platform's secrets management:
 
-- **Vercel**: Use the Environment Variables section in project settings
 - **Netlify**: Use the Environment Variables section in site settings
 - **AWS**: Use AWS Secrets Manager or Parameter Store
 - **GitHub Actions**: Use GitHub Secrets for CI/CD workflows
@@ -64,8 +63,8 @@ For production deployments, use the hosting platform's secrets management:
 Always validate that required environment variables are set:
 
 ```typescript
-if (!import.meta.env.VITE_SUPABASE_URL) {
-  console.error('VITE_SUPABASE_URL is not set');
+if (!import.meta.env.VITE_PUBLIC_SUPABASE_URL) {
+  console.error('VITE_PUBLIC_SUPABASE_URL is not set');
   // Handle gracefully
 }
 ```
@@ -74,11 +73,11 @@ if (!import.meta.env.VITE_SUPABASE_URL) {
 
 | Variable | Purpose | Required | Client-Exposed | Example |
 |----------|---------|----------|---------------|---------|
-| `VITE_SUPABASE_URL` | Supabase project URL | Yes | Yes | `https://your-project-id.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes | Yes | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |
-| `ANTHROPIC_API_KEY` | Anthropic API key | For AI features | No | `sk-ant-api03-...` |
-| `PERPLEXITY_API_KEY` | Perplexity API key | For research | No | `pplx-abcde` |
+| `VITE_APP_NAME` | Application name | Yes | Yes | `HolistiQ` |
+| `VITE_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes | Yes | `https://your-project-id.supabase.co` |
+| `VITE_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes | Yes | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |
 | `NODE_ENV` | Environment name | Yes | No | `development`, `production` |
+| `VITE_ENABLE_DEBUG_LOGGING` | Enable debug logging | No | Yes | `true`, `false` |
 
 ## Setting Up Environment Variables
 
@@ -102,8 +101,8 @@ For GitHub Actions, add secrets in the repository settings:
 3. Reference them in your workflow files:
    ```yaml
    env:
-     VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-     VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+     VITE_PUBLIC_SUPABASE_URL: ${{ secrets.VITE_PUBLIC_SUPABASE_URL }}
+     VITE_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.VITE_PUBLIC_SUPABASE_ANON_KEY }}
    ```
 
 ## Rotating Credentials
