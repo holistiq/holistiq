@@ -11,8 +11,10 @@
 const fetch = globalThis.fetch;
 
 // Configuration
-const STAGING_URL = 'https://staging.myholistiq.com';
-const NETLIFY_BRANCH_URL = 'https://develop--myholistiq.netlify.app';
+// For free tier: Use branch deploy URL as primary staging URL
+const NETLIFY_BRANCH_URL = 'https://develop--[YOUR-ACTUAL-SITE-NAME].netlify.app'; // Update with your actual URL
+const STAGING_URL = NETLIFY_BRANCH_URL; // Primary staging URL
+const CUSTOM_STAGING_URL = 'https://staging.myholistiq.com'; // For future use with separate site
 const TIMEOUT = 10000; // 10 seconds
 
 /**
@@ -108,11 +110,13 @@ async function verifyStagingDeployment() {
 
   const tests = [];
 
-  // Test Netlify branch URL
-  tests.push(await testUrl(NETLIFY_BRANCH_URL, 'Netlify branch deployment'));
+  // Test primary staging URL (branch deploy)
+  tests.push(await testUrl(STAGING_URL, 'Primary staging URL (branch deploy)'));
 
-  // Test custom staging domain
-  tests.push(await testUrl(STAGING_URL, 'Custom staging domain'));
+  // Test custom staging domain (if configured separately)
+  if (CUSTOM_STAGING_URL !== STAGING_URL) {
+    tests.push(await testUrl(CUSTOM_STAGING_URL, 'Custom staging domain (separate site)'));
+  }
 
   // Test staging-specific content
   tests.push(await testStagingContent(STAGING_URL, 'Staging environment configuration'));
@@ -134,8 +138,10 @@ async function verifyStagingDeployment() {
   if (passed === total) {
     console.log(`🎉 All tests passed! Staging environment is working correctly.`);
     console.log(`\n🌐 Staging URLs:`);
-    console.log(`   Custom domain: ${STAGING_URL}`);
-    console.log(`   Netlify URL:   ${NETLIFY_BRANCH_URL}`);
+    console.log(`   Primary staging: ${STAGING_URL}`);
+    if (CUSTOM_STAGING_URL !== STAGING_URL) {
+      console.log(`   Custom domain:   ${CUSTOM_STAGING_URL} (if configured)`);
+    }
     return true;
   } else {
     console.log(`❌ ${total - passed} tests failed. Please check the staging configuration.`);
