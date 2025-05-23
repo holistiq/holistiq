@@ -57,29 +57,33 @@
 # Branch-specific build settings
 [context.production]
   command = "npm run build"
-  environment = { NODE_ENV = "production", VITE_ENABLE_DEBUG_LOGGING = "false" }
+  [context.production.environment]
+    NODE_ENV = "production"
+    VITE_ENABLE_DEBUG_LOGGING = "false"
 
 [context.deploy-preview]
   command = "npm run build"
-  environment = { NODE_ENV = "development", VITE_ENABLE_DEBUG_LOGGING = "true" }
+  [context.deploy-preview.environment]
+    NODE_ENV = "development"
+    VITE_ENABLE_DEBUG_LOGGING = "true"
 
 [context.branch-deploy]
   command = "npm run build"
-  environment = { NODE_ENV = "development", VITE_ENABLE_DEBUG_LOGGING = "true" }
+  [context.branch-deploy.environment]
+    NODE_ENV = "development"
+    VITE_ENABLE_DEBUG_LOGGING = "true"
 
 # Specific branch configurations
 [context.develop]
   command = "npm run build"
-  environment = {
-    NODE_ENV = "development",
-    VITE_ENABLE_DEBUG_LOGGING = "true",
+  [context.develop.environment]
+    NODE_ENV = "development"
+    VITE_ENABLE_DEBUG_LOGGING = "true"
     VITE_APP_NAME = "HolistiQ Staging"
-  }
 
 [context.main]
   command = "npm run build"
-  environment = {
-    NODE_ENV = "production",
-    VITE_ENABLE_DEBUG_LOGGING = "false",
+  [context.main.environment]
+    NODE_ENV = "production"
+    VITE_ENABLE_DEBUG_LOGGING = "false"
     VITE_APP_NAME = "HolistiQ"
-  }
