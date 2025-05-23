@@ -2,28 +2,28 @@
 
 /**
  * Secret Detection Script
- * 
+ *
  * This script checks files for potential hardcoded secrets or credentials.
  * It's used as a pre-commit hook to prevent accidentally committing secrets.
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Patterns that might indicate hardcoded secrets
 const secretPatterns = [
   // API keys, tokens, passwords
   /(['"])(?:api[_-]?key|secret[_-]?key|token|password|passwd|pwd|auth[_-]?token).*?\1\s*[:=]\s*(['"])[^\2]{8,}\2/i,
-  
+
   // URLs with embedded credentials
   /(['"])https?:\/\/[^:]+:[^@]+@[^'"]+\1/i,
-  
+
   // Supabase keys
   /(['"])eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\1/i,
-  
+
   // AWS-like keys
   /(['"])[A-Z0-9]{20,}\1/i,
-  
+
   // Private keys
   /-----BEGIN [A-Z ]+ PRIVATE KEY-----/i
 ];
@@ -69,10 +69,10 @@ filesToCheck.forEach(file => {
   if (shouldIgnore(file) || isBinaryFile(file)) {
     return;
   }
-  
+
   try {
     const content = fs.readFileSync(file, 'utf8');
-    
+
     secretPatterns.forEach(pattern => {
       const matches = content.match(new RegExp(pattern, 'g'));
       if (matches) {
