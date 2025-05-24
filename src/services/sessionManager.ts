@@ -451,6 +451,10 @@ export class SessionManager {
 
   // Sign in with remember me option
   public async signInWithGoogle(rememberMe: boolean = false): Promise<void> {
+    console.log("SessionManager: Starting Google OAuth sign-in");
+    console.log("SessionManager: Remember me:", rememberMe);
+    console.log("SessionManager: Redirect URL:", `${window.location.origin}/auth/callback`);
+
     // Set storage type based on remember me option
     this.storageType = rememberMe
       ? SessionStorageType.LOCAL_STORAGE
@@ -459,20 +463,27 @@ export class SessionManager {
     // Store preference
     this.storeSessionPreference(rememberMe);
 
-    // Sign in with Google
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          prompt: "select_account",
-          access_type: rememberMe ? "offline" : "online"
-        }
-      },
-    });
+    try {
+      // Sign in with Google
+      const result = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            prompt: "select_account",
+            access_type: rememberMe ? "offline" : "online"
+          }
+        },
+      });
 
-    // Broadcast login (will be picked up after redirect)
-    this.broadcastLogin();
+      console.log("SessionManager: OAuth result:", result);
+
+      // Broadcast login (will be picked up after redirect)
+      this.broadcastLogin();
+    } catch (error) {
+      console.error("SessionManager: Error during OAuth sign-in:", error);
+      throw error;
+    }
   }
 
   // Broadcast login event for cross-tab synchronization
