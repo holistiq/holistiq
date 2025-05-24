@@ -65,3 +65,6 @@ desktop.ini
 *.bak
 *.swp
 *~
+
+# Local Netlify folder
+.netlify

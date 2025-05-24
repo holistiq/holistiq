@@ -106,10 +106,21 @@ export default function OAuthCallbackHandler() {
       console.log("Setting session with tokens from hash...");
 
       try {
+        // Debug: Log environment variables being used
+        console.log("Debug - Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+        console.log("Debug - Anon key present:", !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+        console.log("Debug - Anon key first 20 chars:", import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20));
+
         // Prepare session data - handle case where refresh token might be missing
         const sessionData = tokens.refresh_token
           ? { access_token: tokens.access_token, refresh_token: tokens.refresh_token }
           : { access_token: tokens.access_token };
+
+        console.log("Debug - Setting session with data:", {
+          hasAccessToken: !!sessionData.access_token,
+          hasRefreshToken: !!sessionData.refresh_token,
+          accessTokenLength: sessionData.access_token?.length
+        });
 
         const sessionResult = await supabase.auth.setSession(sessionData);
 

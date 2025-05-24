@@ -3,21 +3,24 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // Define environment
-const isDevelopment = typeof process !== 'undefined' &&
-  (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined);
-
-// Log environment for debugging
-if (isDevelopment) {
-  console.log('Supabase client initializing in development mode');
-}
+const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;
 
 // Get Supabase URL and anon key from environment variables
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-// Validate that environment variables are set
+// Debug logging for environment variables (only in development)
+if (isDevelopment) {
+  console.log('Supabase client initializing in development mode');
+  console.log('SUPABASE_URL:', SUPABASE_URL);
+  console.log('SUPABASE_ANON_KEY (first 20 chars):', SUPABASE_PUBLISHABLE_KEY?.substring(0, 20) + '...');
+}
+
+// Always log in production if there are issues
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.error('Supabase environment variables are not set. Please check your .env file.');
+  console.error('SUPABASE_URL:', SUPABASE_URL);
+  console.error('SUPABASE_ANON_KEY present:', !!SUPABASE_PUBLISHABLE_KEY);
 }
 
 // Import the supabase client like this:
