@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState, useCallback } from 'react';
 import { SessionTimeoutWarning } from './SessionTimeoutWarning';
 import { SessionExpiredModal } from './SessionExpiredModal';
-import { useToast, sessionRecoveryToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuthNavigation } from '@/hooks/useAuthNavigation';
 import { prefetchService } from '@/services/prefetchService';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -40,9 +40,6 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
 
       if (sessionData?.session) {
         console.log("Successfully retrieved current session");
-
-        // Show session recovery toast notification
-        sessionRecoveryToast();
         return true;
       }
 
@@ -94,9 +91,6 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
 
       if (data.session) {
         console.log("Successfully set session from direct tokens");
-
-        // Show session recovery toast notification
-        sessionRecoveryToast();
         return true;
       }
 
