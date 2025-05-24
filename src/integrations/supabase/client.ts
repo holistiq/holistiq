@@ -3,17 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // Define environment
-const isDevelopment = typeof process !== 'undefined' &&
-  (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === undefined);
+const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.DEV;
+
+// Get Supabase URL and anon key from environment variables
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 // Log environment for debugging
 if (isDevelopment) {
   console.log('Supabase client initializing in development mode');
 }
-
-// Get Supabase URL and anon key from environment variables
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 // Validate that environment variables are set
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
@@ -103,7 +102,7 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      flowType: 'implicit', // Use implicit flow which is more reliable for Google OAuth
+      flowType: 'implicit', // Switch back to implicit flow to test
       storage: hybridStorage,
       debug: isDevelopment, // Enable debug mode in development
       storageKey: 'holistiq-auth-token', // Use a consistent key for storage

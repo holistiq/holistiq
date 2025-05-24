@@ -30,17 +30,20 @@ export default function OAuthCallbackHandler() {
   const [processingStep, setProcessingStep] = useState<string>("Checking authentication...");
   const processingRef = useRef<boolean>(false);
 
-  // Helper function to clear any stale auth data
+  // Helper function to clear any stale auth data (but preserve PKCE code verifier)
   const clearStaleAuthData = () => {
     try {
       console.log("Clearing stale authentication data...");
 
-      // Clear Supabase-related items from localStorage
+      // Clear Supabase-related items from localStorage, but preserve PKCE code verifier
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth'))) {
-          keysToRemove.push(key);
+        if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+          // Don't remove PKCE code verifier as it's needed for OAuth flow
+          if (!key.includes('code-verifier')) {
+            keysToRemove.push(key);
+          }
         }
       }
 
@@ -50,12 +53,15 @@ export default function OAuthCallbackHandler() {
         localStorage.removeItem(key);
       });
 
-      // Also check sessionStorage
+      // Also check sessionStorage, but preserve PKCE code verifier
       const sessionKeysToRemove = [];
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth'))) {
-          sessionKeysToRemove.push(key);
+        if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+          // Don't remove PKCE code verifier as it's needed for OAuth flow
+          if (!key.includes('code-verifier')) {
+            sessionKeysToRemove.push(key);
+          }
         }
       }
 
@@ -155,21 +161,43 @@ export default function OAuthCallbackHandler() {
       setProcessingStep("Processing authentication code...");
       console.log("Found code in URL, processing...");
 
-      // The Supabase client should automatically exchange the code for tokens
-      // Just need to wait a moment and check for session again
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        // Extract the code from the URL
+        const urlParams = new URLSearchParams(search);
+        const code = urlParams.get('code');
 
-      const { data: sessionData } = await supabase.auth.getSession();
+        if (!code) {
+          console.error("No code found in URL parameters");
+          return false;
+        }
 
-      if (sessionData?.session) {
-        console.log("Session established after code exchange");
-        return await completeAuthentication();
+        console.log("Exchanging code for session...");
+
+        // Use exchangeCodeForSession to handle the PKCE flow properly
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error("Error exchanging code for session:", error);
+          setError(`Authentication failed: ${error.message}`);
+          navigate("/signin", { state: { error: `Authentication failed: ${error.message}` } });
+          return false;
+        }
+
+        if (data?.session) {
+          console.log("Session established after code exchange");
+          return await completeAuthentication();
+        }
+
+        console.error("No session returned after code exchange");
+        setError("Failed to complete authentication");
+        navigate("/signin", { state: { error: "Failed to complete authentication. Please try again." } });
+        return false;
+      } catch (exchangeError) {
+        console.error("Unexpected error during code exchange:", exchangeError);
+        setError("An unexpected error occurred during authentication");
+        navigate("/signin", { state: { error: "An unexpected error occurred during authentication. Please try again." } });
+        return false;
       }
-
-      console.error("Failed to establish session after code exchange");
-      setError("Failed to complete authentication");
-      navigate("/signin", { state: { error: "Failed to complete authentication. Please try again." } });
-      return false;
     };
 
     // Check for existing session
