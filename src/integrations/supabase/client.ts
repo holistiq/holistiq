@@ -9,18 +9,14 @@ const isDevelopment = import.meta.env.MODE === 'development' || import.meta.env.
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-// Debug logging for environment variables (only in development)
+// Log environment for debugging
 if (isDevelopment) {
   console.log('Supabase client initializing in development mode');
-  console.log('SUPABASE_URL:', SUPABASE_URL);
-  console.log('SUPABASE_ANON_KEY (first 20 chars):', SUPABASE_PUBLISHABLE_KEY?.substring(0, 20) + '...');
 }
 
-// Always log in production if there are issues
+// Validate that environment variables are set
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.error('Supabase environment variables are not set. Please check your .env file.');
-  console.error('SUPABASE_URL:', SUPABASE_URL);
-  console.error('SUPABASE_ANON_KEY present:', !!SUPABASE_PUBLISHABLE_KEY);
 }
 
 // Import the supabase client like this:
@@ -106,7 +102,7 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      flowType: 'implicit', // Use implicit flow which is more reliable for Google OAuth
+      flowType: 'pkce', // Use PKCE flow for better security and compatibility
       storage: hybridStorage,
       debug: isDevelopment, // Enable debug mode in development
       storageKey: 'holistiq-auth-token', // Use a consistent key for storage
