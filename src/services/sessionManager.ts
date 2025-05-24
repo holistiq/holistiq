@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { directGoogleAuth } from "./directGoogleAuth";
 
 // Configuration constants
 export const SESSION_CONFIG = {
@@ -451,9 +452,8 @@ export class SessionManager {
 
   // Sign in with remember me option
   public async signInWithGoogle(rememberMe: boolean = false): Promise<void> {
-    console.log("SessionManager: Starting Google OAuth sign-in");
+    console.log("SessionManager: Starting direct Google OAuth sign-in");
     console.log("SessionManager: Remember me:", rememberMe);
-    console.log("SessionManager: Redirect URL:", `${window.location.origin}/auth/callback`);
 
     // Set storage type based on remember me option
     this.storageType = rememberMe
@@ -464,25 +464,21 @@ export class SessionManager {
     this.storeSessionPreference(rememberMe);
 
     try {
-      // Sign in with Google
-      const result = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            prompt: "select_account",
-            access_type: rememberMe ? "offline" : "online",
-            hd: "myholistiq.com" // Hint to Google about the domain
-          }
-        },
-      });
+      // Use direct Google OAuth to show myholistiq.com in consent screen
+      await directGoogleAuth.signInWithGoogle(rememberMe);
 
-      console.log("SessionManager: OAuth result:", result);
+      console.log("SessionManager: Direct Google OAuth completed successfully");
 
-      // Broadcast login (will be picked up after redirect)
+      // Initialize session after successful authentication
+      await this.initialize();
+
+      // Broadcast login for cross-tab synchronization
       this.broadcastLogin();
+
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
     } catch (error) {
-      console.error("SessionManager: Error during OAuth sign-in:", error);
+      console.error("SessionManager: Error during direct Google OAuth sign-in:", error);
       throw error;
     }
   }
