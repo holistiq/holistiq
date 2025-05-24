@@ -471,7 +471,8 @@ export class SessionManager {
           redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             prompt: "select_account",
-            access_type: rememberMe ? "offline" : "online"
+            access_type: rememberMe ? "offline" : "online",
+            hd: "myholistiq.com" // Hint to Google about the domain
           }
         },
       });
