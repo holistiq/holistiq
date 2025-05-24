@@ -102,7 +102,7 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      flowType: 'pkce', // Use PKCE flow for better security and compatibility
+      flowType: 'implicit', // Switch back to implicit flow to test
       storage: hybridStorage,
       debug: isDevelopment, // Enable debug mode in development
       storageKey: 'holistiq-auth-token', // Use a consistent key for storage
