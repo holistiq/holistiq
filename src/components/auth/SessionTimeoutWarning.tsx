@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, RefreshCw } from 'lucide-react';
-import { sessionManager, SESSION_CONFIG } from '@/services/sessionManager';
+import { sessionManager, SESSION_CONFIG, SessionAction } from '@/services/sessionManager';
 
 interface SessionTimeoutWarningProps {
   onExtend?: () => void;
@@ -20,9 +20,29 @@ export function SessionTimeoutWarning({ onExtend, onLogout }: Readonly<SessionTi
       setCountdown(Math.floor(SESSION_CONFIG.WARNING_BEFORE_TIMEOUT / 1000));
     });
 
-    // Set up countdown timer
+    // Set up session expired callback to auto-dismiss the warning
+    sessionManager.onSessionExpired(() => {
+      setIsVisible(false);
+    });
+
+    // Listen for session expired events from storage events (cross-tab communication)
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'holistiq_session_action' && event.newValue === SessionAction.SESSION_EXPIRED) {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Separate effect for countdown timer to avoid dependency issues
+  useEffect(() => {
     let countdownInterval: number | null = null;
-    
+
     if (isVisible) {
       countdownInterval = window.setInterval(() => {
         setCountdown(prev => {
@@ -30,6 +50,8 @@ export function SessionTimeoutWarning({ onExtend, onLogout }: Readonly<SessionTi
             if (countdownInterval) {
               clearInterval(countdownInterval);
             }
+            // Auto-dismiss the dialog when countdown reaches 0
+            setIsVisible(false);
             return 0;
           }
           return prev - 1;

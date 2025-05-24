@@ -208,6 +208,9 @@ export class SessionManager {
 
   // Handle session timeout
   private async handleSessionTimeout(): Promise<void> {
+    // Reset warning flag since session is now expired
+    this.isWarningDisplayed = false;
+
     // Sign out the user
     await supabase.auth.signOut();
     this.session = null;
