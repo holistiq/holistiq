@@ -62,6 +62,7 @@
   [context.production.environment]
     NODE_ENV = "production"
     VITE_ENABLE_DEBUG_LOGGING = "false"
+    VITE_APP_NAME = "HolistiQ"
 
 [context.deploy-preview]
   command = "npm run build"

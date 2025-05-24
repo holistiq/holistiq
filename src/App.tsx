@@ -41,10 +41,20 @@ import Disclaimer from "./pages/legal/Disclaimer";
 import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
 import { LineChartTest } from "./components/test/LineChartTest";
+import { directGoogleAuth } from "@/services/directGoogleAuth";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  // Initialize Google OAuth on app start
+  useEffect(() => {
+    directGoogleAuth.initialize().catch(error => {
+      console.warn('Google OAuth initialization failed:', error);
+    });
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <LoadingStateProvider>
       <TooltipProvider>
@@ -108,6 +118,7 @@ const App = () => (
     </TooltipProvider>
     </LoadingStateProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sessionManager } from "@/services/sessionManager";
-import { useToast, sessionRecoveryToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { getDirectSessionFromStorage, extractUserFromSession } from "@/utils/sessionUtils";
 import { User, Session } from '@supabase/supabase-js';
 
@@ -355,9 +355,6 @@ export function useSupabaseAuth() {
             globalAuthState.loading = false;
             setUser(directUser);
             setLoading(false);
-
-            // Show session recovery toast notification
-            sessionRecoveryToast();
 
             // Clear the timeout
             clearTimeout(sessionTimeout);

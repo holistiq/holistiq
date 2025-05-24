@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { directGoogleAuth } from "./directGoogleAuth";
 
 // Configuration constants
 export const SESSION_CONFIG = {
@@ -451,6 +452,9 @@ export class SessionManager {
 
   // Sign in with remember me option
   public async signInWithGoogle(rememberMe: boolean = false): Promise<void> {
+    console.log("SessionManager: Starting direct Google OAuth sign-in");
+    console.log("SessionManager: Remember me:", rememberMe);
+
     // Set storage type based on remember me option
     this.storageType = rememberMe
       ? SessionStorageType.LOCAL_STORAGE
@@ -459,20 +463,24 @@ export class SessionManager {
     // Store preference
     this.storeSessionPreference(rememberMe);
 
-    // Sign in with Google
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          prompt: "select_account",
-          access_type: rememberMe ? "offline" : "online"
-        }
-      },
-    });
+    try {
+      // Use direct Google OAuth to show myholistiq.com in consent screen
+      await directGoogleAuth.signInWithGoogle(rememberMe);
 
-    // Broadcast login (will be picked up after redirect)
-    this.broadcastLogin();
+      console.log("SessionManager: Direct Google OAuth completed successfully");
+
+      // Initialize session after successful authentication
+      await this.initialize();
+
+      // Broadcast login for cross-tab synchronization
+      this.broadcastLogin();
+
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+    } catch (error) {
+      console.error("SessionManager: Error during direct Google OAuth sign-in:", error);
+      throw error;
+    }
   }
 
   // Broadcast login event for cross-tab synchronization
