@@ -14,7 +14,12 @@ declare global {
     google: {
       accounts: {
         id: {
-          initialize: (config: any) => void;
+          initialize: (config: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+            auto_select?: boolean;
+            cancel_on_tap_outside?: boolean;
+          }) => void;
           prompt: () => void;
           renderButton: (element: HTMLElement, config: any) => void;
           disableAutoSelect: () => void;
@@ -35,8 +40,12 @@ export interface GoogleAuthResponse {
   token_type: string;
 }
 
+export interface GoogleCredentialResponse {
+  credential: string; // This is the ID token
+  select_by: string;
+}
+
 export class DirectGoogleAuthService {
-  private tokenClient: any = null;
   private isInitialized = false;
 
   /**
@@ -46,8 +55,8 @@ export class DirectGoogleAuthService {
     return new Promise((resolve, reject) => {
       // Wait for Google Identity Services to load
       const checkGoogleLoaded = () => {
-        if (window.google?.accounts?.oauth2) {
-          this.setupTokenClient();
+        if (window.google?.accounts?.id) {
+          this.setupGoogleSignIn();
           this.isInitialized = true;
           resolve();
         } else {
@@ -68,14 +77,48 @@ export class DirectGoogleAuthService {
   }
 
   /**
-   * Set up the Google OAuth token client
+   * Set up Google Sign-In for ID tokens
    */
-  private setupTokenClient(): void {
-    this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+  private setupGoogleSignIn(): void {
+    window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
-      scope: 'openid email profile',
-      callback: '', // Will be set dynamically
+      callback: this.handleCredentialResponse.bind(this),
+      auto_select: false,
+      cancel_on_tap_outside: true,
     });
+  }
+
+  private currentSignInResolve: ((value: void | PromiseLike<void>) => void) | null = null;
+  private currentSignInReject: ((reason?: any) => void) | null = null;
+  private currentRememberMe: boolean = false;
+
+  /**
+   * Handle credential response from Google
+   */
+  private async handleCredentialResponse(response: GoogleCredentialResponse): Promise<void> {
+    try {
+      console.log('DirectGoogleAuth: Received credential response');
+
+      if (!response.credential) {
+        throw new Error('No credential received from Google');
+      }
+
+      // Exchange the ID token for a Supabase session
+      await this.exchangeIdTokenForSupabaseSession(response.credential, this.currentRememberMe);
+
+      if (this.currentSignInResolve) {
+        this.currentSignInResolve();
+        this.currentSignInResolve = null;
+        this.currentSignInReject = null;
+      }
+    } catch (error) {
+      console.error('DirectGoogleAuth: Error processing credential response:', error);
+      if (this.currentSignInReject) {
+        this.currentSignInReject(error);
+        this.currentSignInResolve = null;
+        this.currentSignInReject = null;
+      }
+    }
   }
 
   /**
@@ -90,81 +133,38 @@ export class DirectGoogleAuthService {
       console.log('DirectGoogleAuth: Starting Google OAuth sign-in');
       console.log('DirectGoogleAuth: Remember me:', rememberMe);
 
-      // Set up the callback for this specific sign-in attempt
-      this.tokenClient.callback = async (response: GoogleAuthResponse) => {
-        try {
-          console.log('DirectGoogleAuth: Received OAuth response');
+      // Store the resolve/reject functions and remember me preference
+      this.currentSignInResolve = resolve;
+      this.currentSignInReject = reject;
+      this.currentRememberMe = rememberMe;
 
-          if (response.error) {
-            console.error('DirectGoogleAuth: OAuth error:', response.error);
-            reject(new Error(`OAuth error: ${response.error}`));
-            return;
-          }
-
-          // Exchange the Google tokens for a Supabase session
-          await this.exchangeTokensForSupabaseSession(response, rememberMe);
-          resolve();
-        } catch (error) {
-          console.error('DirectGoogleAuth: Error processing OAuth response:', error);
-          reject(error);
-        }
-      };
-
-      // Request the access token
-      this.tokenClient.requestAccessToken({
-        prompt: 'select_account',
-      });
+      // Trigger Google Sign-In
+      window.google.accounts.id.prompt();
     });
   }
 
   /**
-   * Exchange Google tokens for Supabase session
+   * Exchange Google ID token for Supabase session
    */
-  private async exchangeTokensForSupabaseSession(
-    googleResponse: GoogleAuthResponse,
+  private async exchangeIdTokenForSupabaseSession(
+    idToken: string,
     rememberMe: boolean
   ): Promise<void> {
-    console.log('DirectGoogleAuth: Exchanging tokens for Supabase session');
+    console.log('DirectGoogleAuth: Exchanging ID token for Supabase session');
 
     try {
-      console.log('DirectGoogleAuth: Exchanging access token with Supabase');
-
-      // Exchange the token via Supabase's REST API
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      const authResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=id_token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseKey,
-        },
-        body: JSON.stringify({
-          provider: 'google',
-          access_token: googleResponse.access_token,
-          id_token: googleResponse.id_token ?? googleResponse.access_token,
-        }),
+      // Use Supabase's signInWithIdToken method which is designed for this purpose
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
       });
 
-      if (!authResponse.ok) {
-        const errorData = await authResponse.json();
-        throw new Error(`Supabase auth failed: ${errorData.error_description ?? errorData.error}`);
+      if (error) {
+        console.error('DirectGoogleAuth: Supabase signInWithIdToken error:', error);
+        throw new Error(`Failed to authenticate with Supabase: ${error.message}`);
       }
 
-      const authData = await authResponse.json();
-
-      // Set the session in Supabase client
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: authData.access_token,
-        refresh_token: authData.refresh_token,
-      });
-
-      if (sessionError) {
-        console.error('DirectGoogleAuth: Supabase session error:', sessionError);
-        throw new Error(`Failed to create Supabase session: ${sessionError.message}`);
-      }
-
-      if (!sessionData.session) {
+      if (!data.session) {
         throw new Error('No session returned from Supabase');
       }
 
@@ -183,7 +183,7 @@ export class DirectGoogleAuthService {
 
       console.log('DirectGoogleAuth: Session preference set to:', storageType);
     } catch (error) {
-      console.error('DirectGoogleAuth: Token exchange failed:', error);
+      console.error('DirectGoogleAuth: ID token exchange failed:', error);
       throw error;
     }
   }
@@ -192,7 +192,7 @@ export class DirectGoogleAuthService {
    * Check if Google Identity Services is available
    */
   public isGoogleAvailable(): boolean {
-    return typeof window !== 'undefined' && !!window.google?.accounts?.oauth2;
+    return typeof window !== 'undefined' && !!window.google?.accounts?.id;
   }
 
   /**
