@@ -21,11 +21,11 @@ declare global {
             cancel_on_tap_outside?: boolean;
           }) => void;
           prompt: () => void;
-          renderButton: (element: HTMLElement, config: any) => void;
+          renderButton: (element: HTMLElement, config: GoogleButtonConfig) => void;
           disableAutoSelect: () => void;
         };
         oauth2: {
-          initTokenClient: (config: any) => any;
+          initTokenClient: (config: GoogleTokenClientConfig) => GoogleTokenClient;
         };
       };
     };
@@ -43,6 +43,36 @@ export interface GoogleAuthResponse {
 export interface GoogleCredentialResponse {
   credential: string; // This is the ID token
   select_by: string;
+}
+
+// Google OAuth button configuration interface
+export interface GoogleButtonConfig {
+  theme?: 'outline' | 'filled_blue' | 'filled_black';
+  size?: 'large' | 'medium' | 'small';
+  text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+  shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+  logo_alignment?: 'left' | 'center';
+  width?: string | number;
+  locale?: string;
+}
+
+// Google OAuth token client configuration interface
+export interface GoogleTokenClientConfig {
+  client_id: string;
+  scope: string;
+  callback: (response: GoogleAuthResponse) => void;
+  error_callback?: (error: GoogleOAuthError) => void;
+}
+
+// Google OAuth token client interface
+export interface GoogleTokenClient {
+  requestAccessToken: () => void;
+}
+
+// Google OAuth error interface
+export interface GoogleOAuthError {
+  type: string;
+  message: string;
 }
 
 export class DirectGoogleAuthService {
@@ -89,7 +119,7 @@ export class DirectGoogleAuthService {
   }
 
   private currentSignInResolve: ((value: void | PromiseLike<void>) => void) | null = null;
-  private currentSignInReject: ((reason?: any) => void) | null = null;
+  private currentSignInReject: ((reason?: Error) => void) | null = null;
   private currentRememberMe: boolean = false;
 
   /**
