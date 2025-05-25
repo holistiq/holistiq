@@ -9,7 +9,7 @@ import { processAchievementTrigger } from "@/services/achievementService";
 import { AchievementTrigger } from "@/types/achievement";
 import { linkTestWithConfoundingFactors } from "@/services/testResultService";
 import { trackSocialShare } from "@/services/socialShareService";
-import { SocialShare } from "@/components/social/SocialShare";
+import { EnhancedSocialShare } from "@/components/social/EnhancedSocialShare";
 
 interface TestCompletionFlowProps {
   readonly testType: string;
@@ -200,20 +200,22 @@ export function TestCompletionFlow({
       </CardContent>
 
       <CardContent className="pt-0">
-        <div className="bg-primary/5 rounded-lg p-4 text-center">
+        <div className="bg-primary/5 rounded-lg p-4">
           <h3 className="text-sm font-medium mb-2">Share Your Results</h3>
           <p className="text-xs text-muted-foreground mb-4">
             Share your cognitive performance results with friends and followers.
           </p>
-          <SocialShare
-            title="My Holistiq Cognitive Test Results"
-            text={getShareText()}
-            hashtags={["Holistiq", "CognitivePerformance", "BrainHealth"]}
-            showLabel={true}
-            className="w-full"
-            variant="secondary"
-            onShare={handleSocialShare}
-          />
+          {testId && (
+            <EnhancedSocialShare
+              testId={testId}
+              testType={testType}
+              score={testResult.score}
+              title="My Holistiq Cognitive Test Results"
+              text={getShareText()}
+              hashtags={["Holistiq", "CognitivePerformance", "BrainHealth"]}
+              onShare={handleSocialShare}
+            />
+          )}
         </div>
       </CardContent>
 

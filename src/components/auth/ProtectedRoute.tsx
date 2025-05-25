@@ -22,6 +22,7 @@ const PUBLIC_ROUTES = [
   '/privacy',
   '/disclaimer',
   '/auth/callback',
+  '/shared', // Public shared test results
   // Add NotFound page to public routes
   '*',
 ];

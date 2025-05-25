@@ -40,6 +40,7 @@ import Privacy from "./pages/legal/Privacy";
 import Disclaimer from "./pages/legal/Disclaimer";
 import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
+import SharedTestResult from "./pages/SharedTestResult";
 import { LineChartTest } from "./components/test/LineChartTest";
 import { directGoogleAuth } from "@/services/directGoogleAuth";
 import { useEffect } from "react";
@@ -85,6 +86,9 @@ const App = () => {
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/disclaimer" element={<Disclaimer />} />
+
+            {/* Public shared test results - accessible without authentication */}
+            <Route path="/shared/:shareToken" element={<SharedTestResult />} />
 
             {/* Protected routes - require authentication */}
             <Route path="/onboarding" element={<Onboarding />} />
