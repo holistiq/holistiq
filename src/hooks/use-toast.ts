@@ -191,14 +191,4 @@ function useToast() {
   }
 }
 
-// Utility function for session recovery toasts
-function sessionRecoveryToast() {
-  return toast({
-    title: "Session Restored",
-    description: "We've securely restored your previous login session. You can continue using the application as normal.",
-    duration: SESSION_TOAST_REMOVE_DELAY,
-    className: "session-recovery-toast"
-  });
-}
-
-export { useToast, toast, sessionRecoveryToast }
+export { useToast, toast }

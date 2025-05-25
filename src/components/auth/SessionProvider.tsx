@@ -101,13 +101,21 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
     }
   }, [tryGetCurrentSession]);
 
-  // Initialize session manager and perform fallback session check
+  // Initialize session manager and perform session recovery only when appropriate
   useEffect(() => {
     const initializeWithFallback = async () => {
       try {
-        // Check if we have a user from useSupabaseAuth
-        if (!user) {
-          console.log("No user from useSupabaseAuth, checking for direct session...");
+        // Only perform session recovery if:
+        // 1. No user is currently authenticated
+        // 2. We're not in the middle of an OAuth callback flow
+        // 3. We're not on the sign-in page (which indicates intentional sign-in)
+        const currentPath = window.location.pathname;
+        const isOAuthCallback = currentPath.includes('/auth/callback');
+        const isSignInPage = currentPath === '/signin' || currentPath === '/login';
+        const isJustSignedIn = sessionStorage.getItem('holistiq_just_signed_in') === 'true';
+
+        if (!user && !isOAuthCallback && !isSignInPage && !isJustSignedIn) {
+          console.log("No user found and not in authentication flow - checking for recoverable session...");
 
           // Try to get session directly from localStorage
           const directSession = getDirectSessionFromStorage();
@@ -117,16 +125,24 @@ export function SessionProvider({ children }: Readonly<SessionProviderProps>) {
             const directUser = extractUserFromSession(directSession);
 
             if (directUser) {
-              console.log("Found user from direct session:", directUser);
-              await trySetSessionFromDirectTokens(directSession);
+              console.log("Found recoverable session for user:", directUser.email);
+              const recovered = await trySetSessionFromDirectTokens(directSession);
+
+              if (recovered) {
+                console.log("Session recovery completed successfully");
+              }
             }
           } else {
             // As a last resort, try to get the current session directly
             await tryGetCurrentSession();
           }
+        } else if (isJustSignedIn) {
+          // Clear the just signed in flag after processing
+          sessionStorage.removeItem('holistiq_just_signed_in');
+          console.log("Skipping session recovery - user just completed sign-in");
         }
       } catch (error) {
-        console.error("Error in fallback session check:", error);
+        console.error("Error in session initialization:", error);
       } finally {
         // Mark as initialized regardless of the outcome
         setInitialized(true);

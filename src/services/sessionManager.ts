@@ -472,6 +472,9 @@ export class SessionManager {
 
       console.log("SessionManager: Direct Google OAuth completed successfully");
 
+      // Mark that user just signed in to prevent inappropriate session recovery
+      sessionStorage.setItem('holistiq_just_signed_in', 'true');
+
       // Initialize session after successful authentication
       await this.initialize();
 

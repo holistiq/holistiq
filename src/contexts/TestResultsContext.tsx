@@ -625,7 +625,11 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
 
   // Debug logging helpers
   const debugLog = useCallback((message: string, data?: unknown) => {
-    if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isDebugModeEnabled = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
+    const isLocalStorageDebugEnabled = localStorage.getItem('debug_logging') === 'true';
+
+    if (isDevelopment && isDebugModeEnabled && isLocalStorageDebugEnabled) {
       if (data) {
         console.log(`[TestResults] ${message}`, data);
       } else {
@@ -635,7 +639,11 @@ export function TestResultsProvider({ children }: Readonly<{ children: React.Rea
   }, []);
 
   const debugWarn = useCallback((message: string, data?: unknown) => {
-    if (process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true') {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isDebugModeEnabled = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
+    const isLocalStorageDebugEnabled = localStorage.getItem('debug_logging') === 'true';
+
+    if (isDevelopment && isDebugModeEnabled && isLocalStorageDebugEnabled) {
       if (data) {
         console.warn(`[TestResults] ${message}`, data);
       } else {
