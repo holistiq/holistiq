@@ -7,10 +7,15 @@
  * before starting the development server or building the application.
  */
 
-import { config } from 'dotenv';
-
-// Load environment variables from .env file
-config();
+// Try to load dotenv, but don't fail if it's not available (e.g., in production)
+try {
+  const { config } = await import('dotenv');
+  config();
+} catch (error) {
+  // dotenv not available, which is fine in production environments like Netlify
+  console.log('ℹ️  dotenv not available, using environment variables directly');
+  // In production environments, environment variables are set by the platform
+}
 
 // Required environment variables
 const requiredEnvVars = [
