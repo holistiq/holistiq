@@ -8,6 +8,8 @@
   # Environment variables for build
   [build.environment]
     NODE_ENV = "production"
+    NODE_VERSION = "18.20.0"
+    NPM_FLAGS = "--production=false"
     SECRETS_SCAN_OMIT_PATHS = "dist/**"
 
 [build.processing]
