@@ -285,6 +285,9 @@ export default function OAuthCallbackHandler() {
         setProcessingStep("Initializing session...");
         console.log("Initializing session manager...");
 
+        // Mark that user just signed in to prevent inappropriate session recovery
+        sessionStorage.setItem('holistiq_just_signed_in', 'true');
+
         // Initialize the session manager to ensure proper session handling
         await sessionManager.initialize();
 

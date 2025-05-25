@@ -1,0 +1,45 @@
+# CODEOWNERS file for HolistiQ repository
+# This file defines who should review specific parts of the codebase
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global ownership - these users will be requested for review on all PRs
+* @kaanyil
+
+# Critical configuration files
+package.json @kaanyil
+package-lock.json @kaanyil
+tsconfig*.json @kaanyil
+vite.config.ts @kaanyil
+tailwind.config.ts @kaanyil
+netlify.toml @kaanyil
+
+# Environment and deployment configuration
+.env* @kaanyil
+scripts/ @kaanyil
+docs/deployment*.md @kaanyil
+docs/environment*.md @kaanyil
+
+# Authentication and session management (critical security components)
+src/services/sessionManager.ts @kaanyil
+src/services/directGoogleAuth.ts @kaanyil
+src/components/auth/ @kaanyil
+src/hooks/useSupabaseAuth.ts @kaanyil
+src/utils/sessionUtils.ts @kaanyil
+
+# Database and Supabase configuration
+src/integrations/supabase/ @kaanyil
+supabase/ @kaanyil
+
+# Security-related files
+docs/security*.md @kaanyil
+docs/credential*.md @kaanyil
+
+# Branch protection and Git workflow
+docs/branch-protection*.md @kaanyil
+docs/branching-strategy.md @kaanyil
+.github/ @kaanyil
+
+# Documentation that affects deployment or security
+docs/netlify*.md @kaanyil
+docs/staging*.md @kaanyil
+README.md @kaanyil
