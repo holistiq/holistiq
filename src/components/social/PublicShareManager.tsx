@@ -29,35 +29,19 @@ import {
   Trash2,
   AlertTriangle
 } from "lucide-react";
-import { 
-  getUserPublicShares, 
-  revokePublicShare, 
-  generateShareableUrl 
+import {
+  getUserPublicShares,
+  revokePublicShare,
+  generateShareableUrl,
+  UserPublicShare
 } from "@/services/publicShareService";
 import { formatDistanceToNow } from "date-fns";
-
-interface PublicShare {
-  id: string;
-  share_token: string;
-  title: string | null;
-  description: string | null;
-  expires_at: string | null;
-  max_views: number | null;
-  current_views: number;
-  is_active: boolean;
-  created_at: string;
-  test_results: {
-    test_type: string;
-    score: number;
-    timestamp: string;
-  };
-}
 
 /**
  * Component for managing user's public shares
  */
 export function PublicShareManager() {
-  const [shares, setShares] = useState<PublicShare[]>([]);
+  const [shares, setShares] = useState<UserPublicShare[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,10 +52,10 @@ export function PublicShareManager() {
   const loadShares = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await getUserPublicShares();
-      
+
       if (response.success && response.data) {
         setShares(response.data);
       } else {
@@ -94,6 +78,7 @@ export function PublicShareManager() {
         description: "Share link has been copied to your clipboard.",
       });
     } catch (error) {
+      console.error("Failed to copy link:", error);
       toast({
         title: "Failed to copy",
         description: "Please copy the link manually.",
@@ -105,7 +90,7 @@ export function PublicShareManager() {
   const handleRevokeShare = async (shareToken: string) => {
     try {
       const response = await revokePublicShare(shareToken);
-      
+
       if (response.success) {
         toast({
           title: "Share revoked",
@@ -121,6 +106,7 @@ export function PublicShareManager() {
         });
       }
     } catch (error) {
+      console.error("Failed to revoke share:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred.",
@@ -144,15 +130,15 @@ export function PublicShareManager() {
     if (!share.is_active) {
       return { status: 'revoked', color: 'bg-red-100 text-red-800' };
     }
-    
+
     if (share.expires_at && new Date(share.expires_at) <= new Date()) {
       return { status: 'expired', color: 'bg-orange-100 text-orange-800' };
     }
-    
+
     if (share.max_views && share.current_views >= share.max_views) {
       return { status: 'limit reached', color: 'bg-orange-100 text-orange-800' };
     }
-    
+
     return { status: 'active', color: 'bg-green-100 text-green-800' };
   };
 
@@ -187,8 +173,8 @@ export function PublicShareManager() {
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={loadShares}
             className="mt-4"
           >
@@ -210,7 +196,7 @@ export function PublicShareManager() {
           Manage your publicly shared test results and view sharing statistics
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         {shares.length === 0 ? (
           <div className="text-center py-8">
@@ -235,13 +221,13 @@ export function PublicShareManager() {
               <TableBody>
                 {shares.map((share) => {
                   const shareStatus = getShareStatus(share);
-                  
+
                   return (
                     <TableRow key={share.id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {share.title || `${formatTestType(share.test_results.test_type)} Result`}
+                            {share.title ?? `${formatTestType(share.test_results.test_type)} Result`}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             Score: {share.test_results.score} • {' '}
@@ -249,17 +235,17 @@ export function PublicShareManager() {
                           </div>
                         </div>
                       </TableCell>
-                      
+
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Eye className="h-4 w-4 text-muted-foreground" />
                           <span>
                             {share.current_views}
-                            {share.max_views && ` / ${share.max_views}`}
+                            {share.max_views ? ` / ${share.max_views}` : ''}
                           </span>
                         </div>
                       </TableCell>
-                      
+
                       <TableCell>
                         <Badge className={shareStatus.color}>
                           {shareStatus.status}
@@ -271,13 +257,13 @@ export function PublicShareManager() {
                           </div>
                         )}
                       </TableCell>
-                      
+
                       <TableCell>
                         <div className="text-sm">
                           {formatDistanceToNow(new Date(share.created_at), { addSuffix: true })}
                         </div>
                       </TableCell>
-                      
+
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

@@ -38,6 +38,26 @@ export interface PublicShareData {
 }
 
 /**
+ * Interface for user's public share item
+ */
+export interface UserPublicShare {
+  id: string;
+  share_token: string;
+  title: string | null;
+  description: string | null;
+  expires_at: string | null;
+  max_views: number | null;
+  current_views: number;
+  is_active: boolean;
+  created_at: string;
+  test_results: {
+    test_type: string;
+    score: number;
+    timestamp: string;
+  };
+}
+
+/**
  * Interface for service response
  */
 export interface ServiceResponse<T> {
@@ -181,7 +201,7 @@ export async function revokePublicShare(
 /**
  * Get user's public shares
  */
-export async function getUserPublicShares(): Promise<ServiceResponse<any[]>> {
+export async function getUserPublicShares(): Promise<ServiceResponse<UserPublicShare[]>> {
   try {
     const { data, error } = await supabase
       .from('public_test_shares')
@@ -214,7 +234,7 @@ export async function getUserPublicShares(): Promise<ServiceResponse<any[]>> {
 
     return {
       success: true,
-      data: data || []
+      data: (data as UserPublicShare[]) || []
     };
   } catch (error) {
     console.error('Unexpected error getting user public shares:', error);
