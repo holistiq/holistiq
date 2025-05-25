@@ -1,4 +1,4 @@
--- Migration: Create Achievement Tables
+-- Migration: Create Achievement Tables (Safe Version)
 -- Description: Creates tables for the achievement system including achievements, user_achievements, user_badges, and user_achievements_metadata
 -- Dependencies: None
 
@@ -73,6 +73,35 @@ ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_achievements_metadata ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (safe approach)
+DO $$ 
+BEGIN
+    -- Drop policies for achievements table if they exist
+    DROP POLICY IF EXISTS "Achievements are viewable by all authenticated users" ON achievements;
+    
+    -- Drop policies for user_achievements table if they exist
+    DROP POLICY IF EXISTS "Users can view their own achievements" ON user_achievements;
+    DROP POLICY IF EXISTS "Users can insert their own achievements" ON user_achievements;
+    DROP POLICY IF EXISTS "Users can update their own achievements" ON user_achievements;
+    DROP POLICY IF EXISTS "Users can delete their own achievements" ON user_achievements;
+    
+    -- Drop policies for user_badges table if they exist
+    DROP POLICY IF EXISTS "Users can view their own badges" ON user_badges;
+    DROP POLICY IF EXISTS "Users can insert their own badges" ON user_badges;
+    DROP POLICY IF EXISTS "Users can update their own badges" ON user_badges;
+    DROP POLICY IF EXISTS "Users can delete their own badges" ON user_badges;
+    
+    -- Drop policies for user_achievements_metadata table if they exist
+    DROP POLICY IF EXISTS "Users can view their own achievement metadata" ON user_achievements_metadata;
+    DROP POLICY IF EXISTS "Users can insert their own achievement metadata" ON user_achievements_metadata;
+    DROP POLICY IF EXISTS "Users can update their own achievement metadata" ON user_achievements_metadata;
+    DROP POLICY IF EXISTS "Users can delete their own achievement metadata" ON user_achievements_metadata;
+EXCEPTION
+    WHEN undefined_object THEN
+        -- Policy doesn't exist, continue
+        NULL;
+END $$;
 
 -- Create policies for achievements table
 CREATE POLICY "Achievements are viewable by all authenticated users" 
