@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # HolistiQ Feature Commit Script
-# Usage: ./scripts/commit-feature.sh "feature-name" "Feature description"
+# Usage: ./scripts/commit-feature.sh "feature-name" "Feature description" [--skip-lint]
 # Example: ./scripts/commit-feature.sh "public-test-sharing" "Add secure public sharing for test results"
+# Example with skip lint: ./scripts/commit-feature.sh "hotfix-urgent" "Fix critical bug" --skip-lint
 
 set -e  # Exit on any error
 
@@ -32,8 +33,9 @@ print_error() {
 
 # Check if required arguments are provided
 if [ $# -lt 2 ]; then
-    print_error "Usage: $0 <feature-name> <feature-description>"
+    print_error "Usage: $0 <feature-name> <feature-description> [--skip-lint]"
     print_error "Example: $0 public-test-sharing 'Add secure public sharing for test results'"
+    print_error "Example with skip lint: $0 hotfix-urgent 'Fix critical bug' --skip-lint"
     exit 1
 fi
 
@@ -59,6 +61,52 @@ fi
 if git diff --quiet && git diff --cached --quiet; then
     print_warning "No changes detected. Nothing to commit."
     exit 0
+fi
+
+# Check for --skip-lint flag
+SKIP_LINT_FLAG=false
+for arg in "$@"; do
+    if [ "$arg" = "--skip-lint" ]; then
+        SKIP_LINT_FLAG=true
+        print_warning "Linting checks will be skipped due to --skip-lint flag"
+        break
+    fi
+done
+
+# Run linting checks before committing (unless skipped)
+if [ "$SKIP_LINT_FLAG" = false ]; then
+    print_status "Running pre-commit linting checks..."
+
+    # Check for TypeScript/JavaScript files
+    CHANGED_FILES=$(git diff --name-only HEAD)
+    TS_JS_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
+
+    if [ -n "$TS_JS_FILES" ]; then
+        print_status "Found TypeScript/JavaScript files, running checks..."
+
+        # Run TypeScript type checking
+        print_status "Running TypeScript type checking..."
+        if ! npm run type-check 2>/dev/null; then
+            print_status "TypeScript type-check script not found, running tsc directly..."
+            if ! npx tsc --noEmit; then
+                print_error "TypeScript type checking failed!"
+                print_error "Fix the type errors and try again, or use --skip-lint to bypass."
+                exit 1
+            fi
+        fi
+
+        # Run ESLint
+        print_status "Running ESLint..."
+        if ! npm run lint; then
+            print_error "ESLint found errors!"
+            print_error "Fix the linting issues and try again, or use --skip-lint to bypass."
+            exit 1
+        fi
+
+        print_success "All linting checks passed!"
+    else
+        print_status "No TypeScript/JavaScript files changed, skipping lint checks"
+    fi
 fi
 
 # Get current branch
