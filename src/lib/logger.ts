@@ -1,6 +1,6 @@
 /**
  * Logger utility for consistent logging across the application
- * 
+ *
  * Features:
  * - Automatically disables logs in production
  * - Supports different log levels
@@ -17,12 +17,15 @@ interface LoggerOptions {
 
 /**
  * Check if debug logging is enabled
- * Debug logging is enabled in development mode and when debug_logging is set to 'true' in localStorage
+ * Debug logging is enabled when debug mode is available and debug_logging is set to 'true' in localStorage
  */
 function isDebugEnabled(): boolean {
-  return process.env.NODE_ENV === 'development' && 
-         typeof localStorage !== 'undefined' && 
-         localStorage.getItem('debug_logging') === 'true';
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDebugModeEnabled = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
+  const isLocalStorageDebugEnabled = typeof localStorage !== 'undefined' &&
+                                    localStorage.getItem('debug_logging') === 'true';
+
+  return isDevelopment && isDebugModeEnabled && isLocalStorageDebugEnabled;
 }
 
 /**
