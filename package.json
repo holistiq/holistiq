@@ -7,6 +7,7 @@
     "validate-env": "node scripts/validate-env.js",
     "dev": "npm run validate-env && vite",
     "build": "npm run validate-env && vite build",
+    "build:production": "vite build",
     "build:dev": "npm run validate-env && vite build --mode development",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
