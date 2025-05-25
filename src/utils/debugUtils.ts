@@ -12,28 +12,44 @@
 type LogArgs = unknown[];
 
 /**
+ * Check if debug mode is available in the current environment
+ *
+ * Debug mode is available if:
+ * 1. The application is running in development mode (NODE_ENV === 'development')
+ * 2. The VITE_ENABLE_DEBUG_LOGGING environment variable is set to 'true'
+ *
+ * @returns {boolean} True if debug mode is available, false otherwise
+ */
+export function isDebugModeAvailable(): boolean {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDebugEnabled = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
+
+  return isDevelopment && isDebugEnabled;
+}
+
+/**
  * Check if debug logging is enabled
  *
  * Debug logging is enabled if:
- * 1. The application is running in development mode (NODE_ENV === 'development')
+ * 1. Debug mode is available in the current environment
  * 2. The 'debug_logging' flag is set to 'true' in localStorage
  *
  * @returns {boolean} True if debug logging is enabled, false otherwise
  */
 export function isDebugLoggingEnabled(): boolean {
-  return process.env.NODE_ENV === 'development' && localStorage.getItem('debug_logging') === 'true';
+  return isDebugModeAvailable() && localStorage.getItem('debug_logging') === 'true';
 }
 
 /**
  * Enable debug logging
  *
  * This function enables debug logging by setting the 'debug_logging' flag to 'true' in localStorage.
- * It only has an effect in development mode.
+ * It only has an effect when debug mode is available.
  *
  * @returns {boolean} True if debug logging was enabled, false otherwise
  */
 export function enableDebugLogging(): boolean {
-  if (process.env.NODE_ENV === 'development') {
+  if (isDebugModeAvailable()) {
     localStorage.setItem('debug_logging', 'true');
     console.log('Debug logging enabled');
     return true;
@@ -121,19 +137,19 @@ export function debugWarn(message: string, ...args: LogArgs): void {
  * Initialize debug logging
  *
  * This function initializes debug logging by setting the default state.
- * In production, debug logging is always disabled.
- * In development, debug logging is disabled by default unless explicitly enabled.
+ * If debug mode is not available, debug logging is always disabled.
+ * If debug mode is available, debug logging is enabled by default.
  */
 export function initializeDebugLogging(): void {
-  // In production, always disable debug logging
-  if (process.env.NODE_ENV === 'production') {
+  // If debug mode is not available, always disable debug logging
+  if (!isDebugModeAvailable()) {
     disableDebugLogging();
     return;
   }
 
-  // In development, check if debug_logging is set
-  // If not set, disable it by default
+  // In debug mode, check if debug_logging is set
+  // If not set, enable it by default (as per user preference)
   if (localStorage.getItem('debug_logging') === null) {
-    disableDebugLogging();
+    enableDebugLogging();
   }
 }
