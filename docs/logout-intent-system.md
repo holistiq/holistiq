@@ -7,6 +7,7 @@ The Logout Intent System is designed to improve user experience by distinguishin
 ## Problem Statement
 
 Previously, users would see a "You have been signed out" warning in two scenarios:
+
 1. **Expected scenario (good UX)**: When a user is actively using the app and gets signed out due to session expiration
 2. **Problematic scenario (poor UX)**: When a user manually signs out and then refreshes the page, they still see the "signed out" warning even though the signout was intentional
 
@@ -17,6 +18,7 @@ The system tracks logout intent using multiple storage mechanisms to distinguish
 ### Storage Strategy
 
 1. **SessionStorage Flag**: `holistiq_manual_logout`
+
    - Short-term flag that persists across page refreshes within the same tab
    - Automatically cleared after 30 seconds
    - Used for immediate post-logout page refreshes
@@ -34,6 +36,7 @@ The system tracks logout intent using multiple storage mechanisms to distinguish
 #### SessionManager (`src/services/sessionManager.ts`)
 
 **New SessionAction**:
+
 ```typescript
 enum SessionAction {
   // ... existing actions
@@ -42,14 +45,17 @@ enum SessionAction {
 ```
 
 **Enhanced signOut Method**:
+
 ```typescript
 public async signOut(isManual: boolean = true): Promise<void>
 ```
+
 - Now accepts an `isManual` parameter (defaults to `true`)
 - Tracks logout intent using `setLogoutIntent()`
 - Broadcasts appropriate action based on logout type
 
 **New Methods**:
+
 - `setLogoutIntent(isManual: boolean)`: Records logout intent
 - `getLogoutIntent()`: Retrieves logout intent with expiration check
 - `clearLogoutIntent()`: Clears all logout intent tracking
@@ -57,6 +63,7 @@ public async signOut(isManual: boolean = true): Promise<void>
 #### Authentication Navigation (`src/hooks/useAuthNavigation.ts`)
 
 **Enhanced handleSignOut**:
+
 - Checks logout intent from multiple sources
 - Only shows warning messages for automatic/unexpected signouts
 - Navigates without warning for manual logouts
@@ -65,6 +72,7 @@ public async signOut(isManual: boolean = true): Promise<void>
 #### Logout Intent Utilities (`src/utils/auth/logoutIntentUtils.ts`)
 
 **Utility Functions**:
+
 - `isAfterManualLogout()`: Checks if current page load is after manual logout
 - `shouldShowSignedOutWarning()`: Determines if warning should be shown
 - `clearLogoutIntent()`: Cleans up all logout intent tracking
@@ -72,6 +80,7 @@ public async signOut(isManual: boolean = true): Promise<void>
 #### Sign-In Page (`src/pages/auth/EnhancedSignIn.tsx`)
 
 **Enhanced Message Handling**:
+
 - Uses `shouldShowSignedOutWarning()` to filter messages
 - Only displays "signed out" warnings for unexpected signouts
 - Automatically clears logout intent when appropriate
@@ -87,16 +96,19 @@ The system handles logout scenarios across multiple browser tabs:
 ### Component Updates
 
 #### SessionTimeoutWarning
+
 - Updated to handle `MANUAL_LOGOUT` action
 - Dismisses warning for manual logouts
 
 #### SessionExpiredModal
+
 - Updated to not show modal for manual logouts
 - Only displays for genuine session expirations
 
 ## Usage Examples
 
 ### Manual Logout (User clicks logout button)
+
 ```typescript
 // User clicks logout button
 await sessionManager.signOut(true); // isManual = true
@@ -105,6 +117,7 @@ await sessionManager.signOut(true); // isManual = true
 ```
 
 ### Automatic Logout (Session expires)
+
 ```typescript
 // Session expires due to inactivity
 await sessionManager.signOut(false); // isManual = false
@@ -113,6 +126,7 @@ await sessionManager.signOut(false); // isManual = false
 ```
 
 ### Page Refresh After Manual Logout
+
 ```typescript
 // User manually logs out, then refreshes page
 if (shouldShowSignedOutWarning()) {
@@ -135,22 +149,26 @@ if (shouldShowSignedOutWarning()) {
 ## Testing Scenarios
 
 ### Scenario 1: Manual Logout + Page Refresh
+
 1. User clicks logout button
 2. User refreshes the sign-in page
 3. **Expected**: No "signed out" warning displayed
 
 ### Scenario 2: Session Expiration
+
 1. User is inactive for 30+ minutes
 2. Session expires automatically
 3. User is redirected to sign-in page
 4. **Expected**: "Session expired" warning displayed
 
 ### Scenario 3: Manual Logout + New Tab
+
 1. User clicks logout in Tab A
 2. User opens sign-in page in Tab B
 3. **Expected**: No warning in Tab B
 
 ### Scenario 4: Cross-Tab Session Expiration
+
 1. Session expires in Tab A
 2. User switches to Tab B
 3. **Expected**: Session expired warning in Tab B
@@ -158,11 +176,13 @@ if (shouldShowSignedOutWarning()) {
 ## Configuration
 
 ### Timeouts
+
 - **SessionStorage Flag**: 30 seconds
 - **LocalStorage Intent**: 5 minutes
 - **Session Inactivity**: 30 minutes (unchanged)
 
 ### Storage Keys
+
 - `holistiq_manual_logout`: SessionStorage flag
 - `holistiq_logout_intent`: LocalStorage intent object
 - `holistiq_session_action`: Cross-tab communication
