@@ -30,12 +30,19 @@ npm install
 ### Available Scripts
 
 ```bash
-# Type checking
+# Type checking and linting
 npm run type-check          # Check TypeScript types
 npm run lint                # Run ESLint
 npm run lint:fix            # Run ESLint with auto-fix
 npm run format              # Format code with Prettier
 npm run format:check        # Check if code is formatted
+
+# Security and dependency management
+./scripts/security-check.sh # Run security audit
+./scripts/security-check.sh --fix # Fix vulnerabilities automatically
+./scripts/security-check.sh --fix --force # Fix with breaking changes
+npm audit                   # Basic security audit
+npm update                  # Update dependencies
 ```
 
 ### Pre-commit Hooks
@@ -169,6 +176,50 @@ npm run format
 
 # Both will run automatically on commit via pre-commit hooks
 ```
+
+## 🔒 Security and Dependency Management
+
+### Security Audit Script
+
+The project includes a comprehensive security audit script:
+
+```bash
+# Run security audit
+./scripts/security-check.sh
+
+# Fix vulnerabilities automatically
+./scripts/security-check.sh --fix
+
+# Fix vulnerabilities with breaking changes (use carefully)
+./scripts/security-check.sh --fix --force
+```
+
+### Security Levels
+
+- **Critical/High**: Block builds and require immediate fixes
+- **Moderate**: Show warnings but don't block builds (development dependencies)
+- **Low**: Informational only
+
+### Dependency Updates
+
+```bash
+# Check for outdated packages
+npm outdated
+
+# Update to latest compatible versions
+npm update
+
+# Update to latest versions (including major)
+npx npm-check-updates -u && npm install
+```
+
+### Security Best Practices
+
+1. **Regular Audits**: Run security checks weekly
+2. **Dependency Updates**: Keep dependencies current
+3. **Review Changes**: Check what's being updated
+4. **Test After Updates**: Ensure functionality after updates
+5. **Monitor Alerts**: Watch for security advisories
 
 ## 🏗️ CI/CD Integration
 
