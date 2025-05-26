@@ -5,11 +5,11 @@
  * with support for multiple visualization modes.
  */
 // Note: Annotation feature is temporarily disabled but code is preserved for future implementation
-import { useState, useMemo, memo } from 'react';
-import { TestResult } from '@/lib/testResultUtils';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import './styles/chart.css';
+import { useState, useMemo, memo } from "react";
+import { TestResult } from "@/lib/testResultUtils";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import "./styles/chart.css";
 
 // Import utility functions and components
 import {
@@ -17,27 +17,27 @@ import {
   getChartConfig,
   calculateDataStats,
   getBaselineValues,
-  calculateTrendData
-} from './utils/chartUtils';
+  calculateTrendData,
+} from "./utils/chartUtils";
 
 // Define a type alias for time range
-export type TimeRangeOption = '7d' | '30d' | '90d' | 'all';
+export type TimeRangeOption = "7d" | "30d" | "90d" | "all";
 
-import { NoDataDisplay } from './components/NoDataDisplay';
-import { CardLegend } from './components/CardLegend';
-import { MetricDefinitionsPanel } from './components/MetricDefinitionsPanel';
+import { NoDataDisplay } from "./components/NoDataDisplay";
+import { CardLegend } from "./components/CardLegend";
+import { MetricDefinitionsPanel } from "./components/MetricDefinitionsPanel";
 // Keep the Annotation type for type checking
-import { Annotation } from './components/ChartAnnotation';
+import { Annotation } from "./components/ChartAnnotation";
 // Annotation component preserved but not directly imported to avoid linting warnings
 // Will be re-enabled in future implementation
-import { ComprehensiveChartRenderer } from './components/ComprehensiveChartRenderer';
-import { SingleMetricChartRenderer } from './components/SingleMetricChartRenderer';
-import { calculateMATrendData } from './utils/chartHelpers';
-import { ProcessedChartData } from './types/chartTypes';
-import { createLogger } from '@/lib/logger';
+import { ComprehensiveChartRenderer } from "./components/ComprehensiveChartRenderer";
+import { SingleMetricChartRenderer } from "./components/SingleMetricChartRenderer";
+import { calculateMATrendData } from "./utils/chartHelpers";
+import { ProcessedChartData } from "./types/chartTypes";
+import { createLogger } from "@/lib/logger";
 
 // Create a logger for the PerformanceChart component
-const logger = createLogger({ namespace: 'PerformanceChart' });
+const logger = createLogger({ namespace: "PerformanceChart" });
 
 /**
  * Props for the PerformanceChart component
@@ -48,8 +48,8 @@ export interface PerformanceChartProps {
   readonly baselineResult?: TestResult | null;
 
   // Display options
-  readonly mode?: 'comprehensive' | 'single';
-  readonly metrics?: Array<'score' | 'reactionTime' | 'accuracy'>;
+  readonly mode?: "comprehensive" | "single";
+  readonly metrics?: Array<"score" | "reactionTime" | "accuracy">;
   readonly height?: number | string;
   readonly className?: string;
   readonly hideTitle?: boolean;
@@ -76,13 +76,16 @@ export interface PerformanceChartProps {
     description: string;
     color: string;
   }>;
-  readonly onAddAnnotation?: (annotation: Omit<Annotation, 'id'>) => void;
-  readonly onEditAnnotation?: (id: string, annotation: Partial<Annotation>) => void;
+  readonly onAddAnnotation?: (annotation: Omit<Annotation, "id">) => void;
+  readonly onEditAnnotation?: (
+    id: string,
+    annotation: Partial<Annotation>,
+  ) => void;
   readonly onDeleteAnnotation?: (id: string) => void;
 
   // Single metric mode options
   readonly title?: string;
-  readonly dataKey?: 'score' | 'reactionTime' | 'accuracy';
+  readonly dataKey?: "score" | "reactionTime" | "accuracy";
   readonly isLoading?: boolean;
 }
 
@@ -98,10 +101,10 @@ export const PerformanceChart = memo(function PerformanceChart({
   baselineResult = null,
 
   // Display options
-  mode = 'comprehensive',
-  metrics = ['score', 'reactionTime', 'accuracy'],
+  mode = "comprehensive",
+  metrics = ["score", "reactionTime", "accuracy"],
   height = 300,
-  className = '',
+  className = "",
   hideTitle = false,
 
   // Feature toggles
@@ -116,7 +119,7 @@ export const PerformanceChart = memo(function PerformanceChart({
   showMAControls = true,
 
   // Time range options
-  timeRange = 'all',
+  timeRange = "all",
   onTimeRangeChange,
 
   // Annotation options - temporarily disabled but preserved for future implementation
@@ -126,20 +129,25 @@ export const PerformanceChart = memo(function PerformanceChart({
 
   // Single metric mode options
   title,
-  dataKey = 'score',
-  isLoading = false
+  dataKey = "score",
+  isLoading = false,
 }: Readonly<PerformanceChartProps>) {
   // State for highlighting metrics on hover
-  const [highlightedMetric, setHighlightedMetric] = useState<string | null>(null);
+  const [highlightedMetric, setHighlightedMetric] = useState<string | null>(
+    null,
+  );
 
   // Local state for moving average if no external control is provided
   const [localShowMA, setLocalShowMA] = useState<boolean>(showMovingAverage);
 
   // Local state for time range if no external control is provided
-  const [localTimeRange, setLocalTimeRange] = useState<TimeRangeOption>(timeRange);
+  const [localTimeRange, setLocalTimeRange] =
+    useState<TimeRangeOption>(timeRange);
 
   // Use either controlled or uncontrolled states
-  const effectiveShowMA = onMovingAverageChange ? showMovingAverage : localShowMA;
+  const effectiveShowMA = onMovingAverageChange
+    ? showMovingAverage
+    : localShowMA;
   const effectiveTimeRange = onTimeRangeChange ? timeRange : localTimeRange;
 
   // Debug logging removed
@@ -173,24 +181,28 @@ export const PerformanceChart = memo(function PerformanceChart({
     dataStats,
     chartId,
     chartTitle,
-    chartDescription
-  } = useMemo(() => processChartDataAndDeriveValues({
-    testResults,
-    baselineResult,
-    effectiveTimeRange,
-    effectiveShowMA,
-    mode,
-    dataKey,
-    title
-  }), [
-    testResults,
-    baselineResult,
-    effectiveTimeRange,
-    effectiveShowMA,
-    mode,
-    dataKey,
-    title
-  ]);
+    chartDescription,
+  } = useMemo(
+    () =>
+      processChartDataAndDeriveValues({
+        testResults,
+        baselineResult,
+        effectiveTimeRange,
+        effectiveShowMA,
+        mode,
+        dataKey,
+        title,
+      }),
+    [
+      testResults,
+      baselineResult,
+      effectiveTimeRange,
+      effectiveShowMA,
+      mode,
+      dataKey,
+      title,
+    ],
+  );
 
   // Render loading state
   if (isLoading) {
@@ -202,8 +214,8 @@ export const PerformanceChart = memo(function PerformanceChart({
         <div
           className="flex items-center justify-center bg-muted/20 animate-pulse rounded-md"
           style={{
-            height: typeof height === 'number' ? `${height}px` : height,
-            minHeight: '300px'
+            height: typeof height === "number" ? `${height}px` : height,
+            minHeight: "300px",
           }}
           aria-labelledby={`${chartId}-title`}
           aria-busy="true"
@@ -216,127 +228,151 @@ export const PerformanceChart = memo(function PerformanceChart({
 
   // Render no data state
   if (hasNoData) {
-    return <NoDataDisplay height={height} title={chartTitle} chartId={chartId} className={className} />;
+    return (
+      <NoDataDisplay
+        height={height}
+        title={chartTitle}
+        chartId={chartId}
+        className={className}
+      />
+    );
   }
 
   // Helper function to process chart data and derive values
-function processChartDataAndDeriveValues({
-  testResults,
-  baselineResult,
-  effectiveTimeRange,
-  effectiveShowMA,
-  mode,
-  dataKey,
-  title
-}: {
-  testResults: TestResult[];
-  baselineResult: TestResult | null;
-  effectiveTimeRange: TimeRangeOption;
-  effectiveShowMA: boolean;
-  mode: string;
-  dataKey: string;
-  title?: string;
-}) {
-  // Force a new object to be created each time to ensure proper re-rendering
-  const options = {
-    timeRange: effectiveTimeRange,
-    movingAverageWindow: 3,
-    includeMovingAverage: effectiveShowMA,
-    baselineResult
-  };
+  function processChartDataAndDeriveValues({
+    testResults,
+    baselineResult,
+    effectiveTimeRange,
+    effectiveShowMA,
+    mode,
+    dataKey,
+    title,
+  }: {
+    testResults: TestResult[];
+    baselineResult: TestResult | null;
+    effectiveTimeRange: TimeRangeOption;
+    effectiveShowMA: boolean;
+    mode: string;
+    dataKey: string;
+    title?: string;
+  }) {
+    // Force a new object to be created each time to ensure proper re-rendering
+    const options = {
+      timeRange: effectiveTimeRange,
+      movingAverageWindow: 3,
+      includeMovingAverage: effectiveShowMA,
+      baselineResult,
+    };
 
-  const processedData = processChartData(testResults, options);
+    const processedData = processChartData(testResults, options);
 
-  // Calculate trend data for metrics - non-memoized for consistency
-  const trendData = calculateTrendData(processedData.finalChartData);
+    // Calculate trend data for metrics - non-memoized for consistency
+    const trendData = calculateTrendData(processedData.finalChartData);
 
-  // Calculate MA trend data using the extracted helper function
-  const maTrendData = calculateMATrendData(processedData.finalChartData);
+    // Calculate MA trend data using the extracted helper function
+    const maTrendData = calculateMATrendData(processedData.finalChartData);
 
-  // Get chart configuration
-  const chartConfig = getChartConfig();
+    // Get chart configuration
+    const chartConfig = getChartConfig();
 
-  // Check if we have data to display
-  const hasNoData = !processedData.finalChartData || processedData.finalChartData.length === 0;
+    // Check if we have data to display
+    const hasNoData =
+      !processedData.finalChartData ||
+      processedData.finalChartData.length === 0;
 
-  // Get baseline values for reference lines
-  const baselineValues = getBaselineValues(baselineResult);
+    // Get baseline values for reference lines
+    const baselineValues = getBaselineValues(baselineResult);
 
-  // Calculate min/max values for better axis scaling - non-memoized
-  const dataStats = calculateDataStats(processedData.chartData);
+    // Calculate min/max values for better axis scaling - non-memoized
+    const dataStats = calculateDataStats(processedData.chartData);
 
-  // Generate a stable ID for accessibility - using a deterministic approach
-  const chartId = `chart-${mode}-${dataKey || 'performance'}-${testResults.length}`;
+    // Generate a stable ID for accessibility - using a deterministic approach
+    const chartId = `chart-${mode}-${dataKey || "performance"}-${testResults.length}`;
 
-  // Generate a title for the chart - non-memoized
-  let chartTitle = title || 'Performance Trend';
+    // Generate a title for the chart - non-memoized
+    let chartTitle = title || "Performance Trend";
 
-  if (!title && mode === 'single') {
-    switch (dataKey) {
-      case 'score': chartTitle = 'Score Trend'; break;
-      case 'reactionTime': chartTitle = 'Reaction Time Trend'; break;
-      case 'accuracy': chartTitle = 'Accuracy Trend'; break;
+    if (!title && mode === "single") {
+      switch (dataKey) {
+        case "score":
+          chartTitle = "Score Trend";
+          break;
+        case "reactionTime":
+          chartTitle = "Reaction Time Trend";
+          break;
+        case "accuracy":
+          chartTitle = "Accuracy Trend";
+          break;
+      }
     }
-  }
 
-  // Create an accessible description of the chart - non-memoized
-  let chartDescription = `${chartTitle} showing performance metrics over time.`;
+    // Create an accessible description of the chart - non-memoized
+    let chartDescription = `${chartTitle} showing performance metrics over time.`;
 
-  if (hasNoData) {
-    chartDescription += ' No data available.';
-  } else {
-    try {
-      const data = processedData.finalChartData;
-      const startDate = format(new Date(data[0].date), 'MMM d, yyyy');
-      const endDate = format(new Date(data[data.length - 1].date), 'MMM d, yyyy');
+    if (hasNoData) {
+      chartDescription += " No data available.";
+    } else {
+      try {
+        const data = processedData.finalChartData;
+        const startDate = format(new Date(data[0].date), "MMM d, yyyy");
+        const endDate = format(
+          new Date(data[data.length - 1].date),
+          "MMM d, yyyy",
+        );
 
-      chartDescription += ` Contains ${data.length} data points from ${startDate} to ${endDate}.`;
-    } catch (error) {
-      // Use our logger for errors
-      logger.error('Error formatting dates for chart description:', error);
-      chartDescription += ` Contains ${processedData.finalChartData.length} data points.`;
+        chartDescription += ` Contains ${data.length} data points from ${startDate} to ${endDate}.`;
+      } catch (error) {
+        // Use our logger for errors
+        logger.error("Error formatting dates for chart description:", error);
+        chartDescription += ` Contains ${processedData.finalChartData.length} data points.`;
+      }
     }
-  }
 
-  return {
-    processedData,
-    trendData,
-    maTrendData,
-    chartConfig,
-    hasNoData,
-    baselineValues,
-    dataStats,
-    chartId,
-    chartTitle,
-    chartDescription
-  };
-}
+    return {
+      processedData,
+      trendData,
+      maTrendData,
+      chartConfig,
+      hasNoData,
+      baselineValues,
+      dataStats,
+      chartId,
+      chartTitle,
+      chartDescription,
+    };
+  }
 
   // Render the chart content based on the mode
-  const chartContent = mode === 'single' ? renderSingleMetricChart() : renderComprehensiveChart();
-
-
+  const chartContent =
+    mode === "single" ? renderSingleMetricChart() : renderComprehensiveChart();
 
   // Render the complete chart with legend and additional components
   return (
-    <div className={cn("flex flex-col", className)} style={{
-      height: '100%',
-      width: '100%',
-      minHeight: '300px',
-      position: 'relative'
-    }}>
+    <div
+      className={cn("flex flex-col", className)}
+      style={{
+        height: "100%",
+        width: "100%",
+        minHeight: "300px",
+        position: "relative",
+      }}
+    >
       {/* Chart content with fixed height to prevent overlap */}
-      <div style={{
-        height: mode === 'single' ? '350px' : '450px', // Increased height to prevent truncation
-        maxHeight: mode === 'single' ? '350px' : '450px', // Increased max-height to match
-        overflow: 'visible',
-        marginBottom: '20px' // Added margin to ensure space between chart and legend
-      }}>
+      <div
+        style={{
+          height: mode === "single" ? "350px" : "450px", // Increased height to prevent truncation
+          maxHeight: mode === "single" ? "350px" : "450px", // Increased max-height to match
+          overflow: "visible",
+          marginBottom: "20px", // Added margin to ensure space between chart and legend
+        }}
+      >
         {chartContent}
       </div>
 
       {/* Card-based Legend with proper spacing */}
-      <div style={{ marginTop: '40px' }}> {/* Increased top margin for better separation */}
+      <div style={{ marginTop: "40px" }}>
+        {" "}
+        {/* Increased top margin for better separation */}
         <CardLegend
           chartConfig={chartConfig}
           showMovingAverage={effectiveShowMA}

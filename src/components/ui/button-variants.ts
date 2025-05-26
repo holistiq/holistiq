@@ -1,4 +1,4 @@
-import { cva } from "class-variance-authority"
+import { cva } from "class-variance-authority";
 
 /**
  * Button variants using class-variance-authority
@@ -29,5 +29,5 @@ export const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
-)
+  },
+);

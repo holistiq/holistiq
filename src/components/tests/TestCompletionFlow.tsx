@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { NBackTestResult } from "@/components/tests/NBackTest";
 import { ReactionTimeTestResult } from "@/components/tests/ReactionTimeTest";
 import { ConfoundingFactorsPrompt } from "@/components/confoundingFactors/ConfoundingFactorsPrompt";
@@ -9,7 +16,7 @@ import { processAchievementTrigger } from "@/services/achievementService";
 import { AchievementTrigger } from "@/types/achievement";
 import { linkTestWithConfoundingFactors } from "@/services/testResultService";
 import { trackSocialShare } from "@/services/socialShareService";
-import { SocialShare } from "@/components/social/SocialShare";
+import { EnhancedSocialShare } from "@/components/social/EnhancedSocialShare";
 
 interface TestCompletionFlowProps {
   readonly testType: string;
@@ -28,10 +35,12 @@ export function TestCompletionFlow({
   baselineResult,
   testId,
   onReturnToDashboard,
-  onTakeAnotherTest
+  onTakeAnotherTest,
 }: TestCompletionFlowProps) {
   const { user } = useSupabaseAuth();
-  const [step, setStep] = useState<"results" | "confounding_factors">("results");
+  const [step, setStep] = useState<"results" | "confounding_factors">(
+    "results",
+  );
 
   // Generate share text based on test results
   const getShareText = (): string => {
@@ -49,9 +58,11 @@ export function TestCompletionFlow({
 
     // Check for improvements
     const hasImprovedScore = testResult.score > baselineResult.score;
-    const hasImprovedReaction = testResult.reactionTime < baselineResult.reactionTime;
+    const hasImprovedReaction =
+      testResult.reactionTime < baselineResult.reactionTime;
     const hasImprovedAccuracy = testResult.accuracy > baselineResult.accuracy;
-    const hasAnyImprovement = hasImprovedScore || hasImprovedReaction || hasImprovedAccuracy;
+    const hasAnyImprovement =
+      hasImprovedScore || hasImprovedReaction || hasImprovedAccuracy;
 
     if (!hasAnyImprovement) {
       return `${baseMessage}. I'm working on improving my cognitive performance.`;
@@ -59,39 +70,46 @@ export function TestCompletionFlow({
 
     // Create improvement message
     return `${baseMessage} which is an improvement from my baseline! ${
-      hasImprovedScore ? `Score: +${(testResult.score - baselineResult.score).toFixed(0)} ` : ''
+      hasImprovedScore
+        ? `Score: +${(testResult.score - baselineResult.score).toFixed(0)} `
+        : ""
     }${
-      hasImprovedReaction ? `Reaction: -${(baselineResult.reactionTime - testResult.reactionTime).toFixed(0)}ms ` : ''
+      hasImprovedReaction
+        ? `Reaction: -${(baselineResult.reactionTime - testResult.reactionTime).toFixed(0)}ms `
+        : ""
     }${
-      hasImprovedAccuracy ? `Accuracy: +${(testResult.accuracy - baselineResult.accuracy).toFixed(0)}% ` : ''
+      hasImprovedAccuracy
+        ? `Accuracy: +${(testResult.accuracy - baselineResult.accuracy).toFixed(0)}% `
+        : ""
     }`;
   };
 
   // Handle completion of confounding factors logging
   const handleConfoundingFactorsComplete = (factorId: string) => {
-
     // Link the test result with the confounding factor
     if (user && testId && factorId) {
       // Link the test with the confounding factor
-      linkTestWithConfoundingFactors(testId, factorId)
-        .then((result) => {
-          if (result.success) {
-            console.log('Successfully linked test with confounding factor');
+      linkTestWithConfoundingFactors(testId, factorId).then((result) => {
+        if (result.success) {
+          console.log("Successfully linked test with confounding factor");
 
-            // Trigger achievement for logging confounding factors
-            processAchievementTrigger({
-              trigger: AchievementTrigger.TEST_COMPLETED,
-              userId: user.id
-            });
-          } else {
-            console.error('Error linking test with confounding factor:', result.error);
-          }
-        });
+          // Trigger achievement for logging confounding factors
+          processAchievementTrigger({
+            trigger: AchievementTrigger.TEST_COMPLETED,
+            userId: user.id,
+          });
+        } else {
+          console.error(
+            "Error linking test with confounding factor:",
+            result.error,
+          );
+        }
+      });
     } else if (user) {
       // Just trigger the achievement if we don't have a test ID
       processAchievementTrigger({
         trigger: AchievementTrigger.TEST_COMPLETED,
-        userId: user.id
+        userId: user.id,
       });
     }
 
@@ -115,11 +133,11 @@ export function TestCompletionFlow({
       trackSocialShare(user.id, testId, platform)
         .then((result) => {
           if (!result.success) {
-            console.error('Error tracking social share:', result.error);
+            console.error("Error tracking social share:", result.error);
           }
         })
         .catch((error) => {
-          console.error('Unexpected error tracking social share:', error);
+          console.error("Unexpected error tracking social share:", error);
         });
     }
   };
@@ -154,7 +172,9 @@ export function TestCompletionFlow({
             <p className="text-sm text-muted-foreground mb-1">Score</p>
             <p className="text-3xl font-bold">{testResult.score}</p>
             {!isBaseline && baselineResult && (
-              <p className={`text-sm ${testResult.score > baselineResult.score ? 'text-green-500' : 'text-red-500'}`}>
+              <p
+                className={`text-sm ${testResult.score > baselineResult.score ? "text-green-500" : "text-red-500"}`}
+              >
                 {testResult.score > baselineResult.score
                   ? `+${(testResult.score - baselineResult.score).toFixed(0)} from baseline`
                   : `${(testResult.score - baselineResult.score).toFixed(0)} from baseline`}
@@ -164,9 +184,13 @@ export function TestCompletionFlow({
 
           <div className="bg-muted/50 rounded-lg p-4 text-center">
             <p className="text-sm text-muted-foreground mb-1">Reaction Time</p>
-            <p className="text-3xl font-bold">{testResult.reactionTime.toFixed(0)} ms</p>
+            <p className="text-3xl font-bold">
+              {testResult.reactionTime.toFixed(0)} ms
+            </p>
             {!isBaseline && baselineResult && (
-              <p className={`text-sm ${testResult.reactionTime < baselineResult.reactionTime ? 'text-green-500' : 'text-red-500'}`}>
+              <p
+                className={`text-sm ${testResult.reactionTime < baselineResult.reactionTime ? "text-green-500" : "text-red-500"}`}
+              >
                 {testResult.reactionTime < baselineResult.reactionTime
                   ? `-${(baselineResult.reactionTime - testResult.reactionTime).toFixed(0)} ms from baseline`
                   : `+${(testResult.reactionTime - baselineResult.reactionTime).toFixed(0)} ms from baseline`}
@@ -176,9 +200,13 @@ export function TestCompletionFlow({
 
           <div className="bg-muted/50 rounded-lg p-4 text-center">
             <p className="text-sm text-muted-foreground mb-1">Accuracy</p>
-            <p className="text-3xl font-bold">{testResult.accuracy.toFixed(0)}%</p>
+            <p className="text-3xl font-bold">
+              {testResult.accuracy.toFixed(0)}%
+            </p>
             {!isBaseline && baselineResult && (
-              <p className={`text-sm ${testResult.accuracy > baselineResult.accuracy ? 'text-green-500' : 'text-red-500'}`}>
+              <p
+                className={`text-sm ${testResult.accuracy > baselineResult.accuracy ? "text-green-500" : "text-red-500"}`}
+              >
                 {testResult.accuracy > baselineResult.accuracy
                   ? `+${(testResult.accuracy - baselineResult.accuracy).toFixed(0)}% from baseline`
                   : `${(testResult.accuracy - baselineResult.accuracy).toFixed(0)}% from baseline`}
@@ -188,32 +216,41 @@ export function TestCompletionFlow({
         </div>
 
         <div className="bg-muted/30 rounded-lg p-4">
-          <h3 className="text-lg font-medium mb-2">Track Confounding Factors</h3>
+          <h3 className="text-lg font-medium mb-2">
+            Track Confounding Factors
+          </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Factors like sleep, stress, and caffeine can affect your cognitive performance.
-            Log these factors to get more accurate insights about your supplement effectiveness.
+            Factors like sleep, stress, and caffeine can affect your cognitive
+            performance. Log these factors to get more accurate insights about
+            your supplement effectiveness.
           </p>
-          <Button onClick={handleLogFactorsClick} variant="outline" className="w-full">
+          <Button
+            onClick={handleLogFactorsClick}
+            variant="outline"
+            className="w-full"
+          >
             Log Confounding Factors
           </Button>
         </div>
       </CardContent>
 
       <CardContent className="pt-0">
-        <div className="bg-primary/5 rounded-lg p-4 text-center">
+        <div className="bg-primary/5 rounded-lg p-4">
           <h3 className="text-sm font-medium mb-2">Share Your Results</h3>
           <p className="text-xs text-muted-foreground mb-4">
             Share your cognitive performance results with friends and followers.
           </p>
-          <SocialShare
-            title="My Holistiq Cognitive Test Results"
-            text={getShareText()}
-            hashtags={["Holistiq", "CognitivePerformance", "BrainHealth"]}
-            showLabel={true}
-            className="w-full"
-            variant="secondary"
-            onShare={handleSocialShare}
-          />
+          {testId && (
+            <EnhancedSocialShare
+              testId={testId}
+              testType={testType}
+              score={testResult.score}
+              title="My Holistiq Cognitive Test Results"
+              text={getShareText()}
+              hashtags={["Holistiq", "CognitivePerformance", "BrainHealth"]}
+              onShare={handleSocialShare}
+            />
+          )}
         </div>
       </CardContent>
 
@@ -225,10 +262,7 @@ export function TestCompletionFlow({
         >
           Return to Dashboard
         </Button>
-        <Button
-          onClick={onTakeAnotherTest}
-          className="w-full sm:w-auto"
-        >
+        <Button onClick={onTakeAnotherTest} className="w-full sm:w-auto">
           Take Another Test
         </Button>
       </CardFooter>

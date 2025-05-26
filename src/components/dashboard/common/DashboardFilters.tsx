@@ -1,10 +1,20 @@
-import React, { useCallback } from 'react';
-import { format, subMonths } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon, RefreshCw } from 'lucide-react';
+import React, { useCallback } from "react";
+import { format, subMonths } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar as CalendarIcon, RefreshCw } from "lucide-react";
 
 /**
  * Interface for supplement option
@@ -22,7 +32,9 @@ export interface DashboardFiltersProps {
     from?: Date;
     to?: Date;
   };
-  readonly setDateRange: React.Dispatch<React.SetStateAction<{ from?: Date; to?: Date }>>;
+  readonly setDateRange: React.Dispatch<
+    React.SetStateAction<{ from?: Date; to?: Date }>
+  >;
   readonly selectedSupplement: string;
   readonly setSelectedSupplement: (id: string) => void;
   readonly supplementOptions: SupplementOption[];
@@ -37,7 +49,7 @@ export function DashboardFilters({
   setDateRange,
   selectedSupplement,
   setSelectedSupplement,
-  supplementOptions
+  supplementOptions,
 }: Readonly<DashboardFiltersProps>): JSX.Element {
   /**
    * Renders the date range text for the date picker button
@@ -53,7 +65,8 @@ export function DashboardFilters({
 
     return (
       <span>
-        {format(dateRange.from, "LLL dd, y")} - {format(dateRange.to, "LLL dd, y")}
+        {format(dateRange.from, "LLL dd, y")} -{" "}
+        {format(dateRange.to, "LLL dd, y")}
       </span>
     );
   }, [dateRange.from, dateRange.to]);
@@ -62,10 +75,10 @@ export function DashboardFilters({
    * Resets all filters to their default values
    */
   const resetFilters = useCallback((): void => {
-    setSelectedSupplement('all');
+    setSelectedSupplement("all");
     setDateRange({
       from: subMonths(new Date(), 12),
-      to: new Date()
+      to: new Date(),
     });
   }, [setSelectedSupplement, setDateRange]);
 
@@ -96,7 +109,7 @@ export function DashboardFilters({
               if (range) {
                 setDateRange({
                   from: range.from,
-                  to: range.to
+                  to: range.to,
                 });
               } else {
                 setDateRange({ from: undefined, to: undefined });

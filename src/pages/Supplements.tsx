@@ -1,13 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pill, Plus, Calendar, ArrowLeft, BarChart, Edit } from "lucide-react";
-import { formatDate } from '@/utils/formatUtils';
-import { Supplement } from '@/types/supplement';
+import { formatDate } from "@/utils/formatUtils";
+import { Supplement } from "@/types/supplement";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { getSupplements, loadSupplementsFromLocalStorage } from "@/services/supplementService";
+import {
+  getSupplements,
+  loadSupplementsFromLocalStorage,
+} from "@/services/supplementService";
 import { BrandDetailsDisplay } from "@/components/supplements/BrandDetailsDisplay";
 import { SupplementEvaluationStatus } from "@/components/supplements/SupplementEvaluationStatus";
 
@@ -29,31 +38,35 @@ export default function Supplements() {
     setIsLoading(true);
 
     try {
-        // First try to load from local storage for immediate display
-        const localSupplements = loadSupplementsFromLocalStorage();
-        if (localSupplements.length > 0) {
-          console.log(`Loaded ${localSupplements.length} supplements from local storage`);
-          setSupplements(localSupplements);
-        }
-
-        // If user is logged in, fetch from Supabase for the most up-to-date data
-        if (user) {
-          console.log("User is logged in, fetching supplements from Supabase...");
-          const result = await getSupplements(user.id);
-
-          if (result.success) {
-            console.log(`Loaded ${result.supplements.length} supplements from Supabase`);
-            setSupplements(result.supplements);
-          }
-        } else {
-          console.log("User not logged in, using local storage supplements only");
-        }
-      } catch (error) {
-        console.error('Error fetching supplements:', error);
-      } finally {
-        setIsLoading(false);
+      // First try to load from local storage for immediate display
+      const localSupplements = loadSupplementsFromLocalStorage();
+      if (localSupplements.length > 0) {
+        console.log(
+          `Loaded ${localSupplements.length} supplements from local storage`,
+        );
+        setSupplements(localSupplements);
       }
-    }, [user, setIsLoading, setSupplements]);
+
+      // If user is logged in, fetch from Supabase for the most up-to-date data
+      if (user) {
+        console.log("User is logged in, fetching supplements from Supabase...");
+        const result = await getSupplements(user.id);
+
+        if (result.success) {
+          console.log(
+            `Loaded ${result.supplements.length} supplements from Supabase`,
+          );
+          setSupplements(result.supplements);
+        }
+      } else {
+        console.log("User not logged in, using local storage supplements only");
+      }
+    } catch (error) {
+      console.error("Error fetching supplements:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, setIsLoading, setSupplements]);
 
   // Load supplements on component mount
   useEffect(() => {
@@ -74,7 +87,7 @@ export default function Supplements() {
 
   // Handle editing a supplement
   const handleEditSupplement = (supplement: Supplement) => {
-    navigate('/edit-supplement', { state: { supplement } });
+    navigate("/edit-supplement", { state: { supplement } });
   };
 
   // Render the content of the card based on loading state and data
@@ -93,10 +106,19 @@ export default function Supplements() {
       return (
         <div className="space-y-3">
           {supplements.map((supplement) => (
-            <div key={supplement.id} className="flex flex-col p-4 bg-secondary/30 rounded-lg">
+            <div
+              key={supplement.id}
+              className="flex flex-col p-4 bg-secondary/30 rounded-lg"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: `${supplement.color}20`, color: supplement.color }}>
+                  <div
+                    className="h-12 w-12 rounded-full flex items-center justify-center"
+                    style={{
+                      backgroundColor: `${supplement.color}20`,
+                      color: supplement.color,
+                    }}
+                  >
                     <Pill className="h-6 w-6" />
                   </div>
                   <div>
@@ -106,18 +128,24 @@ export default function Supplements() {
                         ? `${supplement.amount} ${supplement.unit}`
                         : supplement.dosage}
                     </p>
-                    {(supplement.frequency || supplement.time_of_day || supplement.with_food) && (
+                    {(supplement.frequency ||
+                      supplement.time_of_day ||
+                      supplement.with_food) && (
                       <p className="text-xs text-muted-foreground">
                         {supplement.frequency === "custom"
                           ? "Custom schedule"
-                          : supplement.frequency || ''}{' '}
-                        {supplement.time_of_day && `• ${supplement.time_of_day}`}
+                          : supplement.frequency || ""}{" "}
+                        {supplement.time_of_day &&
+                          `• ${supplement.time_of_day}`}
                         {supplement.with_food && " • with food"}
                       </p>
                     )}
 
                     {/* Brand and Formulation Details (Compact) */}
-                    <BrandDetailsDisplay supplement={supplement} compact={true} />
+                    <BrandDetailsDisplay
+                      supplement={supplement}
+                      compact={true}
+                    />
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
@@ -150,9 +178,13 @@ export default function Supplements() {
                 )}
 
                 {/* Brand and Formulation Details (Full) */}
-                {(supplement.brand || supplement.manufacturer || supplement.formulation_type ||
-                  supplement.batch_number || supplement.expiration_date ||
-                  supplement.third_party_tested || supplement.certification) && (
+                {(supplement.brand ||
+                  supplement.manufacturer ||
+                  supplement.formulation_type ||
+                  supplement.batch_number ||
+                  supplement.expiration_date ||
+                  supplement.third_party_tested ||
+                  supplement.certification) && (
                   <div className="mt-3 border-t pt-3">
                     <BrandDetailsDisplay supplement={supplement} />
                   </div>
@@ -179,7 +211,8 @@ export default function Supplements() {
           <Pill className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
           <p className="font-medium text-lg">No supplements logged yet</p>
           <p className="text-muted-foreground mb-6">
-            Start tracking your supplements to see their effects on your cognitive performance.
+            Start tracking your supplements to see their effects on your
+            cognitive performance.
           </p>
           <Link to="/log-supplement">
             <Button className="gap-2">
@@ -201,7 +234,7 @@ export default function Supplements() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate("/dashboard")}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -228,12 +261,11 @@ export default function Supplements() {
           <CardHeader>
             <CardTitle>Supplement History</CardTitle>
             <CardDescription>
-              Track your supplement intake over time to identify patterns and effects.
+              Track your supplement intake over time to identify patterns and
+              effects.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {renderCardContent()}
-          </CardContent>
+          <CardContent>{renderCardContent()}</CardContent>
         </Card>
       </div>
     </div>

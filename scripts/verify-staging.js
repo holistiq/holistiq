@@ -12,9 +12,10 @@ const fetch = globalThis.fetch;
 
 // Configuration
 // For free tier: Use branch deploy URL as primary staging URL
-const NETLIFY_BRANCH_URL = 'https://develop--[YOUR-ACTUAL-SITE-NAME].netlify.app'; // Update with your actual URL
+const NETLIFY_BRANCH_URL =
+  "https://develop--[YOUR-ACTUAL-SITE-NAME].netlify.app"; // Update with your actual URL
 const STAGING_URL = NETLIFY_BRANCH_URL; // Primary staging URL
-const CUSTOM_STAGING_URL = 'https://staging.myholistiq.com'; // For future use with separate site
+const CUSTOM_STAGING_URL = "https://staging.myholistiq.com"; // For future use with separate site
 const TIMEOUT = 10000; // 10 seconds
 
 /**
@@ -30,8 +31,8 @@ async function testUrl(url, description) {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'HolistiQ-Staging-Verification'
-      }
+        "User-Agent": "HolistiQ-Staging-Verification",
+      },
     });
 
     clearTimeout(timeoutId);
@@ -60,7 +61,7 @@ async function testStagingContent(url, description) {
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
     const response = await fetch(url, {
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
@@ -73,16 +74,12 @@ async function testStagingContent(url, description) {
     const content = await response.text();
 
     // Check for staging-specific indicators
-    const stagingIndicators = [
-      'HolistiQ Staging',
-      'HolistiQ',
-      'root'
-    ];
+    const stagingIndicators = ["HolistiQ Staging", "HolistiQ", "root"];
 
     let foundStaging = false;
     for (const indicator of stagingIndicators) {
       if (content.includes(indicator)) {
-        if (indicator === 'HolistiQ Staging') {
+        if (indicator === "HolistiQ Staging") {
           foundStaging = true;
           console.log(`✅ Found staging indicator: ${indicator}`);
         }
@@ -93,7 +90,9 @@ async function testStagingContent(url, description) {
       console.log(`✅ ${description} - Staging environment detected`);
       return true;
     } else {
-      console.log(`⚠️  ${description} - No staging-specific content found (may be using production config)`);
+      console.log(
+        `⚠️  ${description} - No staging-specific content found (may be using production config)`,
+      );
       return true; // Still consider it a pass
     }
   } catch (error) {
@@ -111,21 +110,30 @@ async function verifyStagingDeployment() {
   const tests = [];
 
   // Test primary staging URL (branch deploy)
-  tests.push(await testUrl(STAGING_URL, 'Primary staging URL (branch deploy)'));
+  tests.push(await testUrl(STAGING_URL, "Primary staging URL (branch deploy)"));
 
   // Test custom staging domain (if configured separately)
   if (CUSTOM_STAGING_URL !== STAGING_URL) {
-    tests.push(await testUrl(CUSTOM_STAGING_URL, 'Custom staging domain (separate site)'));
+    tests.push(
+      await testUrl(
+        CUSTOM_STAGING_URL,
+        "Custom staging domain (separate site)",
+      ),
+    );
   }
 
   // Test staging-specific content
-  tests.push(await testStagingContent(STAGING_URL, 'Staging environment configuration'));
+  tests.push(
+    await testStagingContent(STAGING_URL, "Staging environment configuration"),
+  );
 
   // Test common routes on staging
-  const routes = ['/dashboard', '/achievements', '/supplements', '/tests'];
+  const routes = ["/dashboard", "/achievements", "/supplements", "/tests"];
 
   for (const route of routes) {
-    tests.push(await testUrl(`${STAGING_URL}${route}`, `Staging route: ${route}`));
+    tests.push(
+      await testUrl(`${STAGING_URL}${route}`, `Staging route: ${route}`),
+    );
   }
 
   // Summary
@@ -136,7 +144,9 @@ async function verifyStagingDeployment() {
   console.log(`✅ Passed: ${passed}/${total} tests`);
 
   if (passed === total) {
-    console.log(`🎉 All tests passed! Staging environment is working correctly.`);
+    console.log(
+      `🎉 All tests passed! Staging environment is working correctly.`,
+    );
     console.log(`\n🌐 Staging URLs:`);
     console.log(`   Primary staging: ${STAGING_URL}`);
     if (CUSTOM_STAGING_URL !== STAGING_URL) {
@@ -144,7 +154,9 @@ async function verifyStagingDeployment() {
     }
     return true;
   } else {
-    console.log(`❌ ${total - passed} tests failed. Please check the staging configuration.`);
+    console.log(
+      `❌ ${total - passed} tests failed. Please check the staging configuration.`,
+    );
     return false;
   }
 }
@@ -158,7 +170,7 @@ async function main() {
 }
 
 // Run the script
-main().catch(error => {
-  console.error('❌ Staging verification failed:', error.message);
+main().catch((error) => {
+  console.error("❌ Staging verification failed:", error.message);
   process.exit(1);
 });

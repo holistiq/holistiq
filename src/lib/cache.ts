@@ -8,13 +8,13 @@
 import {
   CacheSyncManager,
   SyncMessageType,
-  SyncMetrics
-} from './cacheSyncManager';
-import * as LZString from 'lz-string';
+  SyncMetrics,
+} from "./cacheSyncManager";
+import * as LZString from "lz-string";
 
 // Cache version for handling structure changes
-const CACHE_VERSION = '1.2.0'; // Updated version to handle LRU eviction
-const CACHE_PREFIX = 'holistiq_cache_';
+const CACHE_VERSION = "1.2.0"; // Updated version to handle LRU eviction
+const CACHE_PREFIX = "holistiq_cache_";
 const CACHE_META_KEY = `${CACHE_PREFIX}meta`;
 const MAX_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB default max size
 const MAX_ITEM_SIZE = 500 * 1024; // 500KB max size per item
@@ -22,7 +22,13 @@ const COMPRESSION_THRESHOLD = 10 * 1024; // 10KB - only compress items larger th
 const DEFAULT_MAX_ITEMS = 1000; // Default maximum number of items in cache
 
 // Type for cache values
-export type CacheValue = string | number | boolean | null | object | Array<unknown>;
+export type CacheValue =
+  | string
+  | number
+  | boolean
+  | null
+  | object
+  | Array<unknown>;
 
 // Cache item structure
 interface CacheItem<T> {
@@ -60,14 +66,17 @@ class LocalStorageAdapter implements StorageAdapter {
   isAvailable(): boolean {
     try {
       const testKey = `${CACHE_PREFIX}test`;
-      localStorage.setItem(testKey, 'test');
+      localStorage.setItem(testKey, "test");
       localStorage.removeItem(testKey);
       return true;
     } catch (e) {
       // Intentionally catching and returning false if localStorage is not available
       // This is expected behavior for feature detection
-      if (process.env.NODE_ENV !== 'production') {
-        console.debug('localStorage is not available:', e instanceof Error ? e.message : String(e));
+      if (process.env.NODE_ENV !== "production") {
+        console.debug(
+          "localStorage is not available:",
+          e instanceof Error ? e.message : String(e),
+        );
       }
       return false;
     }
@@ -77,7 +86,7 @@ class LocalStorageAdapter implements StorageAdapter {
     try {
       return localStorage.getItem(key);
     } catch (e) {
-      console.warn('Error reading from localStorage:', e);
+      console.warn("Error reading from localStorage:", e);
       return null;
     }
   }
@@ -86,19 +95,23 @@ class LocalStorageAdapter implements StorageAdapter {
     try {
       localStorage.setItem(key, value);
     } catch (e) {
-      console.warn('Error writing to localStorage:', e);
+      console.warn("Error writing to localStorage:", e);
       // If we hit a quota error, try to free up space
-      if (e instanceof DOMException && (
-        e.name === 'QuotaExceededError' ||
-        e.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-      )) {
-        console.warn('Storage quota exceeded, cleaning up old items');
+      if (
+        e instanceof DOMException &&
+        (e.name === "QuotaExceededError" ||
+          e.name === "NS_ERROR_DOM_QUOTA_REACHED")
+      ) {
+        console.warn("Storage quota exceeded, cleaning up old items");
         this.cleanUp();
         // Try again after cleanup
         try {
           localStorage.setItem(key, value);
         } catch (retryError) {
-          console.error('Still unable to write to localStorage after cleanup:', retryError);
+          console.error(
+            "Still unable to write to localStorage after cleanup:",
+            retryError,
+          );
         }
       }
     }
@@ -108,7 +121,7 @@ class LocalStorageAdapter implements StorageAdapter {
     try {
       localStorage.removeItem(key);
     } catch (e) {
-      console.warn('Error removing from localStorage:', e);
+      console.warn("Error removing from localStorage:", e);
     }
   }
 
@@ -122,7 +135,7 @@ class LocalStorageAdapter implements StorageAdapter {
         }
       }
     } catch (e) {
-      console.warn('Error clearing localStorage:', e);
+      console.warn("Error clearing localStorage:", e);
     }
   }
 
@@ -137,7 +150,7 @@ class LocalStorageAdapter implements StorageAdapter {
       }
       return keys;
     } catch (e) {
-      console.warn('Error getting keys from localStorage:', e);
+      console.warn("Error getting keys from localStorage:", e);
       return [];
     }
   }
@@ -147,7 +160,7 @@ class LocalStorageAdapter implements StorageAdapter {
     try {
       const allKeys = this.keys();
       // Sort by oldest accessed first
-      const itemsToRemove: { key: string, lastAccessed: number }[] = [];
+      const itemsToRemove: { key: string; lastAccessed: number }[] = [];
 
       for (const key of allKeys) {
         const item = this.getItem(key);
@@ -175,7 +188,7 @@ class LocalStorageAdapter implements StorageAdapter {
         this.removeItem(itemsToRemove[i].key);
       }
     } catch (e) {
-      console.error('Error during storage cleanup:', e);
+      console.error("Error during storage cleanup:", e);
     }
   }
 }
@@ -212,7 +225,7 @@ class MemoryStorageAdapter implements StorageAdapter {
 // Cache configuration
 export interface CacheConfig {
   syncEnabled: boolean;
-  logLevel: 'none' | 'error' | 'warn' | 'info' | 'debug';
+  logLevel: "none" | "error" | "warn" | "info" | "debug";
   resolveConflicts: boolean;
   heartbeatEnabled: boolean;
   cleanupInterval: number;
@@ -220,14 +233,14 @@ export interface CacheConfig {
   compressionThreshold: number; // size threshold in bytes for compression
   maxItems: number; // maximum number of items in cache (LRU eviction)
   maxSize: number; // maximum size in bytes (LRU eviction)
-  evictionStrategy: 'lru' | 'ttl' | 'size'; // strategy for eviction
+  evictionStrategy: "lru" | "ttl" | "size"; // strategy for eviction
   evictionPercentage: number; // percentage of items to evict when limit is reached (0-1)
 }
 
 // Default cache configuration
 export const DEFAULT_CACHE_CONFIG: CacheConfig = {
   syncEnabled: true,
-  logLevel: process.env.NODE_ENV !== 'production' ? 'error' : 'none',
+  logLevel: process.env.NODE_ENV !== "production" ? "error" : "none",
   resolveConflicts: true,
   heartbeatEnabled: true,
   cleanupInterval: 5 * 60 * 1000, // 5 minutes
@@ -235,8 +248,8 @@ export const DEFAULT_CACHE_CONFIG: CacheConfig = {
   compressionThreshold: COMPRESSION_THRESHOLD, // use the defined threshold
   maxItems: DEFAULT_MAX_ITEMS, // maximum number of items in cache
   maxSize: MAX_STORAGE_SIZE, // maximum size in bytes
-  evictionStrategy: 'lru', // use LRU eviction by default
-  evictionPercentage: 0.2 // evict 20% of items when limit is reached
+  evictionStrategy: "lru", // use LRU eviction by default
+  evictionPercentage: 0.2, // evict 20% of items when limit is reached
 };
 
 class Cache {
@@ -265,7 +278,7 @@ class Cache {
       enabled: this.config.syncEnabled,
       logLevel: this.config.logLevel,
       resolveConflicts: this.config.resolveConflicts,
-      heartbeatEnabled: this.config.heartbeatEnabled
+      heartbeatEnabled: this.config.heartbeatEnabled,
     });
 
     // Load persisted cache into memory on startup
@@ -300,12 +313,12 @@ class Cache {
       return {
         compressedValue: compressed,
         originalSize,
-        compressedSize
+        compressedSize,
       };
     } catch (error) {
       // If compression fails, log the error and return null
-      console.error('Error compressing cache value:', error);
-      throw new Error('Compression failed');
+      console.error("Error compressing cache value:", error);
+      throw new Error("Compression failed");
     }
   }
 
@@ -319,15 +332,15 @@ class Cache {
       // Decompress the string
       const decompressed = LZString.decompressFromUTF16(compressedValue);
       if (!decompressed) {
-        throw new Error('Decompression resulted in null or empty string');
+        throw new Error("Decompression resulted in null or empty string");
       }
 
       // Parse the JSON string back to the original value
       return JSON.parse(decompressed) as T;
     } catch (error) {
       // If decompression fails, log the error and return null
-      console.error('Error decompressing cache value:', error);
-      throw new Error('Decompression failed');
+      console.error("Error decompressing cache value:", error);
+      throw new Error("Decompression failed");
     }
   }
 
@@ -347,20 +360,24 @@ class Cache {
 
     // Check if the item is too large
     if (size > MAX_ITEM_SIZE) {
-      if (this.config.logLevel !== 'none') {
-        console.warn(`Cache item ${key} is too large (${size} bytes), not caching`);
+      if (this.config.logLevel !== "none") {
+        console.warn(
+          `Cache item ${key} is too large (${size} bytes), not caching`,
+        );
       }
       return;
     }
 
     // Determine if we should compress this item
     let item: CacheItem<T | string>;
-    let shouldCompress = this.config.compressionEnabled && size > this.config.compressionThreshold;
+    let shouldCompress =
+      this.config.compressionEnabled && size > this.config.compressionThreshold;
 
     if (shouldCompress) {
       try {
         // Compress the value
-        const { compressedValue, originalSize, compressedSize } = this.compressValue(value);
+        const { compressedValue, originalSize, compressedSize } =
+          this.compressValue(value);
 
         // Only use compression if it actually saves space
         if (compressedSize < originalSize) {
@@ -372,12 +389,16 @@ class Cache {
             lastAccessed: now,
             size: compressedSize,
             compressed: true,
-            originalSize
+            originalSize,
           };
 
-          if (this.config.logLevel === 'debug') {
-            const savingsPercent = Math.round((1 - compressedSize / originalSize) * 100);
-            console.log(`Compressed cache item ${key}: ${originalSize} -> ${compressedSize} bytes (${savingsPercent}% savings)`);
+          if (this.config.logLevel === "debug") {
+            const savingsPercent = Math.round(
+              (1 - compressedSize / originalSize) * 100,
+            );
+            console.log(
+              `Compressed cache item ${key}: ${originalSize} -> ${compressedSize} bytes (${savingsPercent}% savings)`,
+            );
           }
         } else {
           // Compression didn't help, store uncompressed
@@ -385,7 +406,10 @@ class Cache {
         }
       } catch (error) {
         // If compression fails, fall back to uncompressed storage
-        console.warn(`Compression failed for cache item ${key}, storing uncompressed:`, error);
+        console.warn(
+          `Compression failed for cache item ${key}, storing uncompressed:`,
+          error,
+        );
         shouldCompress = false;
       }
     }
@@ -398,7 +422,7 @@ class Cache {
         created: now,
         lastAccessed: now,
         size,
-        compressed: false
+        compressed: false,
       };
     }
 
@@ -414,7 +438,7 @@ class Cache {
         expiry,
         size: item.size,
         valueType: typeof value,
-        compressed: item.compressed
+        compressed: item.compressed,
       });
     }
   }
@@ -434,7 +458,7 @@ class Cache {
       enabled: this.config.syncEnabled,
       logLevel: this.config.logLevel,
       resolveConflicts: this.config.resolveConflicts,
-      heartbeatEnabled: this.config.heartbeatEnabled
+      heartbeatEnabled: this.config.heartbeatEnabled,
     });
 
     // Initialize sync manager if it was disabled and is now enabled
@@ -473,7 +497,10 @@ class Cache {
   /**
    * Process a retrieved cache item, handling expiration and access tracking
    */
-  private processRetrievedItem<T>(key: string, item: CacheItem<T | string>): T | undefined {
+  private processRetrievedItem<T>(
+    key: string,
+    item: CacheItem<T | string>,
+  ): T | undefined {
     // Check if the item has expired
     if (item.expiry && Date.now() > item.expiry) {
       this.delete(key);
@@ -495,8 +522,10 @@ class Cache {
 
         // For frequently accessed items, consider storing the decompressed value
         // in memory to avoid repeated decompression
-        if (this.config.logLevel === 'debug') {
-          console.log(`Decompressed cache item ${key}: ${item.size} -> ${item.originalSize} bytes`);
+        if (this.config.logLevel === "debug") {
+          console.log(
+            `Decompressed cache item ${key}: ${item.size} -> ${item.originalSize} bytes`,
+          );
         }
 
         return decompressedValue;
@@ -546,7 +575,7 @@ class Cache {
    * @param key The cache key or a RegExp to match multiple keys
    */
   delete(key: string | RegExp): void {
-    if (typeof key === 'string') {
+    if (typeof key === "string") {
       // Delete from memory cache
       this.memoryCache.delete(key);
 
@@ -575,15 +604,23 @@ class Cache {
       // Find matching keys in storage
       for (const storageKey of this.storage.keys()) {
         const keyWithoutPrefix = storageKey.substring(CACHE_PREFIX.length);
-        if (key.test(keyWithoutPrefix) && !keysToDelete.includes(keyWithoutPrefix)) {
+        if (
+          key.test(keyWithoutPrefix) &&
+          !keysToDelete.includes(keyWithoutPrefix)
+        ) {
           keysToDelete.push(keyWithoutPrefix);
         }
       }
 
       // Delete each key
       if (keysToDelete.length > 0) {
-        if (this.config.logLevel === 'debug' || this.config.logLevel === 'info') {
-          console.log(`Deleting ${keysToDelete.length} cache keys matching pattern`);
+        if (
+          this.config.logLevel === "debug" ||
+          this.config.logLevel === "info"
+        ) {
+          console.log(
+            `Deleting ${keysToDelete.length} cache keys matching pattern`,
+          );
         }
 
         // Delete individual keys
@@ -624,7 +661,7 @@ class Cache {
       itemCount: 0,
       lastCleaned: Date.now(),
       evictionCount: 0,
-      lastEviction: 0
+      lastEviction: 0,
     };
     this.saveMetadata();
 
@@ -641,7 +678,11 @@ class Cache {
    * @param ttlMs Time to live in milliseconds (optional)
    * @returns The cached or computed value
    */
-  async getOrSet<T>(key: string, fn: () => Promise<T>, ttlMs?: number): Promise<T> {
+  async getOrSet<T>(
+    key: string,
+    fn: () => Promise<T>,
+    ttlMs?: number,
+  ): Promise<T> {
     const cachedValue = this.get<T>(key);
     if (cachedValue !== undefined) {
       return cachedValue;
@@ -678,7 +719,7 @@ class Cache {
     let originalSize = 0;
     let compressedSize = 0;
 
-    this.memoryCache.forEach(item => {
+    this.memoryCache.forEach((item) => {
       if (item.compressed && item.originalSize) {
         compressedItemCount++;
         originalSize += item.originalSize;
@@ -687,7 +728,8 @@ class Cache {
     });
 
     // Calculate compression ratio and space saved
-    const compressionRatio = originalSize > 0 ? compressedSize / originalSize : 1;
+    const compressionRatio =
+      originalSize > 0 ? compressedSize / originalSize : 1;
     const spaceSaved = originalSize - compressedSize;
 
     return {
@@ -702,10 +744,12 @@ class Cache {
       compressionRatio,
       spaceSaved,
       evictionCount: this.metadata.evictionCount,
-      lastEviction: this.metadata.lastEviction ? new Date(this.metadata.lastEviction) : null,
+      lastEviction: this.metadata.lastEviction
+        ? new Date(this.metadata.lastEviction)
+        : null,
       evictionStrategy: this.config.evictionStrategy,
       maxItems: this.config.maxItems,
-      maxSize: this.config.maxSize
+      maxSize: this.config.maxSize,
     };
   }
 
@@ -719,8 +763,10 @@ class Cache {
         const parsed = JSON.parse(metaString);
         // If version mismatch, clear cache
         if (parsed.version !== CACHE_VERSION) {
-          if (this.config.logLevel !== 'none') {
-            console.log(`Cache version mismatch (stored: ${parsed.version}, current: ${CACHE_VERSION}), clearing cache`);
+          if (this.config.logLevel !== "none") {
+            console.log(
+              `Cache version mismatch (stored: ${parsed.version}, current: ${CACHE_VERSION}), clearing cache`,
+            );
           }
           this.storage.clear();
           return {
@@ -729,14 +775,14 @@ class Cache {
             itemCount: 0,
             lastCleaned: Date.now(),
             evictionCount: 0,
-            lastEviction: 0
+            lastEviction: 0,
           };
         }
         return parsed;
       }
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
-        console.warn('Error loading cache metadata:', e);
+      if (this.config.logLevel !== "none") {
+        console.warn("Error loading cache metadata:", e);
       }
     }
 
@@ -747,7 +793,7 @@ class Cache {
       itemCount: 0,
       lastCleaned: Date.now(),
       evictionCount: 0,
-      lastEviction: 0
+      lastEviction: 0,
     };
   }
 
@@ -758,8 +804,8 @@ class Cache {
     try {
       this.storage.setItem(CACHE_META_KEY, JSON.stringify(this.metadata));
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
-        console.warn('Error saving cache metadata:', e);
+      if (this.config.logLevel !== "none") {
+        console.warn("Error saving cache metadata:", e);
       }
     }
   }
@@ -795,8 +841,8 @@ class Cache {
         }
       }
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
-        console.warn('Error loading cache from storage:', e);
+      if (this.config.logLevel !== "none") {
+        console.warn("Error loading cache from storage:", e);
       }
     }
   }
@@ -831,14 +877,18 @@ class Cache {
 
       // Update metadata
       if (existingItem) {
-        this.metadata.totalSize = this.metadata.totalSize - existingItem.size + newSize;
+        this.metadata.totalSize =
+          this.metadata.totalSize - existingItem.size + newSize;
       } else {
         this.metadata.totalSize += newSize;
         this.metadata.itemCount++;
       }
 
       // Check if we need to clean up before adding (size or item count limit)
-      if (this.metadata.totalSize > this.config.maxSize || this.metadata.itemCount > this.config.maxItems) {
+      if (
+        this.metadata.totalSize > this.config.maxSize ||
+        this.metadata.itemCount > this.config.maxItems
+      ) {
         this.cleanupStorage();
       }
 
@@ -848,7 +898,7 @@ class Cache {
       // Save updated metadata
       this.saveMetadata();
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
+      if (this.config.logLevel !== "none") {
         console.warn(`Error persisting item ${key} to storage:`, e);
       }
     }
@@ -866,7 +916,7 @@ class Cache {
         this.saveMetadata();
       }
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
+      if (this.config.logLevel !== "none") {
         console.warn(`Error updating metadata after deleting ${key}:`, e);
       }
     }
@@ -878,12 +928,12 @@ class Cache {
    */
   private cleanupStorage(): void {
     try {
-      if (this.config.logLevel === 'debug' || this.config.logLevel === 'info') {
-        console.log('Cleaning up cache storage using LRU strategy...');
+      if (this.config.logLevel === "debug" || this.config.logLevel === "info") {
+        console.log("Cleaning up cache storage using LRU strategy...");
       }
 
       // Get all items from storage
-      const items: { key: string, item: CacheItem<CacheValue> }[] = [];
+      const items: { key: string; item: CacheItem<CacheValue> }[] = [];
       for (const storageKey of this.storage.keys()) {
         // Skip metadata
         if (storageKey === CACHE_META_KEY) continue;
@@ -914,19 +964,20 @@ class Cache {
       // Calculate how many items to evict
       let itemsToEvict = 0;
 
-      if (this.config.evictionStrategy === 'lru') {
+      if (this.config.evictionStrategy === "lru") {
         if (countExceeded) {
           // Evict a percentage of items over the limit
           const excessItems = currentCount - this.config.maxItems;
           itemsToEvict = Math.max(
             Math.ceil(excessItems * (1 + this.config.evictionPercentage)),
-            1 // At least one item
+            1, // At least one item
           );
         }
 
         if (sizeExceeded) {
           // Calculate target size (80% of max by default)
-          const targetSize = this.config.maxSize * (1 - this.config.evictionPercentage);
+          const targetSize =
+            this.config.maxSize * (1 - this.config.evictionPercentage);
           const sizeToFree = currentSize - targetSize;
           let sizeFreed = 0;
           let itemsForSize = 0;
@@ -941,11 +992,12 @@ class Cache {
           // Take the larger of the two calculations
           itemsToEvict = Math.max(itemsToEvict, itemsForSize);
         }
-      } else if (this.config.evictionStrategy === 'ttl') {
+      } else if (this.config.evictionStrategy === "ttl") {
         // For TTL strategy, we only evict expired items
         // This is handled in cleanupExpiredItems, but we'll still evict LRU if size is exceeded
         if (sizeExceeded) {
-          const targetSize = this.config.maxSize * (1 - this.config.evictionPercentage);
+          const targetSize =
+            this.config.maxSize * (1 - this.config.evictionPercentage);
           const sizeToFree = currentSize - targetSize;
           let sizeFreed = 0;
 
@@ -955,13 +1007,14 @@ class Cache {
             itemsToEvict++;
           }
         }
-      } else if (this.config.evictionStrategy === 'size') {
+      } else if (this.config.evictionStrategy === "size") {
         // For size strategy, we prioritize evicting larger items first
         // Sort by size (largest first)
         items.sort((a, b) => b.item.size - a.item.size);
 
         if (sizeExceeded) {
-          const targetSize = this.config.maxSize * (1 - this.config.evictionPercentage);
+          const targetSize =
+            this.config.maxSize * (1 - this.config.evictionPercentage);
           const sizeToFree = currentSize - targetSize;
           let sizeFreed = 0;
 
@@ -987,8 +1040,10 @@ class Cache {
           sizeFreed += item.size;
 
           // Log eviction if debug is enabled
-          if (this.config.logLevel === 'debug') {
-            console.log(`[Cache] LRU eviction: ${key} (${item.size} bytes, last accessed ${new Date(item.lastAccessed).toISOString()})`);
+          if (this.config.logLevel === "debug") {
+            console.log(
+              `[Cache] LRU eviction: ${key} (${item.size} bytes, last accessed ${new Date(item.lastAccessed).toISOString()})`,
+            );
           }
         }
 
@@ -996,8 +1051,13 @@ class Cache {
         this.metadata.evictionCount += itemsToEvict;
         this.metadata.lastEviction = Date.now();
 
-        if (this.config.logLevel === 'info' || this.config.logLevel === 'debug') {
-          console.log(`[Cache] LRU eviction complete: ${itemsToEvict} items evicted, ${sizeFreed} bytes freed`);
+        if (
+          this.config.logLevel === "info" ||
+          this.config.logLevel === "debug"
+        ) {
+          console.log(
+            `[Cache] LRU eviction complete: ${itemsToEvict} items evicted, ${sizeFreed} bytes freed`,
+          );
         }
       }
 
@@ -1005,12 +1065,14 @@ class Cache {
       this.metadata.lastCleaned = Date.now();
       this.saveMetadata();
 
-      if (this.config.logLevel === 'debug' || this.config.logLevel === 'info') {
-        console.log(`Cache cleanup complete. New size: ${this.metadata.totalSize} bytes, Items: ${this.metadata.itemCount}`);
+      if (this.config.logLevel === "debug" || this.config.logLevel === "info") {
+        console.log(
+          `Cache cleanup complete. New size: ${this.metadata.totalSize} bytes, Items: ${this.metadata.itemCount}`,
+        );
       }
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
-        console.warn('Error cleaning up storage:', e);
+      if (this.config.logLevel !== "none") {
+        console.warn("Error cleaning up storage:", e);
       }
     }
   }
@@ -1041,8 +1103,8 @@ class Cache {
    */
   private cleanupExpiredItems(): void {
     try {
-      if (this.config.logLevel === 'debug' || this.config.logLevel === 'info') {
-        console.log('Cleaning up expired cache items...');
+      if (this.config.logLevel === "debug" || this.config.logLevel === "info") {
+        console.log("Cleaning up expired cache items...");
       }
       const now = Date.now();
       let expiredCount = 0;
@@ -1068,14 +1130,22 @@ class Cache {
         }
       }
 
-      if (expiredCount > 0 && (this.config.logLevel === 'debug' || this.config.logLevel === 'info')) {
+      if (
+        expiredCount > 0 &&
+        (this.config.logLevel === "debug" || this.config.logLevel === "info")
+      ) {
         console.log(`[Cache] Removed ${expiredCount} expired items`);
       }
 
       // Check if we need to enforce LRU eviction based on size or count limits
-      if (this.metadata.totalSize > this.config.maxSize || this.metadata.itemCount > this.config.maxItems) {
-        if (this.config.logLevel === 'debug') {
-          console.log(`[Cache] Size (${this.metadata.totalSize}/${this.config.maxSize}) or count (${this.metadata.itemCount}/${this.config.maxItems}) limit exceeded, enforcing LRU eviction`);
+      if (
+        this.metadata.totalSize > this.config.maxSize ||
+        this.metadata.itemCount > this.config.maxItems
+      ) {
+        if (this.config.logLevel === "debug") {
+          console.log(
+            `[Cache] Size (${this.metadata.totalSize}/${this.config.maxSize}) or count (${this.metadata.itemCount}/${this.config.maxItems}) limit exceeded, enforcing LRU eviction`,
+          );
         }
         this.cleanupStorage();
       }
@@ -1084,8 +1154,8 @@ class Cache {
       this.metadata.lastCleaned = Date.now();
       this.saveMetadata();
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
-        console.warn('Error cleaning up expired items:', e);
+      if (this.config.logLevel !== "none") {
+        console.warn("Error cleaning up expired items:", e);
       }
     }
   }
@@ -1106,8 +1176,10 @@ class Cache {
         const item = this.getFromStorage(message.key);
         if (item) {
           this.memoryCache.set(message.key, item);
-          if (this.config.logLevel === 'debug') {
-            console.log(`[Cache] Updated item from another tab: ${message.key}`);
+          if (this.config.logLevel === "debug") {
+            console.log(
+              `[Cache] Updated item from another tab: ${message.key}`,
+            );
           }
         }
       }
@@ -1118,40 +1190,50 @@ class Cache {
       if (message.key) {
         // Delete from memory cache only (storage already updated)
         this.memoryCache.delete(message.key);
-        if (this.config.logLevel === 'debug') {
+        if (this.config.logLevel === "debug") {
           console.log(`[Cache] Deleted item from another tab: ${message.key}`);
         }
       }
     });
 
     // Listen for bulk update events
-    this.syncManager.addEventListener(SyncMessageType.BULK_UPDATE, (message) => {
-      if (message.keys && message.keys.length > 0) {
-        // Reload these items from storage
-        for (const key of message.keys) {
-          const item = this.getFromStorage(key);
-          if (item) {
-            this.memoryCache.set(key, item);
+    this.syncManager.addEventListener(
+      SyncMessageType.BULK_UPDATE,
+      (message) => {
+        if (message.keys && message.keys.length > 0) {
+          // Reload these items from storage
+          for (const key of message.keys) {
+            const item = this.getFromStorage(key);
+            if (item) {
+              this.memoryCache.set(key, item);
+            }
+          }
+          if (this.config.logLevel === "debug") {
+            console.log(
+              `[Cache] Bulk updated ${message.keys.length} items from another tab`,
+            );
           }
         }
-        if (this.config.logLevel === 'debug') {
-          console.log(`[Cache] Bulk updated ${message.keys.length} items from another tab`);
-        }
-      }
-    });
+      },
+    );
 
     // Listen for bulk delete events
-    this.syncManager.addEventListener(SyncMessageType.BULK_DELETE, (message) => {
-      if (message.keys && message.keys.length > 0) {
-        // Delete from memory cache only (storage already updated)
-        for (const key of message.keys) {
-          this.memoryCache.delete(key);
+    this.syncManager.addEventListener(
+      SyncMessageType.BULK_DELETE,
+      (message) => {
+        if (message.keys && message.keys.length > 0) {
+          // Delete from memory cache only (storage already updated)
+          for (const key of message.keys) {
+            this.memoryCache.delete(key);
+          }
+          if (this.config.logLevel === "debug") {
+            console.log(
+              `[Cache] Bulk deleted ${message.keys.length} items from another tab`,
+            );
+          }
         }
-        if (this.config.logLevel === 'debug') {
-          console.log(`[Cache] Bulk deleted ${message.keys.length} items from another tab`);
-        }
-      }
-    });
+      },
+    );
 
     // Listen for clear events
     this.syncManager.addEventListener(SyncMessageType.CLEAR, () => {
@@ -1159,7 +1241,7 @@ class Cache {
       this.memoryCache.clear();
       // Reload metadata
       this.metadata = this.loadMetadata();
-      if (this.config.logLevel === 'debug') {
+      if (this.config.logLevel === "debug") {
         console.log(`[Cache] Cleared all items from another tab`);
       }
     });
@@ -1225,15 +1307,23 @@ class Cache {
       // Collect all keys from storage that contain the user ID
       for (const storageKey of this.storage.keys()) {
         const keyWithoutPrefix = storageKey.substring(CACHE_PREFIX.length);
-        if (keyWithoutPrefix.includes(userId) && !userCacheKeys.includes(keyWithoutPrefix)) {
+        if (
+          keyWithoutPrefix.includes(userId) &&
+          !userCacheKeys.includes(keyWithoutPrefix)
+        ) {
           userCacheKeys.push(keyWithoutPrefix);
         }
       }
 
       // Delete from memory cache and storage
       if (userCacheKeys.length > 0) {
-        if (this.config.logLevel === 'debug' || this.config.logLevel === 'info') {
-          console.log(`Clearing ${userCacheKeys.length} cache items for user ${userId}`);
+        if (
+          this.config.logLevel === "debug" ||
+          this.config.logLevel === "info"
+        ) {
+          console.log(
+            `Clearing ${userCacheKeys.length} cache items for user ${userId}`,
+          );
         }
 
         // Delete individual keys
@@ -1242,7 +1332,7 @@ class Cache {
         }
       }
     } catch (e) {
-      if (this.config.logLevel !== 'none') {
+      if (this.config.logLevel !== "none") {
         console.warn(`Error clearing user cache for ${userId}:`, e);
       }
     }
@@ -1265,7 +1355,7 @@ export const DEFAULT_CACHE_TTL = {
  */
 export function logCacheCompressionStats(): void {
   const stats = cache.getStats();
-  const compressionEnabled = stats.compressionEnabled ? 'enabled' : 'disabled';
+  const compressionEnabled = stats.compressionEnabled ? "enabled" : "disabled";
   const compressionRatio = (stats.compressionRatio * 100).toFixed(2);
   const spaceSavedKB = (stats.spaceSaved / 1024).toFixed(2);
   const originalSizeKB = (stats.originalSize / 1024).toFixed(2);
@@ -1289,7 +1379,9 @@ export function logCacheEvictionStats(): void {
   const stats = cache.getStats();
   const totalSizeKB = (stats.totalSize / 1024).toFixed(2);
   const maxSizeKB = (stats.maxSize / 1024).toFixed(2);
-  const lastEviction = stats.lastEviction ? stats.lastEviction.toISOString() : 'Never';
+  const lastEviction = stats.lastEviction
+    ? stats.lastEviction.toISOString()
+    : "Never";
 
   console.log(`
 Cache Eviction Statistics:

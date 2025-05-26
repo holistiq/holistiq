@@ -1,7 +1,7 @@
 /**
  * Utility functions for formatting and calculations
  */
-import { debugLog, debugWarn, debugError } from '@/utils/debugUtils';
+import { debugLog, debugWarn, debugError } from "@/utils/debugUtils";
 
 /**
  * Format a date string consistently
@@ -9,14 +9,14 @@ import { debugLog, debugWarn, debugError } from '@/utils/debugUtils';
 export function formatDate(dateString: string): string {
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   } catch (error) {
-    debugError('Error formatting date:', error);
-    return 'Invalid date';
+    debugError("Error formatting date:", error);
+    return "Invalid date";
   }
 }
 
@@ -77,7 +77,10 @@ export function getChangeColorClass(change: number): string {
 /**
  * Get change indicator arrow
  */
-export function getChangeIndicator(change: number, isReactionTime: boolean = false): string {
+export function getChangeIndicator(
+  change: number,
+  isReactionTime: boolean = false,
+): string {
   // For reaction time, lower is better, so arrows are inverted
   if (isReactionTime) {
     if (change > 0) return "↓"; // Improved (lower reaction time)

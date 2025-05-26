@@ -3,8 +3,8 @@
  *
  * Displays trend analysis when hovering over moving average lines
  */
-import React from 'react';
-import { format } from 'date-fns';
+import React from "react";
+import { format } from "date-fns";
 
 export interface MATooltipProps {
   readonly active?: boolean;
@@ -27,7 +27,11 @@ export interface MATooltipProps {
   readonly label?: number;
 }
 
-export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) {
+export function MATooltip({
+  active,
+  payload,
+  label,
+}: Readonly<MATooltipProps>) {
   if (!active || !payload || payload.length === 0) {
     return null;
   }
@@ -36,15 +40,20 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
   const data = payload[0].payload;
 
   // Format the date
-  const dateString = data.formattedDate || format(new Date(data.date), 'MMM d, yyyy');
+  const dateString =
+    data.formattedDate || format(new Date(data.date), "MMM d, yyyy");
 
   // Determine which MA metric is being displayed
-  const isScoreMA = payload.some(p => p.dataKey === 'scoreMA');
-  const isReactionTimeMA = payload.some(p => p.dataKey === 'reactionTimeMA');
-  const isAccuracyMA = payload.some(p => p.dataKey === 'accuracyMA');
+  const isScoreMA = payload.some((p) => p.dataKey === "scoreMA");
+  const isReactionTimeMA = payload.some((p) => p.dataKey === "reactionTimeMA");
+  const isAccuracyMA = payload.some((p) => p.dataKey === "accuracyMA");
 
   // Get trend information
-  const getTrendInfo = (value: number | undefined, trend: number | undefined, isReactionTime = false) => {
+  const getTrendInfo = (
+    value: number | undefined,
+    trend: number | undefined,
+    isReactionTime = false,
+  ) => {
     if (value === undefined || trend === undefined) return null;
 
     // For reaction time, lower is better, so we invert the trend direction
@@ -60,7 +69,10 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
   };
 
   // Get trend description
-  const getTrendDescription = (trend: number | undefined, isReactionTime = false) => {
+  const getTrendDescription = (
+    trend: number | undefined,
+    isReactionTime = false,
+  ) => {
     if (trend === undefined) return null;
 
     if (Math.abs(trend) < 1) {
@@ -110,7 +122,11 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
               <span>Reaction Time MA:</span>
               <span className="font-medium">
                 {data.reactionTimeMA.toFixed(0)} ms
-                {getTrendInfo(data.reactionTimeMA, data.reactionTimeMATrend, true)}
+                {getTrendInfo(
+                  data.reactionTimeMA,
+                  data.reactionTimeMATrend,
+                  true,
+                )}
               </span>
             </p>
             <p className="text-xs text-muted-foreground mt-1">
@@ -136,7 +152,10 @@ export function MATooltip({ active, payload, label }: Readonly<MATooltipProps>) 
       </div>
 
       <div className="mt-3 pt-2 border-t text-xs text-muted-foreground">
-        <p>This line shows the 3-point moving average, smoothing out daily fluctuations to reveal your true performance trend.</p>
+        <p>
+          This line shows the 3-point moving average, smoothing out daily
+          fluctuations to reveal your true performance trend.
+        </p>
       </div>
     </div>
   );

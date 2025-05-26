@@ -1,5 +1,5 @@
-import { useContext } from 'react';
-import { TestResultsContext } from '@/contexts/TestResultsContextDef';
+import { useContext } from "react";
+import { TestResultsContext } from "@/contexts/TestResultsContextDef";
 
 /**
  * Hook to access test results data from the TestResultsContext
@@ -9,7 +9,7 @@ export function useTestResults() {
   const context = useContext(TestResultsContext);
 
   if (!context) {
-    throw new Error('useTestResults must be used within a TestResultsProvider');
+    throw new Error("useTestResults must be used within a TestResultsProvider");
   }
 
   return {
@@ -23,6 +23,6 @@ export function useTestResults() {
     isCalculatingBaseline: context.isCalculatingBaseline,
     isDataStale: context.isDataStale,
     refreshTestResults: context.refreshTestResults,
-    calculateUserBaseline: context.calculateUserBaseline
+    calculateUserBaseline: context.calculateUserBaseline,
   };
 }

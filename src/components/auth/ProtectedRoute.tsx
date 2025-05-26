@@ -10,20 +10,21 @@ interface ProtectedRouteProps {
 
 // List of routes that don't require authentication
 const PUBLIC_ROUTES = [
-  '/',
-  '/signin',
-  '/login',
-  '/signup',
-  '/how-it-works',
-  '/faq',
-  '/about-us',
-  '/contact',
-  '/terms',
-  '/privacy',
-  '/disclaimer',
-  '/auth/callback',
+  "/",
+  "/signin",
+  "/login",
+  "/signup",
+  "/how-it-works",
+  "/faq",
+  "/about-us",
+  "/contact",
+  "/terms",
+  "/privacy",
+  "/disclaimer",
+  "/auth/callback",
+  "/shared", // Public shared test results
   // Add NotFound page to public routes
-  '*',
+  "*",
 ];
 
 /**
@@ -40,12 +41,16 @@ export function ProtectedRoute({ children }: Readonly<ProtectedRouteProps>) {
   const { toast } = useToast();
 
   // Check if the current route is public
-  const isPublicRoute = PUBLIC_ROUTES.some(route => {
-    if (route === '*') {
+  const isPublicRoute = PUBLIC_ROUTES.some((route) => {
+    if (route === "*") {
       // Special case for wildcard route
-      return !PUBLIC_ROUTES.some(r => r !== '*' && location.pathname.startsWith(r));
+      return !PUBLIC_ROUTES.some(
+        (r) => r !== "*" && location.pathname.startsWith(r),
+      );
     }
-    return location.pathname === route || location.pathname.startsWith(`${route}/`);
+    return (
+      location.pathname === route || location.pathname.startsWith(`${route}/`)
+    );
   });
 
   // Effect to handle authentication check
@@ -72,9 +77,7 @@ export function ProtectedRoute({ children }: Readonly<ProtectedRouteProps>) {
 
   // For protected routes, wrap with AuthenticationRequired
   return (
-    <AuthenticationRequired
-      message="You need to be signed in to access this page. Please sign in to continue."
-    >
+    <AuthenticationRequired message="You need to be signed in to access this page. Please sign in to continue.">
       {children}
     </AuthenticationRequired>
   );

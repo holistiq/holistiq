@@ -9,7 +9,7 @@ import {
   User,
   HelpCircle,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/animated-section";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,10 @@ export default function Contact() {
   const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
 
   // Helper function to get validation classes for input fields
-  const getInputValidationClass = (isValid: boolean, isDirty: boolean): string => {
+  const getInputValidationClass = (
+    isValid: boolean,
+    isDirty: boolean,
+  ): string => {
     if (!isDirty) return ""; // No validation styling if field is empty
     return isValid
       ? "border-green-500/50 focus-visible:ring-green-500/20"
@@ -57,18 +60,28 @@ export default function Contact() {
     const isEmailValid = email.trim().length > 0 && emailRegex.test(email);
     const isSubjectValid = subject.trim().length > 0;
     const isMessageValid = message.trim().length > 0;
-    const isCaptchaValid = captchaValue === captchaAnswer && captchaValue.trim().length > 0;
+    const isCaptchaValid =
+      captchaValue === captchaAnswer && captchaValue.trim().length > 0;
 
     // Update form validity state
     setFormIsValid(
       isNameValid &&
-      isEmailValid &&
-      isSubjectValid &&
-      isMessageValid &&
-      isCaptchaValid &&
-      privacyConsent
+        isEmailValid &&
+        isSubjectValid &&
+        isMessageValid &&
+        isCaptchaValid &&
+        privacyConsent,
     );
-  }, [name, email, subject, message, captchaValue, captchaAnswer, privacyConsent, emailRegex]);
+  }, [
+    name,
+    email,
+    subject,
+    message,
+    captchaValue,
+    captchaAnswer,
+    privacyConsent,
+    emailRegex,
+  ]);
 
   const generateCaptcha = () => {
     const num1 = Math.floor(Math.random() * 10);
@@ -127,7 +140,8 @@ export default function Contact() {
     const now = Date.now();
     const timeSinceLastSubmission = now - lastSubmissionTime;
 
-    if (timeSinceLastSubmission < 60000 && submissionCount > 2) { // 1 minute and more than 2 submissions
+    if (timeSinceLastSubmission < 60000 && submissionCount > 2) {
+      // 1 minute and more than 2 submissions
       toast({
         title: "Too Many Attempts",
         description: "Please wait a moment before submitting again.",
@@ -146,7 +160,7 @@ export default function Contact() {
       });
 
       // Update submission tracking
-      setSubmissionCount(prev => prev + 1);
+      setSubmissionCount((prev) => prev + 1);
       setLastSubmissionTime(Date.now());
 
       // Reset form
@@ -173,7 +187,8 @@ export default function Contact() {
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">Contact Us</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Have questions or feedback? We'd love to hear from you. Reach out to our team and we'll get back to you as soon as possible.
+              Have questions or feedback? We'd love to hear from you. Reach out
+              to our team and we'll get back to you as soon as possible.
             </p>
           </AnimatedSection>
 
@@ -241,7 +256,10 @@ export default function Contact() {
                     placeholder="How can we help you?"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className={getInputValidationClass(subject.trim().length > 0, subject.trim() !== "")}
+                    className={getInputValidationClass(
+                      subject.trim().length > 0,
+                      subject.trim() !== "",
+                    )}
                     required
                   />
                 </div>
@@ -253,7 +271,10 @@ export default function Contact() {
                     placeholder="Tell us more about your inquiry..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className={getInputValidationClass(message.trim().length > 0, message.trim() !== "")}
+                    className={getInputValidationClass(
+                      message.trim().length > 0,
+                      message.trim() !== "",
+                    )}
                     rows={5}
                     required
                   />
@@ -268,7 +289,8 @@ export default function Contact() {
                     </div>
                   </Label>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Please solve this simple math problem to verify you're human:
+                    Please solve this simple math problem to verify you're
+                    human:
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                     <span className="font-medium">{captchaQuestion}</span>
@@ -280,8 +302,9 @@ export default function Contact() {
                       value={captchaValue}
                       onChange={(e) => setCaptchaValue(e.target.value)}
                       className={`max-w-[150px] ${getInputValidationClass(
-                        captchaValue === captchaAnswer && captchaValue.trim() !== "",
-                        captchaValue.trim() !== ""
+                        captchaValue === captchaAnswer &&
+                          captchaValue.trim() !== "",
+                        captchaValue.trim() !== "",
                       )}`}
                       required
                     />
@@ -289,12 +312,20 @@ export default function Contact() {
                 </div>
 
                 {/* Privacy consent */}
-                <div className={`flex items-start space-x-2 p-3 rounded-md ${privacyConsent ? "bg-green-500/5" : ""}`}>
+                <div
+                  className={`flex items-start space-x-2 p-3 rounded-md ${privacyConsent ? "bg-green-500/5" : ""}`}
+                >
                   <Checkbox
                     id="privacy"
                     checked={privacyConsent}
-                    onCheckedChange={(checked) => setPrivacyConsent(checked === true)}
-                    className={privacyConsent ? "border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-primary-foreground" : ""}
+                    onCheckedChange={(checked) =>
+                      setPrivacyConsent(checked === true)
+                    }
+                    className={
+                      privacyConsent
+                        ? "border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-primary-foreground"
+                        : ""
+                    }
                     required
                   />
                   <div className="grid gap-1.5 leading-none">
@@ -305,7 +336,9 @@ export default function Contact() {
                       I agree to the privacy policy
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Your information will be processed according to our privacy policy. We will only use it to respond to your inquiry.
+                      Your information will be processed according to our
+                      privacy policy. We will only use it to respond to your
+                      inquiry.
                     </p>
                   </div>
                 </div>
@@ -317,7 +350,9 @@ export default function Contact() {
                     <span className="font-medium">Submission limits:</span>
                   </div>
                   <p>
-                    To prevent spam, we limit the number of contact form submissions. Please allow up to 48 hours for a response before submitting again.
+                    To prevent spam, we limit the number of contact form
+                    submissions. Please allow up to 48 hours for a response
+                    before submitting again.
                   </p>
                 </div>
 
@@ -342,7 +377,8 @@ export default function Contact() {
 
                     return (
                       <>
-                        Complete All Fields <AlertTriangle className="ml-2 h-4 w-4" />
+                        Complete All Fields{" "}
+                        <AlertTriangle className="ml-2 h-4 w-4" />
                       </>
                     );
                   })()}
@@ -351,7 +387,8 @@ export default function Contact() {
                 {/* Form validation status message */}
                 {!formIsValid && (
                   <p className="text-xs text-muted-foreground text-center mt-2">
-                    Please complete all required fields to enable the submit button
+                    Please complete all required fields to enable the submit
+                    button
                   </p>
                 )}
               </form>
@@ -368,10 +405,12 @@ export default function Contact() {
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Contact Form</h3>
                   <p className="text-muted-foreground mb-3">
-                    The fastest way to reach us is through our secure contact form.
+                    The fastest way to reach us is through our secure contact
+                    form.
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Our team reviews all submissions and will respond to your inquiry as soon as possible.
+                    Our team reviews all submissions and will respond to your
+                    inquiry as soon as possible.
                   </p>
                 </div>
 
@@ -395,12 +434,15 @@ export default function Contact() {
               <div className="mt-8 p-6 border border-border rounded-lg">
                 <h3 className="text-lg font-semibold mb-2">Response Time</h3>
                 <p className="text-muted-foreground mb-4">
-                  We strive to respond to all inquiries within 24-48 hours during business days. Thank you for your patience.
+                  We strive to respond to all inquiries within 24-48 hours
+                  during business days. Thank you for your patience.
                 </p>
                 <div className="text-sm text-muted-foreground bg-muted/20 p-3 rounded-md">
                   <p className="font-medium mb-1">Privacy Notice</p>
                   <p>
-                    All information submitted through this form is encrypted and stored securely. We do not share your information with third parties and only use it to respond to your inquiry.
+                    All information submitted through this form is encrypted and
+                    stored securely. We do not share your information with third
+                    parties and only use it to respond to your inquiry.
                   </p>
                 </div>
               </div>

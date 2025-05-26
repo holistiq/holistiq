@@ -7,24 +7,25 @@ export const SESSION_CONFIG = {
   INACTIVITY_TIMEOUT: 30 * 60 * 1000, // 30 minutes in milliseconds
   WARNING_BEFORE_TIMEOUT: 5 * 60 * 1000, // 5 minutes before timeout
   TOKEN_REFRESH_INTERVAL: 10 * 60 * 1000, // 10 minutes
-  ACTIVITY_EVENTS: ['mousedown', 'keydown', 'touchstart', 'scroll'],
-  STORAGE_KEY: 'holistiq_session_data',
-  LOG_LEVEL: process.env.NODE_ENV !== 'production' ? 'error' : 'none',
+  ACTIVITY_EVENTS: ["mousedown", "keydown", "touchstart", "scroll"],
+  STORAGE_KEY: "holistiq_session_data",
+  LOG_LEVEL: process.env.NODE_ENV !== "production" ? "error" : "none",
 };
 
 // Session storage options
 export enum SessionStorageType {
-  LOCAL_STORAGE = 'localStorage',
-  SESSION_STORAGE = 'sessionStorage',
-  COOKIE = 'cookie',
+  LOCAL_STORAGE = "localStorage",
+  SESSION_STORAGE = "sessionStorage",
+  COOKIE = "cookie",
 }
 
 // Session state for cross-tab communication
 export enum SessionAction {
-  LOGGED_IN = 'LOGGED_IN',
-  LOGGED_OUT = 'LOGGED_OUT',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  SESSION_EXTENDED = 'SESSION_EXTENDED',
+  LOGGED_IN = "LOGGED_IN",
+  LOGGED_OUT = "LOGGED_OUT",
+  SESSION_EXPIRED = "SESSION_EXPIRED",
+  SESSION_EXTENDED = "SESSION_EXTENDED",
+  MANUAL_LOGOUT = "MANUAL_LOGOUT", // New action for intentional logout
 }
 
 // Session manager class
@@ -39,7 +40,9 @@ export class SessionManager {
   private onSessionExpiredCallback: (() => void) | null = null;
   private isWarningDisplayed: boolean = false;
 
-  constructor(storageType: SessionStorageType = SessionStorageType.LOCAL_STORAGE) {
+  constructor(
+    storageType: SessionStorageType = SessionStorageType.LOCAL_STORAGE,
+  ) {
     this.storageType = storageType;
     this.setupBroadcastListener();
   }
@@ -51,8 +54,8 @@ export class SessionManager {
       const { data, error } = await supabase.auth.getSession();
 
       if (error) {
-        if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-          console.error('Error getting session:', error);
+        if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+          console.error("Error getting session:", error);
         }
 
         // Try to recover session from localStorage as a fallback
@@ -64,11 +67,11 @@ export class SessionManager {
 
       if (this.session) {
         // Log session details in development
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('Session initialized successfully:', {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Session initialized successfully:", {
             userId: this.session.user?.id,
             expiresAt: new Date(this.session.expires_at * 1000).toISOString(),
-            provider: this.session.user?.app_metadata?.provider
+            provider: this.session.user?.app_metadata?.provider,
           });
         }
 
@@ -85,8 +88,8 @@ export class SessionManager {
         this.tryRecoverSessionFromStorage();
       }
     } catch (error) {
-      if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-        console.error('Unexpected error initializing session:', error);
+      if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+        console.error("Unexpected error initializing session:", error);
       }
 
       // Try to recover session from localStorage as a fallback
@@ -98,13 +101,15 @@ export class SessionManager {
   private tryRecoverSessionFromStorage(): void {
     try {
       // Find Supabase session key in localStorage
-      const supabaseKey = Object.keys(localStorage).find(key =>
-        key.startsWith('sb-') && key.endsWith('-auth-token')
+      const supabaseKey = Object.keys(localStorage).find(
+        (key) => key.startsWith("sb-") && key.endsWith("-auth-token"),
       );
 
       if (!supabaseKey) {
-        if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-          console.log('No Supabase session key found in localStorage for recovery');
+        if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+          console.log(
+            "No Supabase session key found in localStorage for recovery",
+          );
         }
         return;
       }
@@ -120,44 +125,47 @@ export class SessionManager {
 
       // Check if we have a valid session
       if (sessionData?.access_token) {
-        if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-          console.log('Attempting to recover session from localStorage');
+        if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+          console.log("Attempting to recover session from localStorage");
         }
 
         // Try to set the session in Supabase
-        supabase.auth.setSession({
-          access_token: sessionData.access_token,
-          refresh_token: sessionData.refresh_token ?? ''
-        }).then(({ data, error }) => {
-          if (error) {
-            if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-              console.error('Error recovering session:', error);
+        supabase.auth
+          .setSession({
+            access_token: sessionData.access_token,
+            refresh_token: sessionData.refresh_token ?? "",
+          })
+          .then(({ data, error }) => {
+            if (error) {
+              if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+                console.error("Error recovering session:", error);
+              }
+            } else if (data.session) {
+              if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+                console.log("Session recovered successfully");
+              }
+
+              this.session = data.session;
+
+              // Setup activity tracking
+              this.setupActivityTracking();
+
+              // Setup token refresh
+              this.setupTokenRefresh();
+
+              // Start inactivity timeout
+              this.resetInactivityTimeout();
             }
-          } else if (data.session) {
-            if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-              console.log('Session recovered successfully');
+          })
+          .catch((error) => {
+            if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+              console.error("Unexpected error recovering session:", error);
             }
-
-            this.session = data.session;
-
-            // Setup activity tracking
-            this.setupActivityTracking();
-
-            // Setup token refresh
-            this.setupTokenRefresh();
-
-            // Start inactivity timeout
-            this.resetInactivityTimeout();
-          }
-        }).catch(error => {
-          if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-            console.error('Unexpected error recovering session:', error);
-          }
-        });
+          });
       }
     } catch (error) {
-      if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-        console.error('Error recovering session from localStorage:', error);
+      if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+        console.error("Error recovering session from localStorage:", error);
       }
     }
   }
@@ -176,7 +184,7 @@ export class SessionManager {
     };
 
     // Add event listeners for user activity
-    SESSION_CONFIG.ACTIVITY_EVENTS.forEach(eventType => {
+    SESSION_CONFIG.ACTIVITY_EVENTS.forEach((eventType) => {
       window.addEventListener(eventType, updateActivity, { passive: true });
     });
   }
@@ -192,7 +200,8 @@ export class SessionManager {
     }
 
     // Set warning timeout
-    const warningTime = SESSION_CONFIG.INACTIVITY_TIMEOUT - SESSION_CONFIG.WARNING_BEFORE_TIMEOUT;
+    const warningTime =
+      SESSION_CONFIG.INACTIVITY_TIMEOUT - SESSION_CONFIG.WARNING_BEFORE_TIMEOUT;
     this.warningTimeoutId = window.setTimeout(() => {
       this.isWarningDisplayed = true;
       if (this.onSessionExpiringCallback) {
@@ -211,9 +220,8 @@ export class SessionManager {
     // Reset warning flag since session is now expired
     this.isWarningDisplayed = false;
 
-    // Sign out the user
-    await supabase.auth.signOut();
-    this.session = null;
+    // Sign out the user automatically (not manual)
+    await this.signOut(false);
 
     // Broadcast session expiration
     this.broadcastSessionAction(SessionAction.SESSION_EXPIRED);
@@ -234,8 +242,8 @@ export class SessionManager {
     // Set up interval to refresh token
     this.refreshIntervalId = window.setInterval(async () => {
       if (!this.session) {
-        if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-          console.log('No session to refresh');
+        if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+          console.log("No session to refresh");
         }
         return;
       }
@@ -246,8 +254,8 @@ export class SessionManager {
 
         // If no session exists, don't try to refresh as it will cause an AuthSessionMissingError
         if (!sessionData?.session) {
-          if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-            console.log('Session no longer exists, skipping refresh');
+          if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+            console.log("Session no longer exists, skipping refresh");
           }
 
           // Try to recover session
@@ -260,9 +268,11 @@ export class SessionManager {
 
         if (error) {
           // Check for specific error types
-          if (error.message?.includes('Auth session missing')) {
-            if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-              console.log('Auth session missing during refresh - attempting recovery');
+          if (error.message?.includes("Auth session missing")) {
+            if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+              console.log(
+                "Auth session missing during refresh - attempting recovery",
+              );
             }
 
             // Try to recover session
@@ -270,8 +280,8 @@ export class SessionManager {
             return;
           }
 
-          if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-            console.error('Error refreshing session:', error);
+          if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+            console.error("Error refreshing session:", error);
           }
           return;
         }
@@ -279,14 +289,22 @@ export class SessionManager {
         // Update the session
         this.session = data.session;
 
-        if (SESSION_CONFIG.LOG_LEVEL !== 'none' && process.env.NODE_ENV !== 'production') {
-          console.log('Session refreshed successfully');
+        if (
+          SESSION_CONFIG.LOG_LEVEL !== "none" &&
+          process.env.NODE_ENV !== "production"
+        ) {
+          console.log("Session refreshed successfully");
         }
       } catch (error) {
         // Check for specific error types
-        if (error instanceof Error && error.message?.includes('Auth session missing')) {
-          if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-            console.log('Auth session missing during refresh - attempting recovery');
+        if (
+          error instanceof Error &&
+          error.message?.includes("Auth session missing")
+        ) {
+          if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+            console.log(
+              "Auth session missing during refresh - attempting recovery",
+            );
           }
 
           // Try to recover session
@@ -294,8 +312,8 @@ export class SessionManager {
           return;
         }
 
-        if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-          console.error('Unexpected error refreshing session:', error);
+        if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+          console.error("Unexpected error refreshing session:", error);
         }
       }
     }, SESSION_CONFIG.TOKEN_REFRESH_INTERVAL);
@@ -303,8 +321,8 @@ export class SessionManager {
 
   // Set up broadcast channel listener for cross-tab communication
   private setupBroadcastListener(): void {
-    window.addEventListener('storage', (event) => {
-      if (event.key !== 'holistiq_session_action') return;
+    window.addEventListener("storage", (event) => {
+      if (event.key !== "holistiq_session_action") return;
 
       const action = event.newValue as SessionAction;
 
@@ -316,6 +334,12 @@ export class SessionManager {
           if (this.onSessionExpiredCallback) {
             this.onSessionExpiredCallback();
           }
+          break;
+
+        case SessionAction.MANUAL_LOGOUT:
+          // Handle manual logout from another tab
+          this.cleanup();
+          // Don't show session expired callback for manual logout
           break;
 
         case SessionAction.SESSION_EXTENDED:
@@ -337,14 +361,14 @@ export class SessionManager {
   // Broadcast session action for cross-tab communication
   private broadcastSessionAction(action: SessionAction): void {
     try {
-      localStorage.setItem('holistiq_session_action', action);
+      localStorage.setItem("holistiq_session_action", action);
       // Immediately remove to trigger another event next time
       setTimeout(() => {
-        localStorage.removeItem('holistiq_session_action');
+        localStorage.removeItem("holistiq_session_action");
       }, 100);
     } catch (error) {
-      if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-        console.error('Error broadcasting session action:', error);
+      if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+        console.error("Error broadcasting session action:", error);
       }
     }
   }
@@ -366,7 +390,7 @@ export class SessionManager {
     }
 
     // Remove event listeners
-    SESSION_CONFIG.ACTIVITY_EVENTS.forEach(eventType => {
+    SESSION_CONFIG.ACTIVITY_EVENTS.forEach((eventType) => {
       window.removeEventListener(eventType, () => {});
     });
   }
@@ -391,9 +415,65 @@ export class SessionManager {
     this.broadcastSessionAction(SessionAction.SESSION_EXTENDED);
   }
 
-  // Sign out the user
-  public async signOut(): Promise<void> {
+  // Track logout intent to distinguish between manual and automatic signouts
+  private setLogoutIntent(isManual: boolean): void {
     try {
+      const intent = {
+        isManual,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("holistiq_logout_intent", JSON.stringify(intent));
+
+      // Also set a flag that persists across page refreshes for a short time
+      if (isManual) {
+        sessionStorage.setItem("holistiq_manual_logout", "true");
+        // Clear the flag after 30 seconds to prevent it from persisting too long
+        setTimeout(() => {
+          sessionStorage.removeItem("holistiq_manual_logout");
+        }, 30000);
+      }
+    } catch (error) {
+      console.error("Error setting logout intent:", error);
+    }
+  }
+
+  // Get logout intent to determine if the last logout was manual
+  public getLogoutIntent(): { isManual: boolean; timestamp: number } | null {
+    try {
+      const intentStr = localStorage.getItem("holistiq_logout_intent");
+      if (!intentStr) return null;
+
+      const intent = JSON.parse(intentStr);
+
+      // Clear old intents (older than 5 minutes)
+      if (Date.now() - intent.timestamp > 5 * 60 * 1000) {
+        localStorage.removeItem("holistiq_logout_intent");
+        return null;
+      }
+
+      return intent;
+    } catch (error) {
+      console.error("Error getting logout intent:", error);
+      return null;
+    }
+  }
+
+  // Clear logout intent
+  public clearLogoutIntent(): void {
+    try {
+      localStorage.removeItem("holistiq_logout_intent");
+      sessionStorage.removeItem("holistiq_manual_logout");
+    } catch (error) {
+      console.error("Error clearing logout intent:", error);
+    }
+  }
+
+  // Sign out the user with manual flag
+  public async signOut(isManual: boolean = true): Promise<void> {
+    try {
+      // Track logout intent
+      this.setLogoutIntent(isManual);
+
       // Get the current user ID before signing out (for cache clearing)
       const userId = this.session?.user?.id;
 
@@ -412,43 +492,57 @@ export class SessionManager {
       // Clear any cached user data
       if (userId) {
         // Import cache here to avoid circular dependencies - using dynamic import
-        import('@/lib/cache').then(cacheModule => {
-          const cache = cacheModule.cache;
-          if (cache && typeof cache.clearUserCache === 'function') {
-            console.log("Clearing cache for user:", userId);
-            cache.clearUserCache(userId);
-          }
-        }).catch(cacheError => {
-          console.error("Error clearing user cache:", cacheError);
-        });
+        import("@/lib/cache")
+          .then((cacheModule) => {
+            const cache = cacheModule.cache;
+            if (cache && typeof cache.clearUserCache === "function") {
+              console.log("Clearing cache for user:", userId);
+              cache.clearUserCache(userId);
+            }
+          })
+          .catch((cacheError) => {
+            console.error("Error clearing user cache:", cacheError);
+          });
       }
 
       // Clear any local storage items related to the user session
       try {
         // Clear specific items related to authentication
-        localStorage.removeItem('supabase.auth.token');
-        sessionStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem("supabase.auth.token");
+        sessionStorage.removeItem("supabase.auth.token");
 
         // Clear any custom session data
-        localStorage.removeItem('holistiq_last_activity');
-        sessionStorage.removeItem('holistiq_last_activity');
+        localStorage.removeItem("holistiq_last_activity");
+        sessionStorage.removeItem("holistiq_last_activity");
       } catch (storageError) {
         console.error("Error clearing storage items:", storageError);
       }
 
-      // Broadcast logout to other tabs
-      this.broadcastSessionAction(SessionAction.LOGGED_OUT);
+      // Broadcast appropriate action based on logout type
+      const action = isManual
+        ? SessionAction.MANUAL_LOGOUT
+        : SessionAction.LOGGED_OUT;
+      this.broadcastSessionAction(action);
 
       // Dispatch a custom event for components to react to
-      window.dispatchEvent(new CustomEvent('holistiq:signed-out'));
+      window.dispatchEvent(
+        new CustomEvent("holistiq:signed-out", {
+          detail: { isManual },
+        }),
+      );
 
-      if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-        console.log("User successfully signed out");
+      if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+        console.log(
+          `User successfully signed out (${isManual ? "manual" : "automatic"})`,
+        );
       }
     } catch (error) {
       console.error("Error during sign out process:", error);
       // Still try to broadcast logout even if there was an error
-      this.broadcastSessionAction(SessionAction.LOGGED_OUT);
+      const action = isManual
+        ? SessionAction.MANUAL_LOGOUT
+        : SessionAction.LOGGED_OUT;
+      this.broadcastSessionAction(action);
       throw error;
     }
   }
@@ -473,7 +567,7 @@ export class SessionManager {
       console.log("SessionManager: Direct Google OAuth completed successfully");
 
       // Mark that user just signed in to prevent inappropriate session recovery
-      sessionStorage.setItem('holistiq_just_signed_in', 'true');
+      sessionStorage.setItem("holistiq_just_signed_in", "true");
 
       // Initialize session after successful authentication
       await this.initialize();
@@ -482,9 +576,12 @@ export class SessionManager {
       this.broadcastLogin();
 
       // Redirect to dashboard
-      window.location.href = '/dashboard';
+      window.location.href = "/dashboard";
     } catch (error) {
-      console.error("SessionManager: Error during direct Google OAuth sign-in:", error);
+      console.error(
+        "SessionManager: Error during direct Google OAuth sign-in:",
+        error,
+      );
       throw error;
     }
   }
@@ -497,10 +594,10 @@ export class SessionManager {
   // Store session preference
   private storeSessionPreference(rememberMe: boolean): void {
     try {
-      localStorage.setItem('holistiq_remember_me', JSON.stringify(rememberMe));
+      localStorage.setItem("holistiq_remember_me", JSON.stringify(rememberMe));
     } catch (error) {
-      if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-        console.error('Error storing session preference:', error);
+      if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+        console.error("Error storing session preference:", error);
       }
     }
   }
@@ -508,11 +605,11 @@ export class SessionManager {
   // Get session preference
   public getSessionPreference(): boolean {
     try {
-      const preference = localStorage.getItem('holistiq_remember_me');
+      const preference = localStorage.getItem("holistiq_remember_me");
       return preference ? JSON.parse(preference) : false;
     } catch (error) {
-      if (SESSION_CONFIG.LOG_LEVEL !== 'none') {
-        console.error('Error getting session preference:', error);
+      if (SESSION_CONFIG.LOG_LEVEL !== "none") {
+        console.error("Error getting session preference:", error);
       }
       return false;
     }

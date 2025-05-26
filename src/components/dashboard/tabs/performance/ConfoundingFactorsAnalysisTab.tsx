@@ -3,35 +3,33 @@
  *
  * Displays analysis of how confounding factors affect cognitive performance
  */
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+  CardFooter,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Activity, BarChart2, AlertCircle, RefreshCw } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TestResult } from "@/lib/testResultUtils";
 import {
-  Activity,
-  BarChart2,
-  AlertCircle,
-  RefreshCw
-} from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { TestResult } from '@/lib/testResultUtils';
-import { ConfoundingFactor, FactorCorrelation } from '@/types/confoundingFactor';
-import { DateRange } from '@/hooks/useDashboardFilters';
-import { FactorTimeline } from '../../factors/FactorTimeline';
-import { FactorCorrelationChart } from '@/components/analysis/FactorCorrelationChart';
-import { analyzeConfoundingFactors } from '@/services/confoundingFactorService';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { subMonths } from 'date-fns';
-import { executeWithTimeout } from '@/utils/apiUtils';
+  ConfoundingFactor,
+  FactorCorrelation,
+} from "@/types/confoundingFactor";
+import { DateRange } from "@/hooks/useDashboardFilters";
+import { FactorTimeline } from "../../factors/FactorTimeline";
+import { FactorCorrelationChart } from "@/components/analysis/FactorCorrelationChart";
+import { analyzeConfoundingFactors } from "@/services/confoundingFactorService";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { subMonths } from "date-fns";
+import { executeWithTimeout } from "@/utils/apiUtils";
 
 /**
  * Props for the ConfoundingFactorsAnalysisTab component
@@ -51,13 +49,15 @@ export function ConfoundingFactorsAnalysisTab({
   testResults,
   factors,
   dateRange,
-  isLoading = false
+  isLoading = false,
 }: Readonly<ConfoundingFactorsAnalysisTabProps>): JSX.Element {
   // State for the inner tab navigation
-  const [activeInnerTab, setActiveInnerTab] = useState('timeline');
+  const [activeInnerTab, setActiveInnerTab] = useState("timeline");
 
   // State for factor correlations
-  const [factorCorrelations, setFactorCorrelations] = useState<FactorCorrelation[]>([]);
+  const [factorCorrelations, setFactorCorrelations] = useState<
+    FactorCorrelation[]
+  >([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,15 +65,18 @@ export function ConfoundingFactorsAnalysisTab({
   const { user } = useSupabaseAuth();
 
   // Define factor types for visualization
-  const factorTypes = useMemo(() => [
-    { type: 'sleep', name: 'Sleep' },
-    { type: 'stress', name: 'Stress' },
-    { type: 'exercise', name: 'Exercise' },
-    { type: 'caffeine', name: 'Caffeine' },
-    { type: 'alcohol', name: 'Alcohol' },
-    { type: 'mood', name: 'Mood' },
-    { type: 'energy', name: 'Energy' }
-  ], []);
+  const factorTypes = useMemo(
+    () => [
+      { type: "sleep", name: "Sleep" },
+      { type: "stress", name: "Stress" },
+      { type: "exercise", name: "Exercise" },
+      { type: "caffeine", name: "Caffeine" },
+      { type: "alcohol", name: "Alcohol" },
+      { type: "mood", name: "Mood" },
+      { type: "energy", name: "Energy" },
+    ],
+    [],
+  );
 
   // Function to analyze factors - wrapped in useCallback to prevent infinite loops
   const analyzeFactors = useCallback(async () => {
@@ -86,8 +89,12 @@ export function ConfoundingFactorsAnalysisTab({
       setError(null);
 
       // Get date range for analysis (last 30 days or use provided date range)
-      const endDate = dateRange.to ? dateRange.to.toISOString() : new Date().toISOString();
-      const startDate = dateRange.from ? dateRange.from.toISOString() : subMonths(new Date(), 1).toISOString();
+      const endDate = dateRange.to
+        ? dateRange.to.toISOString()
+        : new Date().toISOString();
+      const startDate = dateRange.from
+        ? dateRange.from.toISOString()
+        : subMonths(new Date(), 1).toISOString();
 
       // Execute with timeout to prevent long-running operations
       const result = await executeWithTimeout(
@@ -99,10 +106,10 @@ export function ConfoundingFactorsAnalysisTab({
             user.id,
             testType,
             startDate,
-            endDate
+            endDate,
           );
         },
-        10000 // 10 second timeout
+        10000, // 10 second timeout
       );
 
       if (result.success && result.analysis) {
@@ -112,7 +119,11 @@ export function ConfoundingFactorsAnalysisTab({
       }
     } catch (error) {
       console.error("Error analyzing factors:", error);
-      setError(error instanceof Error ? error.message : "Failed to analyze confounding factors. Please try again.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to analyze confounding factors. Please try again.",
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -120,10 +131,21 @@ export function ConfoundingFactorsAnalysisTab({
 
   // Analyze factors when tab is active
   useEffect(() => {
-    if (activeInnerTab === 'correlation' && factorCorrelations.length === 0 && !isAnalyzing && factors.length > 0) {
+    if (
+      activeInnerTab === "correlation" &&
+      factorCorrelations.length === 0 &&
+      !isAnalyzing &&
+      factors.length > 0
+    ) {
       analyzeFactors();
     }
-  }, [activeInnerTab, factors.length, factorCorrelations.length, isAnalyzing, analyzeFactors]);
+  }, [
+    activeInnerTab,
+    factors.length,
+    factorCorrelations.length,
+    isAnalyzing,
+    analyzeFactors,
+  ]);
 
   return (
     <Card>
@@ -137,13 +159,23 @@ export function ConfoundingFactorsAnalysisTab({
         {factors.length > 0 ? (
           <div className="space-y-6">
             {/* Inner tab navigation */}
-            <Tabs value={activeInnerTab} onValueChange={setActiveInnerTab} className="w-full">
+            <Tabs
+              value={activeInnerTab}
+              onValueChange={setActiveInnerTab}
+              className="w-full"
+            >
               <TabsList className="w-full max-w-md mb-6">
-                <TabsTrigger value="timeline" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="timeline"
+                  className="flex items-center gap-2"
+                >
                   <Activity className="h-4 w-4" />
                   Factor Timeline
                 </TabsTrigger>
-                <TabsTrigger value="correlation" className="flex items-center gap-2">
+                <TabsTrigger
+                  value="correlation"
+                  className="flex items-center gap-2"
+                >
                   <BarChart2 className="h-4 w-4" />
                   Correlation Analysis
                 </TabsTrigger>
@@ -182,21 +214,30 @@ export function ConfoundingFactorsAnalysisTab({
                         <Skeleton className="h-[300px] w-full" />
                         <div className="flex justify-center">
                           <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2">Analyzing your data...</p>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Analyzing your data...
+                            </p>
                             <RefreshCw className="h-5 w-5 animate-spin mx-auto" />
                           </div>
                         </div>
                       </div>
                     );
                   } else if (factorCorrelations.length > 0) {
-                    return <FactorCorrelationChart correlations={factorCorrelations} />;
+                    return (
+                      <FactorCorrelationChart
+                        correlations={factorCorrelations}
+                      />
+                    );
                   } else {
                     return (
                       <div className="text-center py-8">
                         <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No correlation data available</h3>
+                        <h3 className="text-lg font-semibold mb-2">
+                          No correlation data available
+                        </h3>
                         <p className="text-muted-foreground mb-6">
-                          Log more confounding factors and take more tests to see correlations.
+                          Log more confounding factors and take more tests to
+                          see correlations.
                         </p>
                         <Button onClick={analyzeFactors} className="gap-2">
                           <RefreshCw className="h-4 w-4" />
@@ -212,7 +253,10 @@ export function ConfoundingFactorsAnalysisTab({
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <p className="mb-4">No confounding factor data available.</p>
-            <p>Log confounding factors to track their impact on your cognitive performance.</p>
+            <p>
+              Log confounding factors to track their impact on your cognitive
+              performance.
+            </p>
           </div>
         )}
       </CardContent>

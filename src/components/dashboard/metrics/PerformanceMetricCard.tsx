@@ -1,10 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HelpCircle, TrendingUp, TrendingDown } from "lucide-react";
-import { TestResult } from '@/lib/testResultUtils';
-import { calculateChange } from '@/utils/formatUtils';
+import { TestResult } from "@/lib/testResultUtils";
+import { calculateChange } from "@/utils/formatUtils";
 
 interface PerformanceMetricCardProps {
   title: string;
@@ -14,7 +19,7 @@ interface PerformanceMetricCardProps {
   baselineResult: TestResult | null;
   latestResult: TestResult | null;
   isLoading: boolean;
-  metricKey: 'score' | 'reactionTime' | 'accuracy';
+  metricKey: "score" | "reactionTime" | "accuracy";
   isInverted?: boolean; // For metrics where lower is better (like reaction time)
   labelText?: string; // Text to show next to the percentage (e.g., "vs. baseline", "faster")
 }
@@ -29,18 +34,22 @@ export function PerformanceMetricCard({
   isLoading,
   metricKey,
   isInverted = false,
-  labelText = "vs. baseline"
+  labelText = "vs. baseline",
 }: Readonly<PerformanceMetricCardProps>) {
   // Determine if the card should show green (improvement) or red (decline)
   const getCardColor = useMemo(() => {
-    if (!latestResult || !baselineResult) return 'bg-gray-500';
+    if (!latestResult || !baselineResult) return "bg-gray-500";
 
     if (isInverted) {
       // For inverted metrics (like reaction time), lower is better
-      return latestResult[metricKey] < baselineResult[metricKey] ? 'bg-green-500' : 'bg-red-500';
+      return latestResult[metricKey] < baselineResult[metricKey]
+        ? "bg-green-500"
+        : "bg-red-500";
     } else {
       // For regular metrics, higher is better
-      return latestResult[metricKey] > baselineResult[metricKey] ? 'bg-green-500' : 'bg-red-500';
+      return latestResult[metricKey] > baselineResult[metricKey]
+        ? "bg-green-500"
+        : "bg-red-500";
     }
   }, [latestResult, baselineResult, metricKey, isInverted]);
 
@@ -50,22 +59,27 @@ export function PerformanceMetricCard({
 
     // Helper functions to get the appropriate trend icons
     const getImprovedIcon = (isInverted: boolean) => {
-      return isInverted ?
-        <TrendingDown className="h-4 w-4 inline" /> :
-        <TrendingUp className="h-4 w-4 inline" />;
+      return isInverted ? (
+        <TrendingDown className="h-4 w-4 inline" />
+      ) : (
+        <TrendingUp className="h-4 w-4 inline" />
+      );
     };
 
     const getDeclinedIcon = (isInverted: boolean) => {
-      return isInverted ?
-        <TrendingUp className="h-4 w-4 inline" /> :
-        <TrendingDown className="h-4 w-4 inline" />;
+      return isInverted ? (
+        <TrendingUp className="h-4 w-4 inline" />
+      ) : (
+        <TrendingDown className="h-4 w-4 inline" />
+      );
     };
 
     // Handle the case where both values are zero
     const renderZeroChange = () => {
       return (
         <>
-          0.0%<span className="text-gray-500 text-sm ml-1">
+          0.0%
+          <span className="text-gray-500 text-sm ml-1">
             <TrendingUp className="h-4 w-4 inline" />
           </span>
         </>
@@ -75,14 +89,17 @@ export function PerformanceMetricCard({
     // Handle the case where baseline is zero but latest is not
     const renderZeroBaselineChange = (latestValue: number) => {
       const improved = isInverted ? latestValue < 0 : latestValue > 0;
-      const color = improved ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1";
-      const icon = improved ? getImprovedIcon(isInverted) : getDeclinedIcon(isInverted);
+      const color = improved
+        ? "text-green-500 text-sm ml-1"
+        : "text-red-500 text-sm ml-1";
+      const icon = improved
+        ? getImprovedIcon(isInverted)
+        : getDeclinedIcon(isInverted);
 
       return (
         <>
-          {isInverted ? "Faster" : "Improved"}<span className={color}>
-            {icon}
-          </span>
+          {isInverted ? "Faster" : "Improved"}
+          <span className={color}>{icon}</span>
         </>
       );
     };
@@ -102,14 +119,16 @@ export function PerformanceMetricCard({
       }
 
       const improved = change >= 0;
-      const color = improved ? "text-green-500 text-sm ml-1" : "text-red-500 text-sm ml-1";
-      const icon = improved ? getImprovedIcon(isInverted) : getDeclinedIcon(isInverted);
+      const color = improved
+        ? "text-green-500 text-sm ml-1"
+        : "text-red-500 text-sm ml-1";
+      const icon = improved
+        ? getImprovedIcon(isInverted)
+        : getDeclinedIcon(isInverted);
 
       return (
         <>
-          {Math.abs(change).toFixed(1)}%<span className={color}>
-            {icon}
-          </span>
+          {Math.abs(change).toFixed(1)}%<span className={color}>{icon}</span>
         </>
       );
     };
@@ -154,7 +173,9 @@ export function PerformanceMetricCard({
                   <div className="text-3xl sm:text-4xl md:text-5xl font-bold">
                     {latestResult && baselineResult && renderPercentageChange}
                   </div>
-                  <div className="dashboard-text-secondary mt-3 sm:mt-0">{labelText}</div>
+                  <div className="dashboard-text-secondary mt-3 sm:mt-0">
+                    {labelText}
+                  </div>
                 </div>
               )}
             </CardContent>

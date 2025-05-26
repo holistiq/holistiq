@@ -1,16 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, RefreshCw } from 'lucide-react';
-import { sessionManager, SESSION_CONFIG, SessionAction } from '@/services/sessionManager';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  SESSION_CONFIG,
+  SessionAction,
+  sessionManager,
+} from "@/services/sessionManager";
+import { Clock, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface SessionTimeoutWarningProps {
   onExtend?: () => void;
   onLogout?: () => void;
 }
 
-export function SessionTimeoutWarning({ onExtend, onLogout }: Readonly<SessionTimeoutWarningProps>) {
-  const [countdown, setCountdown] = useState(Math.floor(SESSION_CONFIG.WARNING_BEFORE_TIMEOUT / 1000));
+export function SessionTimeoutWarning({
+  onExtend,
+  onLogout,
+}: Readonly<SessionTimeoutWarningProps>) {
+  const [countdown, setCountdown] = useState(
+    Math.floor(SESSION_CONFIG.WARNING_BEFORE_TIMEOUT / 1000),
+  );
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -27,15 +42,19 @@ export function SessionTimeoutWarning({ onExtend, onLogout }: Readonly<SessionTi
 
     // Listen for session expired events from storage events (cross-tab communication)
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'holistiq_session_action' && event.newValue === SessionAction.SESSION_EXPIRED) {
+      if (
+        event.key === "holistiq_session_action" &&
+        (event.newValue === SessionAction.SESSION_EXPIRED ||
+          event.newValue === SessionAction.MANUAL_LOGOUT)
+      ) {
         setIsVisible(false);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
@@ -45,7 +64,7 @@ export function SessionTimeoutWarning({ onExtend, onLogout }: Readonly<SessionTi
 
     if (isVisible) {
       countdownInterval = window.setInterval(() => {
-        setCountdown(prev => {
+        setCountdown((prev) => {
           if (prev <= 1) {
             if (countdownInterval) {
               clearInterval(countdownInterval);
@@ -70,7 +89,7 @@ export function SessionTimeoutWarning({ onExtend, onLogout }: Readonly<SessionTi
   const formatCountdown = () => {
     const minutes = Math.floor(countdown / 60);
     const seconds = countdown % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   // Handle extend session
@@ -106,10 +125,15 @@ export function SessionTimeoutWarning({ onExtend, onLogout }: Readonly<SessionTi
         </CardHeader>
         <CardContent>
           <p className="mb-4">
-            Your session will expire in <span className="font-bold text-amber-500">{formatCountdown()}</span> due to inactivity.
+            Your session will expire in{" "}
+            <span className="font-bold text-amber-500">
+              {formatCountdown()}
+            </span>{" "}
+            due to inactivity.
           </p>
           <p>
-            Click "Extend Session" to continue working, or "Logout" to end your session now.
+            Click "Extend Session" to continue working, or "Logout" to end your
+            session now.
           </p>
         </CardContent>
         <CardFooter className="flex justify-between gap-4">

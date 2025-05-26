@@ -3,13 +3,19 @@
  *
  * Allows users to manage their achievement badges
  */
-import React, { memo, useCallback } from 'react';
-import { AchievementWithProgress } from '@/types/achievement';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy } from 'lucide-react';
-import { BadgeDisplay } from './BadgeDisplay';
-import { BadgeSelector } from './BadgeSelector';
-import { useUserBadges } from '@/hooks/useUserBadges';
+import React, { memo, useCallback } from "react";
+import { AchievementWithProgress } from "@/types/achievement";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Trophy } from "lucide-react";
+import { BadgeDisplay } from "./BadgeDisplay";
+import { BadgeSelector } from "./BadgeSelector";
+import { useUserBadges } from "@/hooks/useUserBadges";
 
 interface BadgeManagementProps {
   readonly achievements: AchievementWithProgress[];
@@ -17,7 +23,7 @@ interface BadgeManagementProps {
 
 // Use React.memo to prevent unnecessary re-renders
 export const BadgeManagement = memo(function BadgeManagement({
-  achievements
+  achievements,
 }: Readonly<BadgeManagementProps>) {
   const { badges, refreshBadges } = useUserBadges();
 
@@ -53,7 +59,8 @@ export const BadgeManagement = memo(function BadgeManagement({
           <div className="text-center py-6 border border-dashed rounded-md">
             <Trophy className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
             <p className="text-sm text-muted-foreground">
-              No badges selected yet. Click "Manage Badges" to select achievements to display.
+              No badges selected yet. Click "Manage Badges" to select
+              achievements to display.
             </p>
           </div>
         ) : (

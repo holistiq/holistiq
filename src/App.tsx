@@ -40,6 +40,7 @@ import Privacy from "./pages/legal/Privacy";
 import Disclaimer from "./pages/legal/Disclaimer";
 import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
+import SharedTestResult from "./pages/SharedTestResult";
 import { LineChartTest } from "./components/test/LineChartTest";
 import { directGoogleAuth } from "@/services/directGoogleAuth";
 import { useEffect } from "react";
@@ -49,75 +50,116 @@ const queryClient = new QueryClient();
 const App = () => {
   // Initialize Google OAuth on app start
   useEffect(() => {
-    directGoogleAuth.initialize().catch(error => {
-      console.warn('Google OAuth initialization failed:', error);
+    directGoogleAuth.initialize().catch((error) => {
+      console.warn("Google OAuth initialization failed:", error);
     });
   }, []);
 
   return (
-  <QueryClientProvider client={queryClient}>
-    <LoadingStateProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Auth callback route outside of Layout to prevent interference */}
-            <Route path="/auth/callback" element={<OAuthCallbackHandler />} />
+    <QueryClientProvider client={queryClient}>
+      <LoadingStateProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Auth callback route outside of Layout to prevent interference */}
+              <Route path="/auth/callback" element={<OAuthCallbackHandler />} />
 
-            {/* All other routes with Layout */}
-            <Route element={
-              <SessionProvider>
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              </SessionProvider>
-            }>
-              {/* Public routes - accessible without authentication */}
-            <Route path="/" element={<Index />} />
-            <Route path="/signin" element={<EnhancedSignIn />} />
-            <Route path="/login" element={<Navigate to="/signin" replace />} />
-            <Route path="/signup" element={<Navigate to="/signin" replace />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/faq" element={<FaqPage />} />
-            <Route path="/about-us" element={<AboutUs />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/disclaimer" element={<Disclaimer />} />
+              {/* All other routes with Layout */}
+              <Route
+                element={
+                  <SessionProvider>
+                    <ProtectedRoute>
+                      <Layout />
+                    </ProtectedRoute>
+                  </SessionProvider>
+                }
+              >
+                {/* Public routes - accessible without authentication */}
+                <Route path="/" element={<Index />} />
+                <Route path="/signin" element={<EnhancedSignIn />} />
+                <Route
+                  path="/login"
+                  element={<Navigate to="/signin" replace />}
+                />
+                <Route
+                  path="/signup"
+                  element={<Navigate to="/signin" replace />}
+                />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="/faq" element={<FaqPage />} />
+                <Route path="/about-us" element={<AboutUs />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/disclaimer" element={<Disclaimer />} />
 
-            {/* Protected routes - require authentication */}
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/baseline-test" element={<BaselineTest />} />
-            <Route path="/baseline-analysis" element={<BaselineAnalysis />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/profile" element={<EnhancedProfile />} />
-            <Route path="/tests" element={<TestSelection />} />
-            <Route path="/test-router" element={<TestRouter />} />
-            <Route path="/test-selection" element={<TestSelection />} />
-            <Route path="/take-test" element={<TakeTest />} />
-            <Route path="/reaction-time-test" element={<ReactionTimeTestPage />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/log-supplement" element={<LogSupplement />} />
-            <Route path="/edit-supplement" element={<EditSupplement />} />
-            <Route path="/supplements" element={<Supplements />} />
-            <Route path="/supplement-effectiveness" element={<SupplementEffectivenessReports />} />
-            <Route path="/log-washout-period" element={<LogWashoutPeriod />} />
-            <Route path="/washout-periods" element={<WashoutPeriods />} />
-            <Route path="/washout-period-guide" element={<WashoutPeriodGuide />} />
-            <Route path="/log-confounding-factor" element={<LogConfoundingFactor />} />
-            <Route path="/confounding-factors" element={<ConfoundingFactors />} />
-            <Route path="/statistical-significance" element={<StatisticalSignificance />} />
-            <Route path="/analysis" element={<TemporalAnalysis />} />
-            <Route path="/comparative-visualization" element={<ComparativeVisualization />} />
-            <Route path="/line-chart-test" element={<LineChartTest />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-    </LoadingStateProvider>
-  </QueryClientProvider>
+                {/* Public shared test results - accessible without authentication */}
+                <Route
+                  path="/shared/:shareToken"
+                  element={<SharedTestResult />}
+                />
+
+                {/* Protected routes - require authentication */}
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/baseline-test" element={<BaselineTest />} />
+                <Route
+                  path="/baseline-analysis"
+                  element={<BaselineAnalysis />}
+                />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<EnhancedProfile />} />
+                <Route path="/tests" element={<TestSelection />} />
+                <Route path="/test-router" element={<TestRouter />} />
+                <Route path="/test-selection" element={<TestSelection />} />
+                <Route path="/take-test" element={<TakeTest />} />
+                <Route
+                  path="/reaction-time-test"
+                  element={<ReactionTimeTestPage />}
+                />
+                <Route path="/achievements" element={<Achievements />} />
+                <Route path="/log-supplement" element={<LogSupplement />} />
+                <Route path="/edit-supplement" element={<EditSupplement />} />
+                <Route path="/supplements" element={<Supplements />} />
+                <Route
+                  path="/supplement-effectiveness"
+                  element={<SupplementEffectivenessReports />}
+                />
+                <Route
+                  path="/log-washout-period"
+                  element={<LogWashoutPeriod />}
+                />
+                <Route path="/washout-periods" element={<WashoutPeriods />} />
+                <Route
+                  path="/washout-period-guide"
+                  element={<WashoutPeriodGuide />}
+                />
+                <Route
+                  path="/log-confounding-factor"
+                  element={<LogConfoundingFactor />}
+                />
+                <Route
+                  path="/confounding-factors"
+                  element={<ConfoundingFactors />}
+                />
+                <Route
+                  path="/statistical-significance"
+                  element={<StatisticalSignificance />}
+                />
+                <Route path="/analysis" element={<TemporalAnalysis />} />
+                <Route
+                  path="/comparative-visualization"
+                  element={<ComparativeVisualization />}
+                />
+                <Route path="/line-chart-test" element={<LineChartTest />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LoadingStateProvider>
+    </QueryClientProvider>
   );
 };
 

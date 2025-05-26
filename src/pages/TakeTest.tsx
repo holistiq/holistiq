@@ -1,14 +1,31 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { NBackTest, NBackTestResult } from "@/components/tests/NBackTest";
 import { NBackInstructions } from "@/components/tests/NBackInstructions";
 import { TestFrequencyInfo } from "@/components/tests/TestFrequencyInfo";
 import { TestCompletionFlow } from "@/components/tests/TestCompletionFlow";
 import { saveTestResult } from "@/services/testResultService";
-import { checkTestFrequency, TestFrequencyStatus } from "@/services/testFrequencyService";
+import {
+  checkTestFrequency,
+  TestFrequencyStatus,
+} from "@/services/testFrequencyService";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useTestResults } from "@/hooks/useTestResults";
 import { useAchievements } from "@/hooks/useAchievements";
@@ -17,10 +34,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
 
 export default function TakeTest() {
-  const [testState, setTestState] = useState<"intro" | "ready" | "running" | "completed">("intro");
+  const [testState, setTestState] = useState<
+    "intro" | "ready" | "running" | "completed"
+  >("intro");
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [testResult, setTestResult] = useState<NBackTestResult | null>(null);
-  const [frequencyStatus, setFrequencyStatus] = useState<TestFrequencyStatus | null>(null);
+  const [frequencyStatus, setFrequencyStatus] =
+    useState<TestFrequencyStatus | null>(null);
   const [isCheckingFrequency, setIsCheckingFrequency] = useState(false);
   const navigate = useNavigate();
   const { user, loading } = useSupabaseAuth();
@@ -34,7 +54,10 @@ export default function TakeTest() {
     baselineResult = testResultsContext.baselineResult;
     refreshTestResults = testResultsContext.refreshTestResults;
   } catch (error) {
-    console.warn('TestResultsContext not available, using default values', error);
+    console.warn(
+      "TestResultsContext not available, using default values",
+      error,
+    );
   }
 
   // Get achievements hook
@@ -50,7 +73,7 @@ export default function TakeTest() {
         const status = await checkTestFrequency(user.id);
         setFrequencyStatus(status);
       } catch (error) {
-        console.error('Error checking test frequency:', error);
+        console.error("Error checking test frequency:", error);
       } finally {
         setIsCheckingFrequency(false);
       }
@@ -68,9 +91,9 @@ export default function TakeTest() {
     // Save the result
     const saveResponse = await saveTestResult(
       user?.id,
-      'n-back-2',
+      "n-back-2",
       result,
-      false // This is not a baseline test
+      false, // This is not a baseline test
     );
 
     if (saveResponse.success) {
@@ -88,21 +111,21 @@ export default function TakeTest() {
         // Perfect score achievement (if applicable)
         if (result.accuracy === 100) {
           triggerAchievement(AchievementTrigger.TEST_COMPLETED, {
-            perfectScore: true
+            perfectScore: true,
           });
         }
 
         // High score achievement (if applicable)
         if (baselineResult && result.score > baselineResult.score) {
           triggerAchievement(AchievementTrigger.TEST_COMPLETED, {
-            improvedScore: true
+            improvedScore: true,
           });
         }
 
         // Fast reaction time achievement (if applicable)
         if (result.reactionTime < 300) {
           triggerAchievement(AchievementTrigger.TEST_COMPLETED, {
-            reactionTime: result.reactionTime
+            reactionTime: result.reactionTime,
           });
         }
       }
@@ -111,7 +134,8 @@ export default function TakeTest() {
 
   const handleFullScreen = () => {
     if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen()
+      document.documentElement
+        .requestFullscreen()
         .then(() => {
           setShowFullScreen(false);
           setTestState("ready");
@@ -174,9 +198,7 @@ export default function TakeTest() {
   // If user is not authenticated, show authentication required component
   if (!user) {
     return (
-      <AuthenticationRequired
-        message="You need to be logged in to take cognitive tests and track your performance over time."
-      />
+      <AuthenticationRequired message="You need to be logged in to take cognitive tests and track your performance over time." />
     );
   }
 
@@ -186,7 +208,8 @@ export default function TakeTest() {
         <CardHeader>
           <CardTitle>Cognitive Assessment</CardTitle>
           <CardDescription>
-            {testState === "intro" && "Take the n-back test to measure your current cognitive performance."}
+            {testState === "intro" &&
+              "Take the n-back test to measure your current cognitive performance."}
             {testState === "ready" && "Get ready to start the test."}
             {testState === "running" && "Test in progress..."}
             {testState === "completed" && "Assessment completed!"}
@@ -197,8 +220,9 @@ export default function TakeTest() {
             <div className="space-y-6">
               <div className="space-y-4">
                 <p>
-                  This test will measure your current cognitive performance. The results will be compared to your baseline
-                  to track changes over time.
+                  This test will measure your current cognitive performance. The
+                  results will be compared to your baseline to track changes
+                  over time.
                 </p>
                 <div className="bg-secondary p-4 rounded-md space-y-2">
                   <h3 className="font-medium">Before you begin:</h3>
@@ -234,7 +258,11 @@ export default function TakeTest() {
               testDuration={180000} // 3 minutes in milliseconds
               onTestComplete={handleTestComplete}
               onCancel={() => {
-                if (confirm("Are you sure you want to cancel the test? Your progress will be lost.")) {
+                if (
+                  confirm(
+                    "Are you sure you want to cancel the test? Your progress will be lost.",
+                  )
+                ) {
                   setTestState("intro");
                 }
               }}
@@ -259,15 +287,18 @@ export default function TakeTest() {
           <AlertDialogHeader>
             <AlertDialogTitle>Enter Fullscreen Mode</AlertDialogTitle>
             <AlertDialogDescription>
-              For the best testing experience, we recommend running the test in fullscreen mode.
-              This helps minimize distractions and ensures accurate results.
+              For the best testing experience, we recommend running the test in
+              fullscreen mode. This helps minimize distractions and ensures
+              accurate results.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setShowFullScreen(false);
-              setTestState("ready");
-            }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowFullScreen(false);
+                setTestState("ready");
+              }}
+            >
               Skip
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleFullScreen}>

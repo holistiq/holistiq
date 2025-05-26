@@ -3,18 +3,18 @@
  *
  * Provides a toggle switch to show/hide moving average lines on the chart
  */
-import React from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import React from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
-import { MAInfoPopover } from './MAInfoPopover';
-import { debugLog } from '@/utils/debugUtils';
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
+import { MAInfoPopover } from "./MAInfoPopover";
+import { debugLog } from "@/utils/debugUtils";
 
 interface MAToggleProps {
   showMovingAverage: boolean;
@@ -25,16 +25,24 @@ interface MAToggleProps {
 export function MAToggle({
   showMovingAverage,
   onToggle,
-  showInfoButton = true
+  showInfoButton = true,
 }: Readonly<MAToggleProps>) {
   const handleToggle = (checked: boolean) => {
-    debugLog("MAToggle - Toggle state changing from", showMovingAverage, "to", checked);
+    debugLog(
+      "MAToggle - Toggle state changing from",
+      showMovingAverage,
+      "to",
+      checked,
+    );
 
     // Call the parent component's toggle handler
     onToggle(checked);
 
     // Log after the toggle
-    debugLog("MAToggle - Toggle state after change (component state):", showMovingAverage);
+    debugLog(
+      "MAToggle - Toggle state after change (component state):",
+      showMovingAverage,
+    );
   };
 
   // Log the current state on each render
@@ -52,7 +60,7 @@ export function MAToggle({
         className="text-sm cursor-pointer"
         onClick={() => handleToggle(!showMovingAverage)}
       >
-        Moving Average {showMovingAverage ? 'ON' : 'OFF'}
+        Moving Average {showMovingAverage ? "ON" : "OFF"}
       </Label>
 
       {showInfoButton && (

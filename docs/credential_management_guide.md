@@ -22,6 +22,7 @@ Improper credential management can lead to:
 - Reputation damage
 
 Common mistakes include:
+
 - Hardcoding credentials in source code
 - Committing .env files to version control
 - Using the same credentials across environments
@@ -33,6 +34,7 @@ Common mistakes include:
 ### Setting Up Environment Variables
 
 1. **Create environment files**:
+
    ```
    # .env.example (committed to repository)
    SUPABASE_URL=your_supabase_url_here
@@ -46,6 +48,7 @@ Common mistakes include:
    ```
 
 2. **Ensure proper gitignore configuration**:
+
    ```
    # .gitignore
    # Environment variables
@@ -57,28 +60,29 @@ Common mistakes include:
    ```
 
 3. **Validate environment variables on startup**:
+
    ```javascript
    // scripts/validate-env.js
    const requiredEnvVars = [
-     'SUPABASE_URL',
-     'SUPABASE_KEY',
+     "SUPABASE_URL",
+     "SUPABASE_KEY",
      // Add other required variables
    ];
 
    const missingEnvVars = requiredEnvVars.filter(
-     (envVar) => !process.env[envVar]
+     (envVar) => !process.env[envVar],
    );
 
    if (missingEnvVars.length > 0) {
-     console.error('Error: Missing required environment variables:');
+     console.error("Error: Missing required environment variables:");
      missingEnvVars.forEach((envVar) => {
        console.error(`- ${envVar}`);
      });
-     console.error('Please check your .env file and try again.');
+     console.error("Please check your .env file and try again.");
      process.exit(1);
    }
 
-   console.log('✅ Environment validation passed!');
+   console.log("✅ Environment validation passed!");
    ```
 
 4. **Add validation to your startup script**:
@@ -95,14 +99,17 @@ Common mistakes include:
 ### Sharing Credentials Among Team Members
 
 1. **Option 1: Secure password manager**
+
    - Use a team password manager like 1Password, LastPass, or Bitwarden
    - Create a shared vault for development credentials
    - Document the process for requesting access
 
 2. **Option 2: Encrypted configuration**
+
    - Use a tool like [git-crypt](https://github.com/AGWA/git-crypt) to encrypt sensitive files
    - Share decryption keys securely with team members
    - Example setup:
+
      ```bash
      # Initialize git-crypt in your repository
      git-crypt init
@@ -139,6 +146,7 @@ Common mistakes include:
    ```
 
    Create a secretlint configuration:
+
    ```json
    // .secretlintrc.json
    {
@@ -180,6 +188,7 @@ Common mistakes include:
 If credentials are accidentally committed:
 
 1. **Immediate steps**:
+
    - Rotate the exposed credentials immediately
    - Do NOT just remove the credentials in a new commit (they remain in history)
    - Consider using tools like BFG Repo-Cleaner to remove secrets from history
@@ -203,12 +212,14 @@ If credentials are accidentally committed:
 #### Netlify (Primary Platform)
 
 1. **Setting environment variables**:
+
    - Go to your site in the Netlify dashboard
    - Navigate to Site Settings > Environment Variables
    - Add each variable and value
    - Specify which scopes (Production, Deploy previews, Branch deploys) should use each variable
 
 2. **Using different values per environment**:
+
    - Click "Add a variable" under Environment Variables
    - Enter the key and value
    - Select which scopes should use this value
@@ -221,18 +232,18 @@ If credentials are accidentally committed:
    const supabaseKey = import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY;
    ```
 
-
-
 ### Using Secrets Management Services
 
 For more complex deployments, consider:
 
 1. **AWS Secrets Manager**:
+
    - Store secrets in AWS Secrets Manager
    - Use AWS SDK to retrieve secrets at runtime
    - Implement caching to reduce API calls
 
 2. **HashiCorp Vault**:
+
    - Set up Vault for centralized secrets management
    - Implement authentication for your application
    - Use Vault's API to retrieve secrets at runtime
@@ -247,11 +258,13 @@ For more complex deployments, consider:
 ### Implementing Regular Rotation
 
 1. **Establish a rotation schedule**:
+
    - High-sensitivity credentials: Every 30-90 days
    - Medium-sensitivity credentials: Every 90-180 days
    - Low-sensitivity credentials: Annually
 
 2. **Automate the rotation process**:
+
    - Use a secrets management service with rotation capabilities
    - Implement a CI/CD job to handle rotation
    - Document manual rotation procedures as backup
@@ -264,6 +277,7 @@ For more complex deployments, consider:
 ### Emergency Revocation
 
 1. **Create an emergency revocation procedure**:
+
    - Document steps to immediately revoke compromised credentials
    - Identify all services using the compromised credential
    - Have backup authentication methods ready
@@ -280,18 +294,16 @@ For more complex deployments, consider:
 ```javascript
 // src/utils/validateEnv.js
 export function validateEnvironment() {
-  const requiredVars = [
-    'SUPABASE_URL',
-    'SUPABASE_KEY',
-    'ANALYTICS_API_KEY'
-  ];
+  const requiredVars = ["SUPABASE_URL", "SUPABASE_KEY", "ANALYTICS_API_KEY"];
 
-  const missing = requiredVars.filter(varName => !process.env[varName]);
+  const missing = requiredVars.filter((varName) => !process.env[varName]);
 
   if (missing.length > 0) {
-    console.error(`Missing required environment variables: ${missing.join(', ')}`);
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Missing critical environment variables in production');
+    console.error(
+      `Missing required environment variables: ${missing.join(", ")}`,
+    );
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Missing critical environment variables in production");
     }
   }
 }
@@ -317,7 +329,7 @@ class CredentialManager {
       },
       analytics: {
         apiKey: process.env.ANALYTICS_API_KEY,
-      }
+      },
     };
   }
 
@@ -339,10 +351,11 @@ class CredentialManager {
 export const credentialManager = new CredentialManager();
 
 // Usage
-const supabaseKey = credentialManager.getCredential('supabase', 'key');
+const supabaseKey = credentialManager.getCredential("supabase", "key");
 ```
 
 This pattern provides an additional layer of security by:
+
 - Encapsulating credentials in a private class property
 - Providing controlled access through methods
 - Centralizing credential access for easier auditing and management

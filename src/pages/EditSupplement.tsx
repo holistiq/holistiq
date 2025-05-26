@@ -4,9 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
 import { CalendarIcon, Pill, Loader2, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -56,7 +67,9 @@ export default function EditSupplement() {
   const [brandReputation, setBrandReputation] = useState(0);
   const [formulationType, setFormulationType] = useState("");
   const [batchNumber, setBatchNumber] = useState("");
-  const [expirationDate, setExpirationDate] = useState<Date | undefined>(undefined);
+  const [expirationDate, setExpirationDate] = useState<Date | undefined>(
+    undefined,
+  );
   const [thirdPartyTested, setThirdPartyTested] = useState(false);
   const [certification, setCertification] = useState("");
   const [isBrandDetailsOpen, setIsBrandDetailsOpen] = useState(false);
@@ -107,10 +120,15 @@ export default function EditSupplement() {
       }
 
       // Set brand and formulation details
-      if (supplementData.manufacturer || supplementData.brand ||
-          supplementData.formulation_type || supplementData.batch_number ||
-          supplementData.expiration_date || supplementData.third_party_tested ||
-          supplementData.certification) {
+      if (
+        supplementData.manufacturer ||
+        supplementData.brand ||
+        supplementData.formulation_type ||
+        supplementData.batch_number ||
+        supplementData.expiration_date ||
+        supplementData.third_party_tested ||
+        supplementData.certification
+      ) {
         setIsBrandDetailsOpen(true);
 
         if (supplementData.manufacturer) {
@@ -145,7 +163,7 @@ export default function EditSupplement() {
       toast({
         title: "Error",
         description: "No supplement selected for editing",
-        variant: "destructive"
+        variant: "destructive",
       });
       navigate("/supplements");
     }
@@ -184,7 +202,9 @@ export default function EditSupplement() {
 
     // If no structured amount/unit is provided, validate the legacy dosage field
     if (!amount && !dosage.trim()) {
-      setDosageError("Please enter either a structured dosage or free-text dosage");
+      setDosageError(
+        "Please enter either a structured dosage or free-text dosage",
+      );
       isValid = false;
     } else if (!amount && dosage.length > 50) {
       setDosageError("Dosage must be less than 50 characters");
@@ -199,7 +219,9 @@ export default function EditSupplement() {
 
     // Validate custom schedule - ensure at least one day is selected
     if (frequency === "custom" && scheduleDays.length === 0) {
-      setScheduleDaysError("Please select at least one day for your custom schedule");
+      setScheduleDaysError(
+        "Please select at least one day for your custom schedule",
+      );
       isValid = false;
     }
 
@@ -213,7 +235,7 @@ export default function EditSupplement() {
       toast({
         title: "Error",
         description: "No supplement data available for update",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -227,7 +249,7 @@ export default function EditSupplement() {
       toast({
         title: "Error",
         description: "You must be logged in to update supplements",
-        variant: "destructive"
+        variant: "destructive",
       });
       navigate("/login");
       return;
@@ -241,18 +263,22 @@ export default function EditSupplement() {
 
       // If specific time is provided, update the intake time
       if (specificTime) {
-        const [hours, minutes] = specificTime.split(':').map(Number);
+        const [hours, minutes] = specificTime.split(":").map(Number);
         intake_time.setHours(hours, minutes);
       }
 
       // Convert to ISO string using our utility function
-      const intake_time_iso = toISODateString(intake_time) || new Date().toISOString();
+      const intake_time_iso =
+        toISODateString(intake_time) || new Date().toISOString();
 
       // Prepare schedule data if using custom frequency
-      const scheduleData = frequency === "custom" ? {
-        days: scheduleDays.length > 0 ? scheduleDays : undefined,
-        custom: customSchedule || undefined
-      } : undefined;
+      const scheduleData =
+        frequency === "custom"
+          ? {
+              days: scheduleDays.length > 0 ? scheduleDays : undefined,
+              custom: customSchedule || undefined,
+            }
+          : undefined;
 
       // Prepare supplement data with updated fields
       const updatedSupplementData = {
@@ -280,17 +306,21 @@ export default function EditSupplement() {
         batch_number: batchNumber || undefined,
         expiration_date: toISODateString(expirationDate),
         third_party_tested: thirdPartyTested,
-        certification: certification || undefined
+        certification: certification || undefined,
       };
 
       // Update the supplement
-      const result = await updateSupplement(user.id, supplement.id, updatedSupplementData);
+      const result = await updateSupplement(
+        user.id,
+        supplement.id,
+        updatedSupplementData,
+      );
 
       if (!result.success) throw new Error(result.error);
 
       toast({
         title: "Success",
-        description: "Supplement updated successfully"
+        description: "Supplement updated successfully",
       });
 
       navigate("/supplements");
@@ -299,7 +329,7 @@ export default function EditSupplement() {
       toast({
         title: "Error",
         description: "Failed to update supplement",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -312,7 +342,9 @@ export default function EditSupplement() {
       <div className="container py-8 md:py-12 max-w-screen-xl">
         <Card className="mx-auto">
           <CardHeader className="pb-4">
-            <CardTitle className="text-2xl md:text-3xl">Edit Supplement</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl">
+              Edit Supplement
+            </CardTitle>
             <CardDescription className="text-base">
               Loading supplement data...
             </CardDescription>
@@ -333,12 +365,14 @@ export default function EditSupplement() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate('/supplements')}
+              onClick={() => navigate("/supplements")}
               className="h-8 w-8"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <CardTitle className="text-2xl md:text-3xl">Edit Supplement</CardTitle>
+            <CardTitle className="text-2xl md:text-3xl">
+              Edit Supplement
+            </CardTitle>
           </div>
           <CardDescription className="text-base">
             Update the details of your supplement.
@@ -352,7 +386,9 @@ export default function EditSupplement() {
               <div className="space-y-6 lg:col-span-1">
                 {/* Supplement Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-base font-medium">Supplement Name</Label>
+                  <Label htmlFor="name" className="text-base font-medium">
+                    Supplement Name
+                  </Label>
                   <Input
                     id="name"
                     value={name}
@@ -360,7 +396,9 @@ export default function EditSupplement() {
                     placeholder="e.g., Alpha GPC, Lion's Mane, etc."
                     className={nameError ? "border-red-500" : ""}
                   />
-                  {nameError && <p className="text-sm text-red-500">{nameError}</p>}
+                  {nameError && (
+                    <p className="text-sm text-red-500">{nameError}</p>
+                  )}
                 </div>
 
                 {/* Structured Dosage */}
@@ -375,7 +413,9 @@ export default function EditSupplement() {
 
                 {/* Legacy Dosage (for backward compatibility) */}
                 <div className="space-y-2">
-                  <Label htmlFor="dosage" className="text-base font-medium">Alternative Dosage Format</Label>
+                  <Label htmlFor="dosage" className="text-base font-medium">
+                    Alternative Dosage Format
+                  </Label>
                   <Input
                     id="dosage"
                     value={dosage}
@@ -383,7 +423,9 @@ export default function EditSupplement() {
                     placeholder="e.g., 300mg, 1000mg, etc."
                     className={dosageError && !amount ? "border-red-500" : ""}
                   />
-                  {dosageError && !amount && <p className="text-sm text-red-500">{dosageError}</p>}
+                  {dosageError && !amount && (
+                    <p className="text-sm text-red-500">{dosageError}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Use this field if you prefer to enter dosage as free text
                   </p>
@@ -394,7 +436,9 @@ export default function EditSupplement() {
               <div className="space-y-6 lg:col-span-1">
                 {/* Frequency and Timing */}
                 <div className="bg-secondary/5 p-4 rounded-lg">
-                  <h3 className="text-base font-medium mb-4">Timing & Frequency</h3>
+                  <h3 className="text-base font-medium mb-4">
+                    Timing & Frequency
+                  </h3>
                   <FrequencyInput
                     frequency={frequency}
                     setFrequency={setFrequency}
@@ -415,7 +459,9 @@ export default function EditSupplement() {
 
                 {/* Intake Date & Time */}
                 <div className="space-y-2">
-                  <Label className="text-base font-medium">Intake Date & Time</Label>
+                  <Label className="text-base font-medium">
+                    Intake Date & Time
+                  </Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -423,7 +469,11 @@ export default function EditSupplement() {
                         className="w-full justify-start text-left font-normal"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {intakeDate ? format(intakeDate, "PPP") : <span>Pick a date</span>}
+                        {intakeDate ? (
+                          format(intakeDate, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -467,7 +517,9 @@ export default function EditSupplement() {
 
                 {/* Notes */}
                 <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-base font-medium">Notes (Optional)</Label>
+                  <Label htmlFor="notes" className="text-base font-medium">
+                    Notes (Optional)
+                  </Label>
                   <Textarea
                     id="notes"
                     value={notes}
@@ -481,13 +533,16 @@ export default function EditSupplement() {
                 {/* Supplement Evaluation Status */}
                 {supplement && (
                   <div className="mt-6 space-y-2">
-                    <Label className="text-base font-medium">Evaluation Status</Label>
+                    <Label className="text-base font-medium">
+                      Evaluation Status
+                    </Label>
                     <SupplementEvaluationStatus
                       supplement={supplement}
                       onStatusChange={() => {}}
                     />
                     <p className="text-xs text-muted-foreground mt-2">
-                      Track your progress in evaluating this supplement's effectiveness
+                      Track your progress in evaluating this supplement's
+                      effectiveness
                     </p>
                   </div>
                 )}

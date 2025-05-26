@@ -10,28 +10,28 @@
  * Simplified to focus on core user behaviors for MVP
  */
 export enum AchievementCategory {
-  TESTING = 'testing',
-  SUPPLEMENTS = 'supplements',
-  ENGAGEMENT = 'engagement'
+  TESTING = "testing",
+  SUPPLEMENTS = "supplements",
+  ENGAGEMENT = "engagement",
 }
 
 /**
  * Achievement difficulty levels
  */
 export enum AchievementDifficulty {
-  EASY = 'easy',
-  MEDIUM = 'medium',
-  HARD = 'hard',
-  EXPERT = 'expert'
+  EASY = "easy",
+  MEDIUM = "medium",
+  HARD = "hard",
+  EXPERT = "expert",
 }
 
 /**
  * Achievement status
  */
 export enum AchievementStatus {
-  LOCKED = 'locked',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed'
+  LOCKED = "locked",
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
 }
 
 /**
@@ -107,31 +107,31 @@ export interface AchievementProgressUpdate {
  */
 export enum AchievementTrigger {
   // Testing triggers
-  TEST_COMPLETED = 'test_completed',
-  TESTS_COMPLETED = 'tests_completed',
-  BASELINE_COMPLETED = 'baseline_completed',
-  DAILY_STREAK = 'daily_streak',
-  WEEKLY_STREAK = 'weekly_streak',
-  CONSISTENT_TIME_OF_DAY = 'consistent_time_of_day',
-  TEST_PERFECT_SCORE = 'test_perfect_score',
+  TEST_COMPLETED = "test_completed",
+  TESTS_COMPLETED = "tests_completed",
+  BASELINE_COMPLETED = "baseline_completed",
+  DAILY_STREAK = "daily_streak",
+  WEEKLY_STREAK = "weekly_streak",
+  CONSISTENT_TIME_OF_DAY = "consistent_time_of_day",
+  TEST_PERFECT_SCORE = "test_perfect_score",
 
   // Supplement triggers
-  SUPPLEMENT_LOGGED = 'supplement_logged',
-  SUPPLEMENTS_LOGGED = 'supplements_logged',
-  SUPPLEMENT_LOGGED_WITH_NOTES = 'supplement_logged_with_notes',
-  SUPPLEMENT_CYCLE_COMPLETED = 'supplement_cycle_completed',
-  SUPPLEMENT_EVALUATION_COMPLETED = 'supplement_evaluation_completed',
-  COMPLETE_SUPPLEMENT_DATA = 'complete_supplement_data',
+  SUPPLEMENT_LOGGED = "supplement_logged",
+  SUPPLEMENTS_LOGGED = "supplements_logged",
+  SUPPLEMENT_LOGGED_WITH_NOTES = "supplement_logged_with_notes",
+  SUPPLEMENT_CYCLE_COMPLETED = "supplement_cycle_completed",
+  SUPPLEMENT_EVALUATION_COMPLETED = "supplement_evaluation_completed",
+  COMPLETE_SUPPLEMENT_DATA = "complete_supplement_data",
 
   // Engagement triggers
-  DAILY_LOGIN = 'daily_login',
-  PROFILE_COMPLETED = 'profile_completed',
-  ACCOUNT_CREATED = 'account_created',
-  EXPLORE_APP = 'explore_app',
-  LOGIN_STREAK = 'login_streak',
-  CONFOUNDING_FACTORS_LOGGED = 'confounding_factors_logged',
-  DETAILED_NOTES_ADDED = 'detailed_notes_added',
-  FACTOR_VARIETY = 'factor_variety'
+  DAILY_LOGIN = "daily_login",
+  PROFILE_COMPLETED = "profile_completed",
+  ACCOUNT_CREATED = "account_created",
+  EXPLORE_APP = "explore_app",
+  LOGIN_STREAK = "login_streak",
+  CONFOUNDING_FACTORS_LOGGED = "confounding_factors_logged",
+  DETAILED_NOTES_ADDED = "detailed_notes_added",
+  FACTOR_VARIETY = "factor_variety",
 }
 
 /**

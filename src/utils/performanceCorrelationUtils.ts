@@ -1,18 +1,22 @@
 /**
  * Utilities for correlating cognitive performance with supplement intake
  */
-import { TestResult } from '@/lib/testResultUtils';
-import { Supplement } from '@/types/supplement';
-import { WashoutPeriod, ActiveWashoutPeriod, WashoutPeriodStatus } from '@/types/washoutPeriod';
+import { TestResult } from "@/lib/testResultUtils";
+import { Supplement } from "@/types/supplement";
+import {
+  WashoutPeriod,
+  ActiveWashoutPeriod,
+  WashoutPeriodStatus,
+} from "@/types/washoutPeriod";
 
 /**
  * Period types for categorizing test results
  */
 export enum PeriodType {
-  BASELINE = 'baseline',
-  SUPPLEMENT = 'supplement',
-  WASHOUT = 'washout',
-  UNKNOWN = 'unknown'
+  BASELINE = "baseline",
+  SUPPLEMENT = "supplement",
+  WASHOUT = "washout",
+  UNKNOWN = "unknown",
 }
 
 /**
@@ -64,19 +68,20 @@ export interface SupplementIntakeEvent {
  */
 export function generatePeriods(
   supplements: Supplement[],
-  washoutPeriods: WashoutPeriod[] | ActiveWashoutPeriod[]
+  washoutPeriods: WashoutPeriod[] | ActiveWashoutPeriod[],
 ): Period[] {
   const periods: Period[] = [];
 
   // Sort supplements by intake time (oldest first)
   const sortedSupplements = [...supplements].sort(
-    (a, b) => new Date(a.intake_time).getTime() - new Date(b.intake_time).getTime()
+    (a, b) =>
+      new Date(a.intake_time).getTime() - new Date(b.intake_time).getTime(),
   );
 
   // Group supplements by name to create continuous periods
   const supplementGroups: { [key: string]: Supplement[] } = {};
 
-  sortedSupplements.forEach(supplement => {
+  sortedSupplements.forEach((supplement) => {
     if (!supplementGroups[supplement.name]) {
       supplementGroups[supplement.name] = [];
     }
@@ -87,11 +92,12 @@ export function generatePeriods(
   Object.entries(supplementGroups).forEach(([name, supplements]) => {
     // Sort by intake time
     const sortedGroupSupplements = supplements.sort(
-      (a, b) => new Date(a.intake_time).getTime() - new Date(b.intake_time).getTime()
+      (a, b) =>
+        new Date(a.intake_time).getTime() - new Date(b.intake_time).getTime(),
     );
 
     // Create periods based on supplement frequency
-    sortedGroupSupplements.forEach(supplement => {
+    sortedGroupSupplements.forEach((supplement) => {
       // For simplicity, we'll consider each supplement intake as a 7-day period
       // This can be refined based on the actual frequency data
       const startDate = new Date(supplement.intake_time);
@@ -99,11 +105,11 @@ export function generatePeriods(
       // Determine end date based on frequency
       const endDate: Date | null = new Date(startDate);
 
-      if (supplement.frequency === 'daily') {
+      if (supplement.frequency === "daily") {
         endDate.setDate(endDate.getDate() + 1);
-      } else if (supplement.frequency === 'weekly') {
+      } else if (supplement.frequency === "weekly") {
         endDate.setDate(endDate.getDate() + 7);
-      } else if (supplement.frequency === 'monthly') {
+      } else if (supplement.frequency === "monthly") {
         endDate.setMonth(endDate.getMonth() + 1);
       } else {
         // Default to 7 days if frequency is not specified
@@ -115,19 +121,22 @@ export function generatePeriods(
         startDate,
         endDate,
         supplementId: supplement.id,
-        supplementName: supplement.name
+        supplementName: supplement.name,
       });
     });
   });
 
   // Add washout periods
-  washoutPeriods.forEach(washoutPeriod => {
+  washoutPeriods.forEach((washoutPeriod) => {
     const startDate = new Date(washoutPeriod.start_date);
     let endDate: Date | null = null;
 
     if (washoutPeriod.end_date) {
       endDate = new Date(washoutPeriod.end_date);
-    } else if (washoutPeriod.status === WashoutPeriodStatus.ACTIVE && washoutPeriod.expected_duration_days) {
+    } else if (
+      washoutPeriod.status === WashoutPeriodStatus.ACTIVE &&
+      washoutPeriod.expected_duration_days
+    ) {
       // For active washout periods, use expected duration
       endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + washoutPeriod.expected_duration_days);
@@ -138,7 +147,7 @@ export function generatePeriods(
       startDate,
       endDate,
       supplementName: washoutPeriod.supplement_name,
-      washoutPeriodId: washoutPeriod.id
+      washoutPeriodId: washoutPeriod.id,
     });
   });
 
@@ -151,17 +160,20 @@ export function generatePeriods(
  */
 export function determineTestPeriodType(
   test: TestResult,
-  periods: Period[]
+  periods: Period[],
 ): { periodType: PeriodType; supplementId?: string; supplementName?: string } {
   const testDate = new Date(test.date);
 
   // Check if the test falls within any period
   for (const period of periods) {
-    if (testDate >= period.startDate && (!period.endDate || testDate <= period.endDate)) {
+    if (
+      testDate >= period.startDate &&
+      (!period.endDate || testDate <= period.endDate)
+    ) {
       return {
         periodType: period.type,
         supplementId: period.supplementId,
-        supplementName: period.supplementName
+        supplementName: period.supplementName,
       };
     }
   }
@@ -175,16 +187,17 @@ export function determineTestPeriodType(
  */
 export function enrichTestResults(
   testResults: TestResult[],
-  periods: Period[]
+  periods: Period[],
 ): EnrichedTestResult[] {
-  return testResults.map(test => {
-    const { periodType, supplementId, supplementName } = determineTestPeriodType(test, periods);
+  return testResults.map((test) => {
+    const { periodType, supplementId, supplementName } =
+      determineTestPeriodType(test, periods);
 
     return {
       ...test,
       periodType,
       supplementId,
-      supplementName
+      supplementName,
     };
   });
 }
@@ -194,12 +207,12 @@ export function enrichTestResults(
  */
 export function generatePerformanceDataPoints(
   testResults: EnrichedTestResult[],
-  supplements: Supplement[]
+  supplements: Supplement[],
 ): PerformanceDataPoint[] {
   const dataPoints: PerformanceDataPoint[] = [];
 
   // Add test results as data points
-  testResults.forEach(test => {
+  testResults.forEach((test) => {
     dataPoints.push({
       date: new Date(test.date),
       score: test.score,
@@ -208,7 +221,7 @@ export function generatePerformanceDataPoints(
       periodType: test.periodType,
       supplementId: test.supplementId,
       supplementName: test.supplementName,
-      isTestResult: true
+      isTestResult: true,
     });
   });
 
@@ -220,12 +233,12 @@ export function generatePerformanceDataPoints(
  * Generate supplement intake events for visualization
  */
 export function generateSupplementIntakeEvents(
-  supplements: Supplement[]
+  supplements: Supplement[],
 ): SupplementIntakeEvent[] {
-  return supplements.map(supplement => ({
+  return supplements.map((supplement) => ({
     date: new Date(supplement.intake_time),
     supplementId: supplement.id,
-    supplementName: supplement.name
+    supplementName: supplement.name,
   }));
 }
 
@@ -235,11 +248,11 @@ export function generateSupplementIntakeEvents(
 export function filterByDateRange(
   data: PerformanceDataPoint[],
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ): PerformanceDataPoint[] {
   if (!startDate && !endDate) return data;
 
-  return data.filter(point => {
+  return data.filter((point) => {
     if (startDate && point.date < startDate) return false;
     if (endDate && point.date > endDate) return false;
     return true;
@@ -251,12 +264,14 @@ export function filterByDateRange(
  */
 export function filterBySupplement(
   data: PerformanceDataPoint[],
-  supplementId?: string
+  supplementId?: string,
 ): PerformanceDataPoint[] {
   if (!supplementId) return data;
 
-  return data.filter(point =>
-    point.supplementId === supplementId || point.periodType === PeriodType.BASELINE
+  return data.filter(
+    (point) =>
+      point.supplementId === supplementId ||
+      point.periodType === PeriodType.BASELINE,
   );
 }
 
@@ -264,9 +279,9 @@ export function filterBySupplement(
  * Format date for display
  */
 export function formatChartDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }

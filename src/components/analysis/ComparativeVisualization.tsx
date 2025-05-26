@@ -1,13 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Activity, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { TestResult } from '@/lib/testResultUtils';
-import { Supplement } from '@/types/supplement';
-import { WashoutPeriod, ActiveWashoutPeriod } from '@/types/washoutPeriod';
-import { SupplementPeriodSelector } from './SupplementPeriodSelector';
-import { ComparisonChart } from './ComparisonChart';
+import { useState, useEffect, useCallback } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Activity, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TestResult } from "@/lib/testResultUtils";
+import { Supplement } from "@/types/supplement";
+import { WashoutPeriod, ActiveWashoutPeriod } from "@/types/washoutPeriod";
+import { SupplementPeriodSelector } from "./SupplementPeriodSelector";
+import { ComparisonChart } from "./ComparisonChart";
 import {
   ComparisonType,
   ComparisonData,
@@ -15,8 +21,8 @@ import {
   generateOnOffComparisonData,
   generateBetweenSupplementsComparisonData,
   generateBeforeAfterComparisonData,
-  calculateComparisonMetrics
-} from '@/utils/comparativeAnalysisUtils';
+  calculateComparisonMetrics,
+} from "@/utils/comparativeAnalysisUtils";
 
 interface ComparativeVisualizationProps {
   testResults: TestResult[];
@@ -29,10 +35,13 @@ export function ComparativeVisualization({
   testResults,
   supplements,
   washoutPeriods,
-  isLoading = false
+  isLoading = false,
 }: Readonly<ComparativeVisualizationProps>) {
-  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
-  const [comparisonMetrics, setComparisonMetrics] = useState<ComparisonMetrics | null>(null);
+  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(
+    null,
+  );
+  const [comparisonMetrics, setComparisonMetrics] =
+    useState<ComparisonMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Handle comparison change - wrapped in useCallback to prevent unnecessary re-renders
@@ -41,7 +50,7 @@ export function ComparativeVisualization({
       comparisonType: ComparisonType,
       supplementId1: string,
       supplementId2?: string,
-      _dateRange?: { from: Date; to: Date } // Unused for now, but kept for future implementation
+      _dateRange?: { from: Date; to: Date }, // Unused for now, but kept for future implementation
     ) => {
       setError(null);
 
@@ -54,7 +63,7 @@ export function ComparativeVisualization({
               testResults,
               supplements,
               washoutPeriods,
-              supplementId1
+              supplementId1,
             );
             break;
           case ComparisonType.BETWEEN_SUPPLEMENTS:
@@ -64,7 +73,7 @@ export function ComparativeVisualization({
                 supplements,
                 washoutPeriods,
                 supplementId1,
-                supplementId2
+                supplementId2,
               );
             }
             break;
@@ -74,26 +83,31 @@ export function ComparativeVisualization({
               supplements,
               washoutPeriods,
               supplementId1,
-              30 // Default to 30 days before/after
+              30, // Default to 30 days before/after
             );
             break;
         }
 
         if (data) {
-          const metrics = calculateComparisonMetrics(data.baselineData, data.comparisonData);
+          const metrics = calculateComparisonMetrics(
+            data.baselineData,
+            data.comparisonData,
+          );
           setComparisonData(data);
           setComparisonMetrics(metrics);
         } else {
           setComparisonData(null);
           setComparisonMetrics(null);
-          setError('Not enough data for comparison. Try a different supplement or comparison type.');
+          setError(
+            "Not enough data for comparison. Try a different supplement or comparison type.",
+          );
         }
       } catch (err) {
-        console.error('Error generating comparison data:', err);
-        setError('An error occurred while generating comparison data.');
+        console.error("Error generating comparison data:", err);
+        setError("An error occurred while generating comparison data.");
       }
     },
-    [testResults, supplements, washoutPeriods]
+    [testResults, supplements, washoutPeriods],
   );
 
   // Initialize with first supplement when data loads
@@ -131,7 +145,8 @@ export function ComparativeVisualization({
             <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="font-medium mb-2">Not Enough Data</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Take at least 5 cognitive tests to enable comparative visualization
+              Take at least 5 cognitive tests to enable comparative
+              visualization
             </p>
           </div>
         </CardContent>
@@ -154,7 +169,8 @@ export function ComparativeVisualization({
             <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="font-medium mb-2">No Supplements Logged</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Log supplements to compare how they affect your cognitive performance
+              Log supplements to compare how they affect your cognitive
+              performance
             </p>
           </div>
         </CardContent>

@@ -1,8 +1,8 @@
 /**
  * Custom hook for managing dashboard filters
  */
-import { useState, useCallback, useMemo } from 'react';
-import { subMonths } from 'date-fns';
+import { useState, useCallback, useMemo } from "react";
+import { subMonths } from "date-fns";
 
 /**
  * Interface for date range
@@ -45,23 +45,29 @@ export interface DashboardFiltersResult {
  */
 export function useDashboardFilters(
   initialDateRange?: DateRange,
-  initialSupplement: string = 'all'
+  initialSupplement: string = "all",
 ): DashboardFiltersResult {
   // Default date range is last 12 months, memoized to prevent recreation on each render
-  const defaultDateRange = useMemo<DateRange>(() => ({
-    from: subMonths(new Date(), 12),
-    to: new Date()
-  }), []);
+  const defaultDateRange = useMemo<DateRange>(
+    () => ({
+      from: subMonths(new Date(), 12),
+      to: new Date(),
+    }),
+    [],
+  );
 
   // Initialize state
-  const [dateRange, setDateRange] = useState<DateRange>(initialDateRange || defaultDateRange);
-  const [selectedSupplement, setSelectedSupplement] = useState<string>(initialSupplement);
+  const [dateRange, setDateRange] = useState<DateRange>(
+    initialDateRange || defaultDateRange,
+  );
+  const [selectedSupplement, setSelectedSupplement] =
+    useState<string>(initialSupplement);
 
   /**
    * Reset filters to default values
    */
   const resetFilters = useCallback((): void => {
-    setSelectedSupplement('all');
+    setSelectedSupplement("all");
     setDateRange(defaultDateRange);
   }, [defaultDateRange]);
 
@@ -75,6 +81,6 @@ export function useDashboardFilters(
     setSelectedSupplement,
 
     // Helper functions
-    resetFilters
+    resetFilters,
   };
 }

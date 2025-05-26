@@ -1,13 +1,18 @@
 /**
  * Annotation Marker Component
- * 
+ *
  * Displays annotation markers on the chart
  */
-import React from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { format } from 'date-fns';
-import { Flag } from 'lucide-react';
-import { Annotation } from './ChartAnnotation';
+import React from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { format } from "date-fns";
+import { Flag } from "lucide-react";
+import { Annotation } from "./ChartAnnotation";
 
 interface AnnotationMarkerProps {
   x: number;
@@ -15,7 +20,11 @@ interface AnnotationMarkerProps {
   annotation: Annotation;
 }
 
-export function AnnotationMarker({ x, y, annotation }: Readonly<AnnotationMarkerProps>) {
+export function AnnotationMarker({
+  x,
+  y,
+  annotation,
+}: Readonly<AnnotationMarkerProps>) {
   return (
     <TooltipProvider>
       <Tooltip>
@@ -35,11 +44,13 @@ export function AnnotationMarker({ x, y, annotation }: Readonly<AnnotationMarker
             <div className="flex items-center justify-between mb-1">
               <p className="font-medium">{annotation.label}</p>
               <span className="text-xs text-muted-foreground">
-                {format(new Date(annotation.date), 'MMM d, yyyy')}
+                {format(new Date(annotation.date), "MMM d, yyyy")}
               </span>
             </div>
             {annotation.description && (
-              <p className="text-sm text-muted-foreground">{annotation.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {annotation.description}
+              </p>
             )}
           </div>
         </TooltipContent>
@@ -55,19 +66,19 @@ interface ChartAnnotationsProps {
   chartHeight: number;
 }
 
-export function ChartAnnotations({ 
-  annotations, 
-  xScale, 
-  yScale, 
-  chartHeight 
+export function ChartAnnotations({
+  annotations,
+  xScale,
+  yScale,
+  chartHeight,
 }: Readonly<ChartAnnotationsProps>) {
   return (
     <g className="annotation-markers">
-      {annotations.map(annotation => {
+      {annotations.map((annotation) => {
         const x = xScale(annotation.date);
         // Position at the top of the chart
         const y = 20;
-        
+
         return (
           <React.Fragment key={annotation.id}>
             {/* Vertical line */}
@@ -81,13 +92,9 @@ export function ChartAnnotations({
               strokeDasharray="3,3"
               opacity={0.7}
             />
-            
+
             {/* Marker */}
-            <AnnotationMarker
-              x={x}
-              y={y}
-              annotation={annotation}
-            />
+            <AnnotationMarker x={x} y={y} annotation={annotation} />
           </React.Fragment>
         );
       })}

@@ -1,6 +1,6 @@
 /**
  * Re-export toast function from sonner
  */
-import { toast } from "sonner"
+import { toast } from "sonner";
 
-export { toast }
+export { toast };

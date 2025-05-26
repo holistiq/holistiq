@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
-import { TestResult } from '@/lib/testResultUtils';
-import { Supplement } from '@/types/supplement';
-import { WashoutPeriod, ActiveWashoutPeriod } from '@/types/washoutPeriod';
+import { useMemo } from "react";
+import { TestResult } from "@/lib/testResultUtils";
+import { Supplement } from "@/types/supplement";
+import { WashoutPeriod, ActiveWashoutPeriod } from "@/types/washoutPeriod";
 import {
   generatePeriods,
   enrichTestResults,
   generatePerformanceDataPoints,
   filterByDateRange,
   filterBySupplement,
-  formatChartDate
-} from '@/utils/performanceCorrelationUtils';
+  formatChartDate,
+} from "@/utils/performanceCorrelationUtils";
 
 /**
  * Interface for the date range
@@ -33,17 +33,19 @@ interface SupplementOption {
 interface PerformanceDataResult {
   periods: ReturnType<typeof generatePeriods>;
   filteredData: ReturnType<typeof generatePerformanceDataPoints>;
-  chartData: Array<ReturnType<typeof generatePerformanceDataPoints>[number] & { 
-    date: number;
-    formattedDate: string;
-  }>;
+  chartData: Array<
+    ReturnType<typeof generatePerformanceDataPoints>[number] & {
+      date: number;
+      formattedDate: string;
+    }
+  >;
   uniqueSupplements: SupplementOption[];
   hasData: boolean;
 }
 
 /**
  * Custom hook for processing performance data
- * 
+ *
  * @param testResults - Array of test results
  * @param supplements - Array of supplements
  * @param washoutPeriods - Array of washout periods
@@ -56,7 +58,7 @@ export function usePerformanceData(
   supplements: Supplement[],
   washoutPeriods: WashoutPeriod[] | ActiveWashoutPeriod[],
   dateRange: DateRange,
-  selectedSupplement: string
+  selectedSupplement: string,
 ): PerformanceDataResult {
   // Process data for visualization
   return useMemo(() => {
@@ -67,34 +69,37 @@ export function usePerformanceData(
     const enrichedTestResults = enrichTestResults(testResults, periods);
 
     // Generate performance data points
-    const performanceData = generatePerformanceDataPoints(enrichedTestResults, supplements);
+    const performanceData = generatePerformanceDataPoints(
+      enrichedTestResults,
+      supplements,
+    );
 
     // Apply filters
     let filteredData = filterByDateRange(
       performanceData,
       dateRange.from,
-      dateRange.to
+      dateRange.to,
     );
 
-    if (selectedSupplement !== 'all') {
+    if (selectedSupplement !== "all") {
       filteredData = filterBySupplement(filteredData, selectedSupplement);
     }
 
     // Format data for charts
-    const chartData = filteredData.map(point => ({
+    const chartData = filteredData.map((point) => ({
       ...point,
       date: point.date.getTime(), // Convert to timestamp for Recharts
-      formattedDate: formatChartDate(point.date)
+      formattedDate: formatChartDate(point.date),
     }));
 
     // Get unique supplements for the filter dropdown
     const uniqueSupplements = Array.from(
-      new Set(supplements.map(s => s.name))
-    ).map(name => {
-      const supplement = supplements.find(s => s.name === name);
+      new Set(supplements.map((s) => s.name)),
+    ).map((name) => {
+      const supplement = supplements.find((s) => s.name === name);
       return {
-        id: supplement?.id || '',
-        name
+        id: supplement?.id || "",
+        name,
       };
     });
 
@@ -103,7 +108,7 @@ export function usePerformanceData(
       filteredData,
       chartData,
       uniqueSupplements,
-      hasData: testResults.length > 0
+      hasData: testResults.length > 0,
     };
   }, [testResults, supplements, washoutPeriods, dateRange, selectedSupplement]);
 }

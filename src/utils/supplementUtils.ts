@@ -2,7 +2,7 @@
  * Utility functions for supplement-related operations
  */
 
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid } from "date-fns";
 
 /**
  * Format an expiration date for display
@@ -10,26 +10,26 @@ import { format, parseISO, isValid } from 'date-fns';
  * @returns Formatted date string or empty string if invalid
  */
 export function formatExpirationDate(dateString?: string): string {
-  if (!dateString) return '';
-  
+  if (!dateString) return "";
+
   try {
     // Try to parse as ISO date first
     let date = parseISO(dateString);
-    
+
     // If not valid, try as regular date
     if (!isValid(date)) {
       date = new Date(dateString);
     }
-    
+
     // If still not valid, return original string
     if (!isValid(date)) {
       return dateString;
     }
-    
+
     // Format the date
-    return format(date, 'MMM d, yyyy');
+    return format(date, "MMM d, yyyy");
   } catch (error) {
-    console.error('Error formatting expiration date:', error);
+    console.error("Error formatting expiration date:", error);
     return dateString;
   }
 }
@@ -41,17 +41,17 @@ export function formatExpirationDate(dateString?: string): string {
  */
 export function toISODateString(date?: Date | string): string | undefined {
   if (!date) return undefined;
-  
+
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+
     if (!isValid(dateObj)) {
       return undefined;
     }
-    
+
     return dateObj.toISOString();
   } catch (error) {
-    console.error('Error converting date to ISO string:', error);
+    console.error("Error converting date to ISO string:", error);
     return undefined;
   }
 }
@@ -93,9 +93,9 @@ export function getCertificationTypes() {
  * @returns Label for the formulation type or the value if not found
  */
 export function getFormulationLabel(value?: string): string {
-  if (!value) return '';
-  
-  const formulation = getFormulationTypes().find(f => f.value === value);
+  if (!value) return "";
+
+  const formulation = getFormulationTypes().find((f) => f.value === value);
   return formulation ? formulation.label : value;
 }
 
@@ -105,8 +105,8 @@ export function getFormulationLabel(value?: string): string {
  * @returns Label for the certification type or the value if not found
  */
 export function getCertificationLabel(value?: string): string {
-  if (!value) return '';
-  
-  const certification = getCertificationTypes().find(c => c.value === value);
+  if (!value) return "";
+
+  const certification = getCertificationTypes().find((c) => c.value === value);
   return certification ? certification.label : value;
 }

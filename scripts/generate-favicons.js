@@ -11,19 +11,19 @@
  * node scripts/generate-favicons.js
  */
 
-import fs from 'fs';
-import path from 'path';
-import sharp from 'sharp';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import fs from "fs";
+import path from "path";
+import sharp from "sharp";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const sizes = [16, 32, 48, 192, 512];
-const svgPath = path.join(__dirname, '../public/assets/favicon/favicon.svg');
-const outputDir = path.join(__dirname, '../public/assets/favicon');
+const svgPath = path.join(__dirname, "../public/assets/favicon/favicon.svg");
+const outputDir = path.join(__dirname, "../public/assets/favicon");
 
 // Ensure the output directory exists
 if (!fs.existsSync(outputDir)) {
@@ -38,17 +38,14 @@ async function generateFavicons() {
     for (const size of sizes) {
       const outputPath = path.join(outputDir, `favicon-${size}x${size}.png`);
 
-      await sharp(svgBuffer)
-        .resize(size, size)
-        .png()
-        .toFile(outputPath);
+      await sharp(svgBuffer).resize(size, size).png().toFile(outputPath);
 
       console.log(`Generated ${outputPath}`);
     }
 
-    console.log('All favicons generated successfully!');
+    console.log("All favicons generated successfully!");
   } catch (error) {
-    console.error('Error generating favicons:', error);
+    console.error("Error generating favicons:", error);
   }
 }
 

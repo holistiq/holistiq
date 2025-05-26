@@ -1,14 +1,31 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { NBackTest, NBackTestResult } from "@/components/tests/NBackTest";
 import { NBackInstructions } from "@/components/tests/NBackInstructions";
 import { TestFrequencyInfo } from "@/components/tests/TestFrequencyInfo";
 import { TestCompletionFlow } from "@/components/tests/TestCompletionFlow";
 import { saveTestResult } from "@/services/testResultService";
-import { checkTestFrequency, TestFrequencyStatus } from "@/services/testFrequencyService";
+import {
+  checkTestFrequency,
+  TestFrequencyStatus,
+} from "@/services/testFrequencyService";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useTestResults } from "@/hooks/useTestResults";
 import { useAchievements } from "@/hooks/useAchievements";
@@ -17,10 +34,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
 
 export default function BaselineTest() {
-  const [testState, setTestState] = useState<"intro" | "ready" | "running" | "completed">("intro");
+  const [testState, setTestState] = useState<
+    "intro" | "ready" | "running" | "completed"
+  >("intro");
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [testResult, setTestResult] = useState<NBackTestResult | null>(null);
-  const [frequencyStatus, setFrequencyStatus] = useState<TestFrequencyStatus | null>(null);
+  const [frequencyStatus, setFrequencyStatus] =
+    useState<TestFrequencyStatus | null>(null);
   const [isCheckingFrequency, setIsCheckingFrequency] = useState(false);
   const navigate = useNavigate();
   const { user, loading } = useSupabaseAuth();
@@ -32,7 +52,10 @@ export default function BaselineTest() {
     const testResultsContext = useTestResults();
     refreshTestResults = testResultsContext.refreshTestResults;
   } catch (error) {
-    console.warn('TestResultsContext not available, using default values', error);
+    console.warn(
+      "TestResultsContext not available, using default values",
+      error,
+    );
   }
 
   // Get achievements hook
@@ -48,7 +71,7 @@ export default function BaselineTest() {
         const status = await checkTestFrequency(user.id);
         setFrequencyStatus(status);
       } catch (error) {
-        console.error('Error checking test frequency:', error);
+        console.error("Error checking test frequency:", error);
       } finally {
         setIsCheckingFrequency(false);
       }
@@ -66,9 +89,9 @@ export default function BaselineTest() {
     // Save the result
     const saveResponse = await saveTestResult(
       user?.id,
-      'n-back-2',
+      "n-back-2",
       result,
-      true // This is a baseline test
+      true, // This is a baseline test
     );
 
     if (saveResponse.success) {
@@ -89,7 +112,7 @@ export default function BaselineTest() {
         // Perfect score achievement (if applicable)
         if (result.accuracy === 100) {
           triggerAchievement(AchievementTrigger.TEST_COMPLETED, {
-            perfectScore: true
+            perfectScore: true,
           });
         }
       }
@@ -98,7 +121,8 @@ export default function BaselineTest() {
 
   const handleFullScreen = () => {
     if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen()
+      document.documentElement
+        .requestFullscreen()
         .then(() => {
           setShowFullScreen(false);
           setTestState("ready");
@@ -161,9 +185,7 @@ export default function BaselineTest() {
   // If user is not authenticated, show authentication required component
   if (!user) {
     return (
-      <AuthenticationRequired
-        message="You need to be logged in to take the baseline cognitive assessment and track your performance over time."
-      />
+      <AuthenticationRequired message="You need to be logged in to take the baseline cognitive assessment and track your performance over time." />
     );
   }
 
@@ -173,7 +195,8 @@ export default function BaselineTest() {
         <CardHeader>
           <CardTitle>Baseline Cognitive Assessment</CardTitle>
           <CardDescription>
-            {testState === "intro" && "Establish your cognitive baseline with our n-back test."}
+            {testState === "intro" &&
+              "Establish your cognitive baseline with our n-back test."}
             {testState === "ready" && "Get ready to start the test."}
             {testState === "running" && "Test in progress..."}
             {testState === "completed" && "Baseline assessment completed!"}
@@ -184,8 +207,9 @@ export default function BaselineTest() {
             <div className="space-y-6">
               <div className="space-y-4">
                 <p>
-                  This test will establish your baseline cognitive performance. You'll need about 3 minutes in a quiet,
-                  distraction-free environment.
+                  This test will establish your baseline cognitive performance.
+                  You'll need about 3 minutes in a quiet, distraction-free
+                  environment.
                 </p>
                 <div className="bg-secondary p-4 rounded-md space-y-2">
                   <h3 className="font-medium">Before you begin:</h3>
@@ -221,7 +245,11 @@ export default function BaselineTest() {
               testDuration={180000} // 3 minutes in milliseconds
               onTestComplete={handleTestComplete}
               onCancel={() => {
-                if (confirm("Are you sure you want to cancel the test? Your progress will be lost.")) {
+                if (
+                  confirm(
+                    "Are you sure you want to cancel the test? Your progress will be lost.",
+                  )
+                ) {
                   setTestState("intro");
                 }
               }}
@@ -239,8 +267,6 @@ export default function BaselineTest() {
             />
           )}
         </CardContent>
-
-
       </Card>
 
       <AlertDialog open={showFullScreen}>
@@ -248,15 +274,18 @@ export default function BaselineTest() {
           <AlertDialogHeader>
             <AlertDialogTitle>Enter Fullscreen Mode</AlertDialogTitle>
             <AlertDialogDescription>
-              For the best testing experience, we recommend running the test in fullscreen mode.
-              This helps minimize distractions and ensures accurate results.
+              For the best testing experience, we recommend running the test in
+              fullscreen mode. This helps minimize distractions and ensures
+              accurate results.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setShowFullScreen(false);
-              setTestState("ready");
-            }}>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowFullScreen(false);
+                setTestState("ready");
+              }}
+            >
               Skip
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleFullScreen}>

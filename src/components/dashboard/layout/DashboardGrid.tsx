@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface DashboardGridProps {
   /** Grid children */
@@ -20,7 +20,7 @@ interface DashboardGridProps {
     xl?: number;
   };
   /** Gap size between grid items */
-  gap?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  gap?: "none" | "sm" | "md" | "lg" | "xl";
 }
 
 /**
@@ -31,15 +31,15 @@ export function DashboardGrid({
   children,
   className,
   columns = { default: 1, sm: 1, md: 2, lg: 3, xl: 4 },
-  gap = 'md'
+  gap = "md",
 }: DashboardGridProps) {
   // Define gap classes
   const gapClasses = {
-    none: 'gap-0',
-    sm: 'gap-2 sm:gap-3 md:gap-4',
-    md: 'gap-4 sm:gap-6 md:gap-8',
-    lg: 'gap-6 sm:gap-8 md:gap-10 lg:gap-12',
-    xl: 'gap-8 sm:gap-10 md:gap-12 lg:gap-16'
+    none: "gap-0",
+    sm: "gap-2 sm:gap-3 md:gap-4",
+    md: "gap-4 sm:gap-6 md:gap-8",
+    lg: "gap-6 sm:gap-8 md:gap-10 lg:gap-12",
+    xl: "gap-8 sm:gap-10 md:gap-12 lg:gap-16",
   };
 
   // Build grid template columns classes
@@ -48,16 +48,13 @@ export function DashboardGrid({
     columns.sm && `sm:grid-cols-${columns.sm}`,
     columns.md && `md:grid-cols-${columns.md}`,
     columns.lg && `lg:grid-cols-${columns.lg}`,
-    columns.xl && `xl:grid-cols-${columns.xl}`
-  ].filter(Boolean).join(' ');
+    columns.xl && `xl:grid-cols-${columns.xl}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className={cn(
-      'grid',
-      gridColsClasses,
-      gapClasses[gap],
-      className
-    )}>
+    <div className={cn("grid", gridColsClasses, gapClasses[gap], className)}>
       {children}
     </div>
   );
@@ -104,7 +101,7 @@ export function DashboardGridItem({
   children,
   className,
   colSpan = { default: 1 },
-  rowSpan = { default: 1 }
+  rowSpan = { default: 1 },
 }: DashboardGridItemProps) {
   // Build column span classes
   const colSpanClasses = [
@@ -112,8 +109,10 @@ export function DashboardGridItem({
     colSpan.sm && `sm:col-span-${colSpan.sm}`,
     colSpan.md && `md:col-span-${colSpan.md}`,
     colSpan.lg && `lg:col-span-${colSpan.lg}`,
-    colSpan.xl && `xl:col-span-${colSpan.xl}`
-  ].filter(Boolean).join(' ');
+    colSpan.xl && `xl:col-span-${colSpan.xl}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   // Build row span classes
   const rowSpanClasses = [
@@ -121,15 +120,13 @@ export function DashboardGridItem({
     rowSpan.sm && `sm:row-span-${rowSpan.sm}`,
     rowSpan.md && `md:row-span-${rowSpan.md}`,
     rowSpan.lg && `lg:row-span-${rowSpan.lg}`,
-    rowSpan.xl && `xl:row-span-${rowSpan.xl}`
-  ].filter(Boolean).join(' ');
+    rowSpan.xl && `xl:row-span-${rowSpan.xl}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className={cn(
-      colSpanClasses,
-      rowSpanClasses,
-      className
-    )}>
+    <div className={cn(colSpanClasses, rowSpanClasses, className)}>
       {children}
     </div>
   );

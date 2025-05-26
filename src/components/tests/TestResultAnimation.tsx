@@ -1,16 +1,24 @@
 /**
  * Test Result Animation Component
- * 
+ *
  * Displays an engaging animation of test results with comparisons to baseline
  */
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { TestResult } from '@/lib/testResultUtils';
-import { Brain, Target, Clock, CheckCircle2, TrendingUp, TrendingDown, Zap } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { TestResult } from "@/lib/testResultUtils";
+import {
+  Brain,
+  Target,
+  Clock,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  Zap,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TestResultAnimationProps {
   result: TestResult;
@@ -18,63 +26,73 @@ interface TestResultAnimationProps {
   onAnimationComplete?: () => void;
 }
 
-export function TestResultAnimation({ 
-  result, 
+export function TestResultAnimation({
+  result,
   baselineResult = null,
-  onAnimationComplete
+  onAnimationComplete,
 }: TestResultAnimationProps) {
-  const [stage, setStage] = useState<'initial' | 'score' | 'metrics' | 'comparison' | 'complete'>('initial');
+  const [stage, setStage] = useState<
+    "initial" | "score" | "metrics" | "comparison" | "complete"
+  >("initial");
   const [showScoreValue, setShowScoreValue] = useState(false);
   const [showMetrics, setShowMetrics] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
-  
+
   // Calculate comparison with baseline
   const scoreDiff = baselineResult ? result.score - baselineResult.score : 0;
-  const reactionTimeDiff = baselineResult ? baselineResult.reactionTime - result.reactionTime : 0;
-  const accuracyDiff = baselineResult ? result.accuracy - baselineResult.accuracy : 0;
-  
+  const reactionTimeDiff = baselineResult
+    ? baselineResult.reactionTime - result.reactionTime
+    : 0;
+  const accuracyDiff = baselineResult
+    ? result.accuracy - baselineResult.accuracy
+    : 0;
+
   // Determine if this result is better than baseline
   const isBetterScore = scoreDiff > 0;
   const isBetterReactionTime = reactionTimeDiff > 0; // Lower reaction time is better
   const isBetterAccuracy = accuracyDiff > 0;
-  
+
   // Overall improvement status
-  const isOverallImprovement = 
-    (isBetterScore ? 1 : -1) + 
-    (isBetterReactionTime ? 1 : -1) + 
-    (isBetterAccuracy ? 1 : -1) > 0;
-  
+  const isOverallImprovement =
+    (isBetterScore ? 1 : -1) +
+      (isBetterReactionTime ? 1 : -1) +
+      (isBetterAccuracy ? 1 : -1) >
+    0;
+
   // Animation sequence
   useEffect(() => {
     // Initial delay before starting animation
     const initialTimer = setTimeout(() => {
-      setStage('score');
+      setStage("score");
       setShowScoreValue(true);
     }, 500);
-    
+
     // Show metrics after score
     const metricsTimer = setTimeout(() => {
-      setStage('metrics');
+      setStage("metrics");
       setShowMetrics(true);
     }, 2000);
-    
+
     // Show comparison if baseline exists
     const comparisonTimer = setTimeout(() => {
       if (baselineResult) {
-        setStage('comparison');
+        setStage("comparison");
         setShowComparison(true);
       } else {
-        setStage('complete');
+        setStage("complete");
         if (onAnimationComplete) onAnimationComplete();
       }
     }, 3500);
-    
+
     // Complete animation
-    const completeTimer = setTimeout(() => {
-      setStage('complete');
-      if (onAnimationComplete) onAnimationComplete();
-    }, baselineResult ? 5000 : 3500);
-    
+    const completeTimer = setTimeout(
+      () => {
+        setStage("complete");
+        if (onAnimationComplete) onAnimationComplete();
+      },
+      baselineResult ? 5000 : 3500,
+    );
+
     return () => {
       clearTimeout(initialTimer);
       clearTimeout(metricsTimer);
@@ -82,7 +100,7 @@ export function TestResultAnimation({
       clearTimeout(completeTimer);
     };
   }, [baselineResult, onAnimationComplete]);
-  
+
   return (
     <Card className="w-full overflow-hidden">
       <CardContent className="p-6 relative">
@@ -97,7 +115,7 @@ export function TestResultAnimation({
             <Brain className="h-12 w-12 text-primary" />
           </motion.div>
         </div>
-        
+
         {/* Score section */}
         <div className="text-center mb-8">
           <motion.h3
@@ -108,18 +126,18 @@ export function TestResultAnimation({
           >
             Your Cognitive Performance
           </motion.h3>
-          
+
           <div className="relative h-24 flex items-center justify-center">
             <AnimatePresence>
               {showScoreValue && (
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ 
+                  transition={{
                     type: "spring",
                     stiffness: 260,
                     damping: 20,
-                    duration: 0.8 
+                    duration: 0.8,
                   }}
                   className="flex flex-col items-center"
                 >
@@ -134,7 +152,7 @@ export function TestResultAnimation({
             </AnimatePresence>
           </div>
         </div>
-        
+
         {/* Metrics section */}
         <AnimatePresence>
           {showMetrics && (
@@ -154,10 +172,15 @@ export function TestResultAnimation({
                   <Clock className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">Reaction Time</span>
                 </div>
-                <div className="text-2xl font-bold mb-1">{result.reactionTime}ms</div>
-                <Progress value={Math.min(100, 100 - (result.reactionTime / 10))} className="h-1.5" />
+                <div className="text-2xl font-bold mb-1">
+                  {result.reactionTime}ms
+                </div>
+                <Progress
+                  value={Math.min(100, 100 - result.reactionTime / 10)}
+                  className="h-1.5"
+                />
               </motion.div>
-              
+
               <motion.div
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -168,13 +191,15 @@ export function TestResultAnimation({
                   <Target className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">Accuracy</span>
                 </div>
-                <div className="text-2xl font-bold mb-1">{result.accuracy}%</div>
+                <div className="text-2xl font-bold mb-1">
+                  {result.accuracy}%
+                </div>
                 <Progress value={result.accuracy} className="h-1.5" />
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
-        
+
         {/* Comparison section */}
         <AnimatePresence>
           {showComparison && baselineResult && (
@@ -185,11 +210,11 @@ export function TestResultAnimation({
               className="mt-6"
             >
               <div className="text-center mb-4">
-                <Badge 
+                <Badge
                   variant={isOverallImprovement ? "default" : "outline"}
                   className={cn(
                     "font-normal text-sm",
-                    isOverallImprovement && "bg-green-500"
+                    isOverallImprovement && "bg-green-500",
                   )}
                 >
                   {isOverallImprovement ? (
@@ -205,37 +230,69 @@ export function TestResultAnimation({
                   )}
                 </Badge>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className={cn(
-                  "p-2 rounded-md",
-                  isBetterScore ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
-                )}>
-                  <div className="text-xs uppercase font-medium mb-1">Score</div>
+                <div
+                  className={cn(
+                    "p-2 rounded-md",
+                    isBetterScore
+                      ? "bg-green-500/10 text-green-600"
+                      : "bg-red-500/10 text-red-600",
+                  )}
+                >
+                  <div className="text-xs uppercase font-medium mb-1">
+                    Score
+                  </div>
                   <div className="flex items-center justify-center gap-1">
-                    {isBetterScore ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {isBetterScore ? (
+                      <TrendingUp className="h-3 w-3" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3" />
+                    )}
                     <span className="font-bold">{Math.abs(scoreDiff)}</span>
                   </div>
                 </div>
-                
-                <div className={cn(
-                  "p-2 rounded-md",
-                  isBetterReactionTime ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
-                )}>
-                  <div className="text-xs uppercase font-medium mb-1">Reaction</div>
+
+                <div
+                  className={cn(
+                    "p-2 rounded-md",
+                    isBetterReactionTime
+                      ? "bg-green-500/10 text-green-600"
+                      : "bg-red-500/10 text-red-600",
+                  )}
+                >
+                  <div className="text-xs uppercase font-medium mb-1">
+                    Reaction
+                  </div>
                   <div className="flex items-center justify-center gap-1">
-                    {isBetterReactionTime ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                    <span className="font-bold">{Math.abs(reactionTimeDiff)}ms</span>
+                    {isBetterReactionTime ? (
+                      <TrendingUp className="h-3 w-3" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3" />
+                    )}
+                    <span className="font-bold">
+                      {Math.abs(reactionTimeDiff)}ms
+                    </span>
                   </div>
                 </div>
-                
-                <div className={cn(
-                  "p-2 rounded-md",
-                  isBetterAccuracy ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
-                )}>
-                  <div className="text-xs uppercase font-medium mb-1">Accuracy</div>
+
+                <div
+                  className={cn(
+                    "p-2 rounded-md",
+                    isBetterAccuracy
+                      ? "bg-green-500/10 text-green-600"
+                      : "bg-red-500/10 text-red-600",
+                  )}
+                >
+                  <div className="text-xs uppercase font-medium mb-1">
+                    Accuracy
+                  </div>
                   <div className="flex items-center justify-center gap-1">
-                    {isBetterAccuracy ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {isBetterAccuracy ? (
+                      <TrendingUp className="h-3 w-3" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3" />
+                    )}
                     <span className="font-bold">{Math.abs(accuracyDiff)}%</span>
                   </div>
                 </div>
@@ -243,9 +300,9 @@ export function TestResultAnimation({
             </motion.div>
           )}
         </AnimatePresence>
-        
+
         {/* Completion indicator */}
-        {stage === 'complete' && (
+        {stage === "complete" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

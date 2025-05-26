@@ -1,12 +1,12 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, LayoutDashboard, BarChart } from 'lucide-react';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { UserNav } from '@/components/layout/UserNav';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, LayoutDashboard, BarChart } from "lucide-react";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { UserNav } from "@/components/layout/UserNav";
 
-export type DashboardTabValue = 'overview' | 'performance';
+export type DashboardTabValue = "overview" | "performance";
 
 interface DashboardLayoutProps {
   /** Currently active tab */
@@ -33,22 +33,22 @@ export function DashboardLayout({
   onRefresh,
   isLoading,
   children,
-  className
+  className,
 }: DashboardLayoutProps) {
   const { user } = useSupabaseAuth();
 
   // Define tab configuration
   const tabs = [
     {
-      value: 'overview',
-      label: 'Overview',
-      icon: <LayoutDashboard className="h-4 w-4 mr-2" />
+      value: "overview",
+      label: "Overview",
+      icon: <LayoutDashboard className="h-4 w-4 mr-2" />,
     },
     {
-      value: 'performance',
-      label: 'Performance',
-      icon: <BarChart className="h-4 w-4 mr-2" />
-    }
+      value: "performance",
+      label: "Performance",
+      icon: <BarChart className="h-4 w-4 mr-2" />,
+    },
   ];
 
   return (
@@ -99,9 +99,7 @@ export function DashboardLayout({
       </div>
 
       {/* Dashboard Content */}
-      <div className="dashboard-content">
-        {children}
-      </div>
+      <div className="dashboard-content">{children}</div>
     </div>
   );
 }

@@ -1,27 +1,29 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, BarChart2, HelpCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { useTestResults } from '@/contexts/TestResultsContext';
-import { getSupplements } from '@/services/supplementService';
-import { getWashoutPeriods } from '@/services/washoutPeriodService';
-import { Supplement } from '@/types/supplement';
-import { WashoutPeriod, ActiveWashoutPeriod } from '@/types/washoutPeriod';
-import { ComparativeVisualization as ComparativeVisualizationComponent } from '@/components/analysis/ComparativeVisualization';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, BarChart2, HelpCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { useTestResults } from "@/contexts/TestResultsContext";
+import { getSupplements } from "@/services/supplementService";
+import { getWashoutPeriods } from "@/services/washoutPeriodService";
+import { Supplement } from "@/types/supplement";
+import { WashoutPeriod, ActiveWashoutPeriod } from "@/types/washoutPeriod";
+import { ComparativeVisualization as ComparativeVisualizationComponent } from "@/components/analysis/ComparativeVisualization";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ComparativeVisualizationPage() {
   const { user } = useSupabaseAuth();
   const { testHistory, isLoadingTests } = useTestResults();
   const [supplements, setSupplements] = useState<Supplement[]>([]);
-  const [washoutPeriods, setWashoutPeriods] = useState<(WashoutPeriod | ActiveWashoutPeriod)[]>([]);
+  const [washoutPeriods, setWashoutPeriods] = useState<
+    (WashoutPeriod | ActiveWashoutPeriod)[]
+  >([]);
   const [isLoadingSupplements, setIsLoadingSupplements] = useState(true);
   const [isLoadingWashoutPeriods, setIsLoadingWashoutPeriods] = useState(true);
 
@@ -36,7 +38,7 @@ export default function ComparativeVisualizationPage() {
             setSupplements(result.supplements);
           }
         } catch (error) {
-          console.error('Error loading supplements:', error);
+          console.error("Error loading supplements:", error);
         } finally {
           setIsLoadingSupplements(false);
         }
@@ -54,10 +56,13 @@ export default function ComparativeVisualizationPage() {
         try {
           const result = await getWashoutPeriods(user.id);
           if (result.success) {
-            setWashoutPeriods([...result.washoutPeriods, ...result.activeWashoutPeriods]);
+            setWashoutPeriods([
+              ...result.washoutPeriods,
+              ...result.activeWashoutPeriods,
+            ]);
           }
         } catch (error) {
-          console.error('Error loading washout periods:', error);
+          console.error("Error loading washout periods:", error);
         } finally {
           setIsLoadingWashoutPeriods(false);
         }
@@ -68,7 +73,10 @@ export default function ComparativeVisualizationPage() {
   }, [user]);
 
   // Determine if any data is still loading
-  const isLoading = Boolean(isLoadingTests) || Boolean(isLoadingSupplements) || Boolean(isLoadingWashoutPeriods);
+  const isLoading =
+    Boolean(isLoadingTests) ||
+    Boolean(isLoadingSupplements) ||
+    Boolean(isLoadingWashoutPeriods);
 
   return (
     <div className="container py-8">
@@ -91,8 +99,10 @@ export default function ComparativeVisualizationPage() {
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
                     <p>
-                      Compare your cognitive performance during different periods to see how supplements affect you.
-                      You can compare on/off periods for a supplement, or compare two different supplements.
+                      Compare your cognitive performance during different
+                      periods to see how supplements affect you. You can compare
+                      on/off periods for a supplement, or compare two different
+                      supplements.
                     </p>
                   </TooltipContent>
                 </Tooltip>

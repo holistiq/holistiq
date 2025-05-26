@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect } from "react";
 
 /**
  * Hook to track the number of times a component renders
@@ -21,7 +21,7 @@ import { useRef, useEffect } from 'react';
  */
 export function useRenderCount(
   componentName?: string,
-  logRenders = false
+  logRenders = false,
 ): number {
   const renderCount = useRef(0);
 
@@ -30,8 +30,8 @@ export function useRenderCount(
 
   // Log renders if enabled
   useEffect(() => {
-    if (logRenders && process.env.NODE_ENV === 'development') {
-      const name = componentName || 'Component';
+    if (logRenders && process.env.NODE_ENV === "development") {
+      const name = componentName || "Component";
       console.log(`[Render] ${name} rendered (count: ${renderCount.current})`);
     }
   });
@@ -56,10 +56,9 @@ export function useRenderCount(
  * }
  * ```
  */
-export function useRenderCountWithPropTracking<T extends Record<string, unknown>>(
-  props: T,
-  componentName = 'Component'
-): number {
+export function useRenderCountWithPropTracking<
+  T extends Record<string, unknown>,
+>(props: T, componentName = "Component"): number {
   const renderCount = useRef(0);
   const prevPropsRef = useRef<T | null>(null);
 
@@ -68,13 +67,16 @@ export function useRenderCountWithPropTracking<T extends Record<string, unknown>
 
   // Log when props change
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       if (prevPropsRef.current) {
         const changedProps: string[] = [];
 
         // Check which props have changed
-        Object.keys(props).forEach(key => {
-          if (prevPropsRef.current && props[key] !== prevPropsRef.current[key]) {
+        Object.keys(props).forEach((key) => {
+          if (
+            prevPropsRef.current &&
+            props[key] !== prevPropsRef.current[key]
+          ) {
             changedProps.push(key);
           }
         });
@@ -83,17 +85,19 @@ export function useRenderCountWithPropTracking<T extends Record<string, unknown>
         if (changedProps.length > 0) {
           console.log(
             `[Render] ${componentName} re-rendered due to prop changes:`,
-            changedProps.join(', '),
-            `(render count: ${renderCount.current})`
+            changedProps.join(", "),
+            `(render count: ${renderCount.current})`,
           );
         } else {
           console.log(
             `[Render] ${componentName} re-rendered but no props changed`,
-            `(render count: ${renderCount.current})`
+            `(render count: ${renderCount.current})`,
           );
         }
       } else {
-        console.log(`[Render] ${componentName} mounted (render count: ${renderCount.current})`);
+        console.log(
+          `[Render] ${componentName} mounted (render count: ${renderCount.current})`,
+        );
       }
     }
 

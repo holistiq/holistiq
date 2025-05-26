@@ -32,7 +32,6 @@ For more detailed information about environment variables and configuration, see
 
 You can also use GitHub Codespaces for browser-based development.
 
-
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
@@ -75,6 +74,7 @@ For detailed deployment instructions, see the [Netlify Deployment Guide](docs/ne
 ### Alternative Hosting Options
 
 The project can also be deployed to:
+
 - AWS Amplify
 - GitHub Pages
 - Heroku

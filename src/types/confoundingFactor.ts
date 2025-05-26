@@ -95,28 +95,28 @@ export interface FactorAnalysisResponse {
 
 // Predefined options for UI dropdowns
 export const exerciseTypes = [
-  { value: 'cardio', label: 'Cardio' },
-  { value: 'strength', label: 'Strength Training' },
-  { value: 'yoga', label: 'Yoga/Stretching' },
-  { value: 'hiit', label: 'HIIT' },
-  { value: 'walking', label: 'Walking' },
-  { value: 'sports', label: 'Sports' },
-  { value: 'other', label: 'Other' }
+  { value: "cardio", label: "Cardio" },
+  { value: "strength", label: "Strength Training" },
+  { value: "yoga", label: "Yoga/Stretching" },
+  { value: "hiit", label: "HIIT" },
+  { value: "walking", label: "Walking" },
+  { value: "sports", label: "Sports" },
+  { value: "other", label: "Other" },
 ];
 
 export const locationOptions = [
-  { value: 'home', label: 'Home' },
-  { value: 'office', label: 'Office/Work' },
-  { value: 'cafe', label: 'Café' },
-  { value: 'library', label: 'Library' },
-  { value: 'outdoors', label: 'Outdoors' },
-  { value: 'traveling', label: 'Traveling' },
-  { value: 'other', label: 'Other' }
+  { value: "home", label: "Home" },
+  { value: "office", label: "Office/Work" },
+  { value: "cafe", label: "Café" },
+  { value: "library", label: "Library" },
+  { value: "outdoors", label: "Outdoors" },
+  { value: "traveling", label: "Traveling" },
+  { value: "other", label: "Other" },
 ];
 
 export const mealTypes = [
-  { value: 'breakfast', label: 'Breakfast' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'dinner', label: 'Dinner' },
-  { value: 'snack', label: 'Snack' }
+  { value: "breakfast", label: "Breakfast" },
+  { value: "lunch", label: "Lunch" },
+  { value: "dinner", label: "Dinner" },
+  { value: "snack", label: "Snack" },
 ];

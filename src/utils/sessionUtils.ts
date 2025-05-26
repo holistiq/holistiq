@@ -31,15 +31,18 @@ function findAlternativeAuthKey(): SupabaseSession | null {
   console.log("No Supabase session key found in localStorage");
 
   // Try to find any key that might contain auth data as a fallback
-  const possibleAuthKey = Object.keys(localStorage).find(key =>
-    (key.includes('auth') || key.includes('token') || key.includes('session')) &&
-    localStorage.getItem(key)?.includes('access_token')
+  const possibleAuthKey = Object.keys(localStorage).find(
+    (key) =>
+      (key.includes("auth") ||
+        key.includes("token") ||
+        key.includes("session")) &&
+      localStorage.getItem(key)?.includes("access_token"),
   );
 
   if (possibleAuthKey) {
     console.log("Found possible auth key:", possibleAuthKey);
     try {
-      const data = JSON.parse(localStorage.getItem(possibleAuthKey) || '{}');
+      const data = JSON.parse(localStorage.getItem(possibleAuthKey) || "{}");
       if (data.access_token) {
         console.log("Found alternative auth data with access token");
         return data;
@@ -59,7 +62,9 @@ function findAlternativeAuthKey(): SupabaseSession | null {
  * @param sessionData The session data to check
  * @returns {SupabaseSession|null} The session object if valid, null otherwise
  */
-function handleSessionExpiration(sessionData: SupabaseSession): SupabaseSession | null {
+function handleSessionExpiration(
+  sessionData: SupabaseSession,
+): SupabaseSession | null {
   if (sessionData.expires_at) {
     const expiresAt = sessionData.expires_at;
     const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
@@ -68,13 +73,15 @@ function handleSessionExpiration(sessionData: SupabaseSession): SupabaseSession 
       console.log("Supabase session is expired", {
         expiresAt,
         currentTime,
-        difference: expiresAt - currentTime
+        difference: expiresAt - currentTime,
       });
 
       // If we have a refresh token, return the session anyway
       // The Supabase client will attempt to refresh it
       if (sessionData.refresh_token) {
-        console.log("Session is expired but has refresh token, attempting to use it anyway");
+        console.log(
+          "Session is expired but has refresh token, attempting to use it anyway",
+        );
         return sessionData;
       }
 
@@ -86,7 +93,7 @@ function handleSessionExpiration(sessionData: SupabaseSession): SupabaseSession 
     hasAccessToken: !!sessionData.access_token,
     hasRefreshToken: !!sessionData.refresh_token,
     expiresAt: sessionData.expires_at,
-    currentTime: Math.floor(Date.now() / 1000)
+    currentTime: Math.floor(Date.now() / 1000),
   });
 
   return sessionData;
@@ -108,7 +115,9 @@ function parseAndValidateSession(sessionStr: string): SupabaseSession | null {
 
       // If we have at least an access token, try to use it
       if (sessionData?.access_token) {
-        console.log("Session has access token but no refresh token, attempting to use it anyway");
+        console.log(
+          "Session has access token but no refresh token, attempting to use it anyway",
+        );
         return sessionData;
       }
 
@@ -131,8 +140,8 @@ function parseAndValidateSession(sessionStr: string): SupabaseSession | null {
 export function getDirectSessionFromStorage(): SupabaseSession | null {
   try {
     // Check for Supabase session in localStorage
-    const supabaseKey = Object.keys(localStorage).find(key =>
-      key.startsWith('sb-') && key.endsWith('-auth-token')
+    const supabaseKey = Object.keys(localStorage).find(
+      (key) => key.startsWith("sb-") && key.endsWith("-auth-token"),
     );
 
     if (!supabaseKey) {
@@ -159,7 +168,9 @@ export function getDirectSessionFromStorage(): SupabaseSession | null {
  * @param {SupabaseSession} session The Supabase session object
  * @returns {SupabaseUser|null} The user object if found, null otherwise
  */
-export function extractUserFromSession(session: SupabaseSession | null): SupabaseUser | null {
+export function extractUserFromSession(
+  session: SupabaseSession | null,
+): SupabaseUser | null {
   if (!session) return null;
 
   try {
@@ -171,7 +182,7 @@ export function extractUserFromSession(session: SupabaseSession | null): Supabas
     // Otherwise, try to extract user data from the access token
     if (session.access_token) {
       // The access token is a JWT, which consists of three parts separated by dots
-      const parts = session.access_token.split('.');
+      const parts = session.access_token.split(".");
       if (parts.length !== 3) {
         console.log("Invalid access token format");
         return null;
@@ -188,7 +199,7 @@ export function extractUserFromSession(session: SupabaseSession | null): Supabas
             id: payload.sub,
             email: payload.email,
             role: payload.role,
-            aud: payload.aud
+            aud: payload.aud,
           };
         }
       } catch (decodeError) {

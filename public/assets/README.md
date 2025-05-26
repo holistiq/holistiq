@@ -32,6 +32,7 @@ Hero images are used on the homepage and other key pages. They should be high-qu
 ### Social Media Images
 
 Social media images are used for sharing on platforms like Twitter, Facebook, etc. They should be:
+
 - 1200x630 pixels for optimal display
 - Include the Holistiq logo and relevant text
 - Have a clean, professional design
@@ -48,6 +49,7 @@ When adding new assets:
 ## Image Optimization
 
 All images should be optimized for web use:
+
 - Use PNG for images with transparency or sharp details
 - Use JPEG for photographs
 - Consider WebP format for better compression

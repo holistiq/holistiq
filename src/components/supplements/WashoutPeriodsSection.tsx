@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { format, formatDistance } from 'date-fns';
+import React from "react";
+import { Link } from "react-router-dom";
+import { format, formatDistance } from "date-fns";
 import {
   Pill,
   Clock,
@@ -10,22 +10,23 @@ import {
   XCircle,
   AlertCircle,
   HelpCircle,
-  BookOpen
-} from 'lucide-react';
+  BookOpen,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { ActiveWashoutPeriod, WashoutPeriodStatus } from '@/types/washoutPeriod';
-import { completeWashoutPeriod, cancelWashoutPeriod } from '@/services/washoutPeriodService';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { toast } from '@/components/ui/use-toast';
+  ActiveWashoutPeriod,
+  WashoutPeriodStatus,
+} from "@/types/washoutPeriod";
+import {
+  completeWashoutPeriod,
+  cancelWashoutPeriod,
+} from "@/services/washoutPeriodService";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { toast } from "@/components/ui/use-toast";
 
 interface WashoutPeriodsSectionProps {
   washoutPeriods: ActiveWashoutPeriod[];
@@ -36,7 +37,7 @@ interface WashoutPeriodsSectionProps {
 export function WashoutPeriodsSection({
   washoutPeriods,
   isLoading = false,
-  onUpdate
+  onUpdate,
 }: WashoutPeriodsSectionProps) {
   const { user } = useSupabaseAuth();
 
@@ -49,23 +50,23 @@ export function WashoutPeriodsSection({
 
       if (result.success) {
         toast({
-          title: 'Washout period completed',
-          description: 'Your washout period has been marked as completed',
+          title: "Washout period completed",
+          description: "Your washout period has been marked as completed",
         });
         if (onUpdate) onUpdate();
       } else {
         toast({
-          title: 'Error completing washout period',
-          description: result.error || 'Please try again later',
-          variant: 'destructive',
+          title: "Error completing washout period",
+          description: result.error || "Please try again later",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error completing washout period:', error);
+      console.error("Error completing washout period:", error);
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     }
   };
@@ -79,23 +80,23 @@ export function WashoutPeriodsSection({
 
       if (result.success) {
         toast({
-          title: 'Washout period cancelled',
-          description: 'Your washout period has been cancelled',
+          title: "Washout period cancelled",
+          description: "Your washout period has been cancelled",
         });
         if (onUpdate) onUpdate();
       } else {
         toast({
-          title: 'Error cancelling washout period',
-          description: result.error || 'Please try again later',
-          variant: 'destructive',
+          title: "Error cancelling washout period",
+          description: result.error || "Please try again later",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error cancelling washout period:', error);
+      console.error("Error cancelling washout period:", error);
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     }
   };
@@ -117,7 +118,9 @@ export function WashoutPeriodsSection({
           <div className="flex justify-center mb-2">
             <Clock className="h-10 w-10 text-muted-foreground opacity-20" />
           </div>
-          <p className="text-muted-foreground mb-4">No active washout periods</p>
+          <p className="text-muted-foreground mb-4">
+            No active washout periods
+          </p>
           <Link to="/log-washout-period">
             <Button variant="outline" size="sm" className="gap-1">
               <Plus className="h-3 w-3" />
@@ -140,12 +143,19 @@ export function WashoutPeriodsSection({
                 <div>
                   <div className="font-medium">{period.supplement_name}</div>
                   <div className="text-sm text-muted-foreground">
-                    Started {format(new Date(period.start_date), 'MMM d, yyyy')}
+                    Started {format(new Date(period.start_date), "MMM d, yyyy")}
                   </div>
                 </div>
               </div>
-              <Badge variant={period.days_elapsed > (period.expected_duration_days || 0) ? "destructive" : "secondary"}>
-                Day {period.days_elapsed} of {period.expected_duration_days || '?'}
+              <Badge
+                variant={
+                  period.days_elapsed > (period.expected_duration_days || 0)
+                    ? "destructive"
+                    : "secondary"
+                }
+              >
+                Day {period.days_elapsed} of{" "}
+                {period.expected_duration_days || "?"}
               </Badge>
             </div>
 
@@ -220,9 +230,7 @@ export function WashoutPeriodsSection({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        {renderContent()}
-      </CardContent>
+      <CardContent>{renderContent()}</CardContent>
     </Card>
   );
 }

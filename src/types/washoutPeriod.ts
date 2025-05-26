@@ -6,9 +6,9 @@
  * Status of a washout period
  */
 export enum WashoutPeriodStatus {
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  ACTIVE = "active",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
 }
 
 /**

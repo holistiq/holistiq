@@ -16,6 +16,7 @@ This directory contains the favicon files for the Holistiq application.
 The PNG favicons can be generated from the SVG file using the script in `scripts/generate-favicons.js`. To use this script:
 
 1. Install the required dependency:
+
    ```
    npm install sharp
    ```
@@ -33,12 +34,41 @@ The favicons are referenced in the `index.html` file with the following tags:
 
 ```html
 <link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon.svg" />
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png" />
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon/favicon-48x48.png" />
-<link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/favicon-192x192.png" />
-<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/favicon-192x192.png" />
-<link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon/favicon-512x512.png" />
+<link
+  rel="icon"
+  type="image/png"
+  sizes="16x16"
+  href="/assets/favicon/favicon-16x16.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="32x32"
+  href="/assets/favicon/favicon-32x32.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="48x48"
+  href="/assets/favicon/favicon-48x48.png"
+/>
+<link
+  rel="apple-touch-icon"
+  sizes="180x180"
+  href="/assets/favicon/favicon-192x192.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="192x192"
+  href="/assets/favicon/favicon-192x192.png"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  sizes="512x512"
+  href="/assets/favicon/favicon-512x512.png"
+/>
 ```
 
 ## PWA Support

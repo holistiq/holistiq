@@ -1,6 +1,10 @@
-import { getAnalytics, calculateAnalytics, convertAnalyticsToStatisticalAnalyses } from '../services/analyticsService';
-import { getStatisticalAnalyses } from '../services/statisticalSignificanceService';
-import { ContextType } from '../types/statisticalSignificance';
+import {
+  getAnalytics,
+  calculateAnalytics,
+  convertAnalyticsToStatisticalAnalyses,
+} from "../services/analyticsService";
+import { getStatisticalAnalyses } from "../services/statisticalSignificanceService";
+import { ContextType } from "../types/statisticalSignificance";
 
 /**
  * Test script for the analytics service
@@ -9,44 +13,47 @@ import { ContextType } from '../types/statisticalSignificance';
 async function testAnalyticsService() {
   try {
     // Replace with a valid user ID for testing
-    const userId = 'test-user-id';
-    
+    const userId = "test-user-id";
+
     // Test calculating analytics
-    console.log('Testing calculateAnalytics...');
+    console.log("Testing calculateAnalytics...");
     const analyticsResult = await calculateAnalytics(userId, {
-      testType: 'n-back-2',
-      periodStart: '2025-01-01T00:00:00Z',
-      periodEnd: '2025-12-31T23:59:59Z'
+      testType: "n-back-2",
+      periodStart: "2025-01-01T00:00:00Z",
+      periodEnd: "2025-12-31T23:59:59Z",
     });
-    
-    console.log('calculateAnalytics result:', analyticsResult);
-    
+
+    console.log("calculateAnalytics result:", analyticsResult);
+
     // Test getting analytics
-    console.log('\nTesting getAnalytics...');
+    console.log("\nTesting getAnalytics...");
     const getAnalyticsResult = await getAnalytics(userId);
-    
-    console.log('getAnalytics result:', getAnalyticsResult);
-    
+
+    console.log("getAnalytics result:", getAnalyticsResult);
+
     if (getAnalyticsResult.success && getAnalyticsResult.data.length > 0) {
       // Test converting analytics to statistical analyses
-      console.log('\nTesting convertAnalyticsToStatisticalAnalyses...');
+      console.log("\nTesting convertAnalyticsToStatisticalAnalyses...");
       const convertResult = await convertAnalyticsToStatisticalAnalyses(
         getAnalyticsResult.data,
-        ContextType.GENERAL
+        ContextType.GENERAL,
       );
-      
-      console.log('convertAnalyticsToStatisticalAnalyses result:', convertResult);
+
+      console.log(
+        "convertAnalyticsToStatisticalAnalyses result:",
+        convertResult,
+      );
     }
-    
+
     // Test getting statistical analyses (should now use analytics data as fallback)
-    console.log('\nTesting getStatisticalAnalyses...');
+    console.log("\nTesting getStatisticalAnalyses...");
     const statisticalAnalysesResult = await getStatisticalAnalyses(userId);
-    
-    console.log('getStatisticalAnalyses result:', statisticalAnalysesResult);
-    
-    console.log('\nAll tests completed successfully!');
+
+    console.log("getStatisticalAnalyses result:", statisticalAnalysesResult);
+
+    console.log("\nAll tests completed successfully!");
   } catch (error) {
-    console.error('Error testing analytics service:', error);
+    console.error("Error testing analytics service:", error);
   }
 }
 

@@ -1,9 +1,13 @@
 /**
  * Hook for controlling data prefetching
  */
-import { useState, useEffect, useCallback } from 'react';
-import { prefetchService, PrefetchConfig, DEFAULT_PREFETCH_CONFIG } from '@/services/prefetchService';
-import { useSupabaseAuth } from './useSupabaseAuth';
+import { useState, useEffect, useCallback } from "react";
+import {
+  prefetchService,
+  PrefetchConfig,
+  DEFAULT_PREFETCH_CONFIG,
+} from "@/services/prefetchService";
+import { useSupabaseAuth } from "./useSupabaseAuth";
 
 // Define PrefetchMetrics interface based on the one in prefetchService
 interface PrefetchMetrics {
@@ -12,12 +16,15 @@ interface PrefetchMetrics {
   totalItems: number;
   successfulItems: number;
   failedItems: number;
-  itemMetrics: Record<string, {
-    startTime: number;
-    endTime: number | null;
-    success: boolean;
-    error?: string;
-  }>;
+  itemMetrics: Record<
+    string,
+    {
+      startTime: number;
+      endTime: number | null;
+      success: boolean;
+      error?: string;
+    }
+  >;
 }
 
 interface UsePrefetchOptions {
@@ -50,7 +57,9 @@ interface UsePrefetchResult {
  * @param options Prefetch options
  * @returns Prefetch control functions and state
  */
-export function usePrefetch(options: UsePrefetchOptions = {}): UsePrefetchResult {
+export function usePrefetch(
+  options: UsePrefetchOptions = {},
+): UsePrefetchResult {
   const { user } = useSupabaseAuth();
   const [isPrefetching, setIsPrefetching] = useState(false);
   const [metrics, setMetrics] = useState<PrefetchMetrics>({
@@ -59,12 +68,12 @@ export function usePrefetch(options: UsePrefetchOptions = {}): UsePrefetchResult
     totalItems: 0,
     successfulItems: 0,
     failedItems: 0,
-    itemMetrics: {}
+    itemMetrics: {},
   });
   const [config, setConfig] = useState<PrefetchConfig>({
     ...DEFAULT_PREFETCH_CONFIG,
     ...options.config,
-    enabled: options.enabled ?? DEFAULT_PREFETCH_CONFIG.enabled
+    enabled: options.enabled ?? DEFAULT_PREFETCH_CONFIG.enabled,
   });
 
   // Update prefetch service configuration when config changes
@@ -72,8 +81,8 @@ export function usePrefetch(options: UsePrefetchOptions = {}): UsePrefetchResult
     prefetchService.configure(config);
 
     // In development mode, log configuration changes
-    if (process.env.NODE_ENV !== 'production' && config.logLevel !== 'none') {
-      console.log('Prefetch configuration updated:', config);
+    if (process.env.NODE_ENV !== "production" && config.logLevel !== "none") {
+      console.log("Prefetch configuration updated:", config);
     }
   }, [config]);
 
@@ -87,7 +96,7 @@ export function usePrefetch(options: UsePrefetchOptions = {}): UsePrefetchResult
       // Update metrics after prefetching
       setMetrics(prefetchService.getMetrics());
     } catch (error) {
-      console.error('Error during manual prefetch:', error);
+      console.error("Error during manual prefetch:", error);
     } finally {
       setIsPrefetching(false);
     }
@@ -95,9 +104,9 @@ export function usePrefetch(options: UsePrefetchOptions = {}): UsePrefetchResult
 
   // Function to update prefetch configuration
   const updateConfig = useCallback((newConfig: Partial<PrefetchConfig>) => {
-    setConfig(prevConfig => ({
+    setConfig((prevConfig) => ({
       ...prevConfig,
-      ...newConfig
+      ...newConfig,
     }));
   }, []);
 
@@ -116,6 +125,6 @@ export function usePrefetch(options: UsePrefetchOptions = {}): UsePrefetchResult
     metrics,
     config,
     prefetch,
-    updateConfig
+    updateConfig,
   };
 }

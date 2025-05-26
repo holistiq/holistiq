@@ -5,10 +5,10 @@
  * It improves perceived performance by loading data before the user needs it.
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { cache, DEFAULT_CACHE_TTL } from '@/lib/cache';
-import { CACHE_CONFIG } from '@/lib/supabaseCache';
-import { loadSupplementsFromLocalStorage } from '@/services/supplementService';
+import { supabase } from "@/integrations/supabase/client";
+import { cache, DEFAULT_CACHE_TTL } from "@/lib/cache";
+import { CACHE_CONFIG } from "@/lib/supabaseCache";
+import { loadSupplementsFromLocalStorage } from "@/services/supplementService";
 
 // Configuration for prefetching
 export interface PrefetchConfig {
@@ -29,7 +29,7 @@ export interface PrefetchConfig {
   maxWashoutPeriods: number;
 
   // Logging configuration
-  logLevel: 'none' | 'error' | 'warn' | 'info' | 'debug';
+  logLevel: "none" | "error" | "warn" | "info" | "debug";
 }
 
 // Default prefetch configuration
@@ -44,7 +44,7 @@ export const DEFAULT_PREFETCH_CONFIG: PrefetchConfig = {
   maxSupplements: 10,
   maxConfoundingFactors: 10,
   maxWashoutPeriods: 5,
-  logLevel: process.env.NODE_ENV !== 'production' ? 'error' : 'none'
+  logLevel: process.env.NODE_ENV !== "production" ? "error" : "none",
 };
 
 // Metrics for prefetching performance
@@ -54,12 +54,15 @@ interface PrefetchMetrics {
   totalItems: number;
   successfulItems: number;
   failedItems: number;
-  itemMetrics: Record<string, {
-    startTime: number;
-    endTime: number | null;
-    success: boolean;
-    error?: string;
-  }>;
+  itemMetrics: Record<
+    string,
+    {
+      startTime: number;
+      endTime: number | null;
+      success: boolean;
+      error?: string;
+    }
+  >;
 }
 
 class PrefetchService {
@@ -78,7 +81,7 @@ class PrefetchService {
       totalItems: 0,
       successfulItems: 0,
       failedItems: 0,
-      itemMetrics: {}
+      itemMetrics: {},
     };
   }
 
@@ -160,20 +163,20 @@ class PrefetchService {
    * @param userId The user ID
    */
   private async prefetchUserProfile(userId: string): Promise<void> {
-    const metricKey = 'userProfile';
+    const metricKey = "userProfile";
     this.metrics.totalItems++;
     this.metrics.itemMetrics[metricKey] = {
       startTime: performance.now(),
       endTime: null,
-      success: false
+      success: false,
     };
 
     try {
       // Fetch user profile
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
+        .from("users")
+        .select("*")
+        .eq("id", userId)
         .single();
 
       if (error) throw error;
@@ -186,9 +189,10 @@ class PrefetchService {
       }
     } catch (error) {
       this.metrics.failedItems++;
-      this.metrics.itemMetrics[metricKey].error = error instanceof Error ? error.message : String(error);
-      if (this.config.logLevel !== 'none') {
-        console.error('Error prefetching user profile:', error);
+      this.metrics.itemMetrics[metricKey].error =
+        error instanceof Error ? error.message : String(error);
+      if (this.config.logLevel !== "none") {
+        console.error("Error prefetching user profile:", error);
       }
     } finally {
       this.metrics.itemMetrics[metricKey].endTime = performance.now();
@@ -200,21 +204,21 @@ class PrefetchService {
    * @param userId The user ID
    */
   private async prefetchTestResults(userId: string): Promise<void> {
-    const metricKey = 'testResults';
+    const metricKey = "testResults";
     this.metrics.totalItems++;
     this.metrics.itemMetrics[metricKey] = {
       startTime: performance.now(),
       endTime: null,
-      success: false
+      success: false,
     };
 
     try {
       // Fetch recent test results
       const { data, error } = await supabase
-        .from('test_results')
-        .select('*')
-        .eq('user_id', userId)
-        .order('timestamp', { ascending: false })
+        .from("test_results")
+        .select("*")
+        .eq("user_id", userId)
+        .order("timestamp", { ascending: false })
         .limit(this.config.maxTestResults);
 
       if (error) throw error;
@@ -223,11 +227,15 @@ class PrefetchService {
       if (data) {
         // Cache all test results
         const allResultsKey = CACHE_CONFIG.TEST_RESULTS.PATTERNS.ALL(userId);
-        cache.set(allResultsKey, { success: true, data }, CACHE_CONFIG.TEST_RESULTS.TTL);
+        cache.set(
+          allResultsKey,
+          { success: true, data },
+          CACHE_CONFIG.TEST_RESULTS.TTL,
+        );
 
         // Group test results by type for type-specific caching
         const resultsByType: Record<string, unknown[]> = {};
-        data.forEach(result => {
+        data.forEach((result) => {
           if (!resultsByType[result.test_type]) {
             resultsByType[result.test_type] = [];
           }
@@ -236,17 +244,33 @@ class PrefetchService {
 
         // Cache test results by type
         Object.entries(resultsByType).forEach(([testType, results]) => {
-          const typeKey = CACHE_CONFIG.TEST_RESULTS.PATTERNS.BY_TYPE(userId, testType);
-          cache.set(typeKey, { success: true, data: results }, CACHE_CONFIG.TEST_RESULTS.TTL);
+          const typeKey = CACHE_CONFIG.TEST_RESULTS.PATTERNS.BY_TYPE(
+            userId,
+            testType,
+          );
+          cache.set(
+            typeKey,
+            { success: true, data: results },
+            CACHE_CONFIG.TEST_RESULTS.TTL,
+          );
 
           // Cache baseline (first test) for each type
           if (results.length > 0) {
-            const sortedResults = [...results].sort((a, b) =>
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            const sortedResults = [...results].sort(
+              (a, b) =>
+                new Date(a.timestamp).getTime() -
+                new Date(b.timestamp).getTime(),
             );
             const baseline = sortedResults[0];
-            const baselineKey = CACHE_CONFIG.TEST_RESULTS.PATTERNS.BASELINE(userId, testType);
-            cache.set(baselineKey, { success: true, data: baseline }, CACHE_CONFIG.TEST_RESULTS.TTL);
+            const baselineKey = CACHE_CONFIG.TEST_RESULTS.PATTERNS.BASELINE(
+              userId,
+              testType,
+            );
+            cache.set(
+              baselineKey,
+              { success: true, data: baseline },
+              CACHE_CONFIG.TEST_RESULTS.TTL,
+            );
           }
         });
 
@@ -255,9 +279,10 @@ class PrefetchService {
       }
     } catch (error) {
       this.metrics.failedItems++;
-      this.metrics.itemMetrics[metricKey].error = error instanceof Error ? error.message : String(error);
-      if (this.config.logLevel !== 'none') {
-        console.error('Error prefetching test results:', error);
+      this.metrics.itemMetrics[metricKey].error =
+        error instanceof Error ? error.message : String(error);
+      if (this.config.logLevel !== "none") {
+        console.error("Error prefetching test results:", error);
       }
     } finally {
       this.metrics.itemMetrics[metricKey].endTime = performance.now();
@@ -269,12 +294,12 @@ class PrefetchService {
    * @param userId The user ID
    */
   private async prefetchSupplements(userId: string): Promise<void> {
-    const metricKey = 'supplements';
+    const metricKey = "supplements";
     this.metrics.totalItems++;
     this.metrics.itemMetrics[metricKey] = {
       startTime: performance.now(),
       endTime: null,
-      success: false
+      success: false,
     };
 
     try {
@@ -284,15 +309,19 @@ class PrefetchService {
       // Cache local supplements if available
       if (localSupplements && localSupplements.length > 0) {
         const localSupplementsKey = `local_supplements`;
-        cache.set(localSupplementsKey, { success: true, supplements: localSupplements }, DEFAULT_CACHE_TTL.MEDIUM);
+        cache.set(
+          localSupplementsKey,
+          { success: true, supplements: localSupplements },
+          DEFAULT_CACHE_TTL.MEDIUM,
+        );
       }
 
       // Fetch supplements from Supabase
       const { data, error } = await supabase
-        .from('supplements')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .from("supplements")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
         .limit(this.config.maxSupplements);
 
       if (error) throw error;
@@ -300,16 +329,31 @@ class PrefetchService {
       // Cache the supplements
       if (data) {
         const allSupplementsKey = CACHE_CONFIG.SUPPLEMENTS.PATTERNS.ALL(userId);
-        cache.set(allSupplementsKey, { success: true, supplements: data }, CACHE_CONFIG.SUPPLEMENTS.TTL);
+        cache.set(
+          allSupplementsKey,
+          { success: true, supplements: data },
+          CACHE_CONFIG.SUPPLEMENTS.TTL,
+        );
 
         // Cache recent supplements
-        const recentSupplementsKey = CACHE_CONFIG.SUPPLEMENTS.PATTERNS.RECENT(userId);
-        cache.set(recentSupplementsKey, { success: true, recentSupplements: data.slice(0, 3) }, CACHE_CONFIG.SUPPLEMENTS.TTL);
+        const recentSupplementsKey =
+          CACHE_CONFIG.SUPPLEMENTS.PATTERNS.RECENT(userId);
+        cache.set(
+          recentSupplementsKey,
+          { success: true, recentSupplements: data.slice(0, 3) },
+          CACHE_CONFIG.SUPPLEMENTS.TTL,
+        );
 
         // Cache individual supplements
-        data.forEach(supplement => {
-          const supplementKey = CACHE_CONFIG.SUPPLEMENTS.PATTERNS.BY_ID(supplement.id);
-          cache.set(supplementKey, { success: true, supplement }, CACHE_CONFIG.SUPPLEMENTS.TTL);
+        data.forEach((supplement) => {
+          const supplementKey = CACHE_CONFIG.SUPPLEMENTS.PATTERNS.BY_ID(
+            supplement.id,
+          );
+          cache.set(
+            supplementKey,
+            { success: true, supplement },
+            CACHE_CONFIG.SUPPLEMENTS.TTL,
+          );
         });
 
         this.metrics.successfulItems++;
@@ -317,9 +361,10 @@ class PrefetchService {
       }
     } catch (error) {
       this.metrics.failedItems++;
-      this.metrics.itemMetrics[metricKey].error = error instanceof Error ? error.message : String(error);
-      if (this.config.logLevel !== 'none') {
-        console.error('Error prefetching supplements:', error);
+      this.metrics.itemMetrics[metricKey].error =
+        error instanceof Error ? error.message : String(error);
+      if (this.config.logLevel !== "none") {
+        console.error("Error prefetching supplements:", error);
       }
     } finally {
       this.metrics.itemMetrics[metricKey].endTime = performance.now();
@@ -331,38 +376,44 @@ class PrefetchService {
    * @param userId The user ID
    */
   private async prefetchConfoundingFactors(userId: string): Promise<void> {
-    const metricKey = 'confoundingFactors';
+    const metricKey = "confoundingFactors";
     this.metrics.totalItems++;
     this.metrics.itemMetrics[metricKey] = {
       startTime: performance.now(),
       endTime: null,
-      success: false
+      success: false,
     };
 
     try {
       // Fetch confounding factors
       const { data, error } = await supabase
-        .from('confounding_factors')
-        .select('*')
-        .eq('user_id', userId)
-        .order('recorded_at', { ascending: false })
+        .from("confounding_factors")
+        .select("*")
+        .eq("user_id", userId)
+        .order("recorded_at", { ascending: false })
         .limit(this.config.maxConfoundingFactors);
 
       if (error) throw error;
 
       // Cache the confounding factors
       if (data) {
-        const allFactorsKey = CACHE_CONFIG.CONFOUNDING_FACTORS.PATTERNS.ALL(userId);
-        cache.set(allFactorsKey, { success: true, factors: data }, CACHE_CONFIG.CONFOUNDING_FACTORS.TTL);
+        const allFactorsKey =
+          CACHE_CONFIG.CONFOUNDING_FACTORS.PATTERNS.ALL(userId);
+        cache.set(
+          allFactorsKey,
+          { success: true, factors: data },
+          CACHE_CONFIG.CONFOUNDING_FACTORS.TTL,
+        );
 
         this.metrics.successfulItems++;
         this.metrics.itemMetrics[metricKey].success = true;
       }
     } catch (error) {
       this.metrics.failedItems++;
-      this.metrics.itemMetrics[metricKey].error = error instanceof Error ? error.message : String(error);
-      if (this.config.logLevel !== 'none') {
-        console.error('Error prefetching confounding factors:', error);
+      this.metrics.itemMetrics[metricKey].error =
+        error instanceof Error ? error.message : String(error);
+      if (this.config.logLevel !== "none") {
+        console.error("Error prefetching confounding factors:", error);
       }
     } finally {
       this.metrics.itemMetrics[metricKey].endTime = performance.now();
@@ -374,21 +425,21 @@ class PrefetchService {
    * @param userId The user ID
    */
   private async prefetchWashoutPeriods(userId: string): Promise<void> {
-    const metricKey = 'washoutPeriods';
+    const metricKey = "washoutPeriods";
     this.metrics.totalItems++;
     this.metrics.itemMetrics[metricKey] = {
       startTime: performance.now(),
       endTime: null,
-      success: false
+      success: false,
     };
 
     try {
       // Fetch washout periods
       const { data, error } = await supabase
-        .from('washout_periods')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .from("washout_periods")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
         .limit(this.config.maxWashoutPeriods);
 
       if (error) throw error;
@@ -396,25 +447,35 @@ class PrefetchService {
       // Cache the washout periods
       if (data) {
         const allPeriodsKey = CACHE_CONFIG.WASHOUT_PERIODS.PATTERNS.ALL(userId);
-        cache.set(allPeriodsKey, { success: true, periods: data }, CACHE_CONFIG.WASHOUT_PERIODS.TTL);
+        cache.set(
+          allPeriodsKey,
+          { success: true, periods: data },
+          CACHE_CONFIG.WASHOUT_PERIODS.TTL,
+        );
 
         // Cache active washout periods
         const now = new Date().toISOString();
-        const activeWashoutPeriods = data.filter(period =>
-          period.end_date && period.end_date > now
+        const activeWashoutPeriods = data.filter(
+          (period) => period.end_date && period.end_date > now,
         );
 
-        const activePeriodsKey = CACHE_CONFIG.WASHOUT_PERIODS.PATTERNS.ACTIVE(userId);
-        cache.set(activePeriodsKey, { success: true, activePeriods: activeWashoutPeriods }, CACHE_CONFIG.WASHOUT_PERIODS.TTL);
+        const activePeriodsKey =
+          CACHE_CONFIG.WASHOUT_PERIODS.PATTERNS.ACTIVE(userId);
+        cache.set(
+          activePeriodsKey,
+          { success: true, activePeriods: activeWashoutPeriods },
+          CACHE_CONFIG.WASHOUT_PERIODS.TTL,
+        );
 
         this.metrics.successfulItems++;
         this.metrics.itemMetrics[metricKey].success = true;
       }
     } catch (error) {
       this.metrics.failedItems++;
-      this.metrics.itemMetrics[metricKey].error = error instanceof Error ? error.message : String(error);
-      if (this.config.logLevel !== 'none') {
-        console.error('Error prefetching washout periods:', error);
+      this.metrics.itemMetrics[metricKey].error =
+        error instanceof Error ? error.message : String(error);
+      if (this.config.logLevel !== "none") {
+        console.error("Error prefetching washout periods:", error);
       }
     } finally {
       this.metrics.itemMetrics[metricKey].endTime = performance.now();
@@ -426,12 +487,13 @@ class PrefetchService {
    */
   private logMetrics(): void {
     // Skip if endTime is not set or logging is disabled
-    if (this.metrics.endTime === null || this.config.logLevel === 'none') return;
+    if (this.metrics.endTime === null || this.config.logLevel === "none")
+      return;
 
     // Only log detailed metrics if log level is info or debug
-    if (this.config.logLevel === 'info' || this.config.logLevel === 'debug') {
+    if (this.config.logLevel === "info" || this.config.logLevel === "debug") {
       const totalTime = this.metrics.endTime - this.metrics.startTime;
-      console.group('Prefetch Service Metrics');
+      console.group("Prefetch Service Metrics");
       console.log(`Total prefetch time: ${totalTime.toFixed(2)}ms`);
       console.log(`Total items: ${this.metrics.totalItems}`);
       console.log(`Successful items: ${this.metrics.successfulItems}`);
@@ -443,18 +505,25 @@ class PrefetchService {
         if (metric.endTime === null) return;
 
         const itemTime = metric.endTime - metric.startTime;
-        console.log(`${key}: ${itemTime.toFixed(2)}ms (${metric.success ? 'Success' : 'Failed'})`);
+        console.log(
+          `${key}: ${itemTime.toFixed(2)}ms (${metric.success ? "Success" : "Failed"})`,
+        );
 
         // Always log errors if they exist and log level is at least error
-        if (metric.error && this.config.logLevel !== 'none') {
+        if (metric.error && this.config.logLevel !== "none") {
           console.error(`${key} error:`, metric.error);
         }
       });
 
       console.groupEnd();
-    } else if (this.config.logLevel === 'warn' && this.metrics.failedItems > 0) {
+    } else if (
+      this.config.logLevel === "warn" &&
+      this.metrics.failedItems > 0
+    ) {
       // For warn level, only log if there were failures
-      console.warn(`Prefetch completed with ${this.metrics.failedItems} failed items out of ${this.metrics.totalItems}`);
+      console.warn(
+        `Prefetch completed with ${this.metrics.failedItems} failed items out of ${this.metrics.totalItems}`,
+      );
     }
   }
 

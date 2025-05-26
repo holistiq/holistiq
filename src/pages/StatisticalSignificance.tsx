@@ -1,10 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -25,25 +20,25 @@ import {
   Activity,
   Plus,
   Trash2,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import {
   StatisticalAnalysis,
   StatisticalAnalysisOptions,
-  ContextType
-} from '@/types/statisticalSignificance';
+  ContextType,
+} from "@/types/statisticalSignificance";
 import {
   runStatisticalAnalysis,
   getStatisticalAnalyses,
-  deleteStatisticalAnalysis
-} from '@/services/statisticalSignificanceService';
-import { getSupplements } from '@/services/supplementService';
-import { getConfoundingFactors } from '@/services/confoundingFactorService';
-import { Supplement } from '@/types/supplement';
-import { ConfoundingFactor } from '@/types/confoundingFactor';
-import { StatisticalSignificanceForm } from '@/components/analysis/StatisticalSignificanceForm';
-import { StatisticalSignificanceCard } from '@/components/analysis/StatisticalSignificanceCard';
+  deleteStatisticalAnalysis,
+} from "@/services/statisticalSignificanceService";
+import { getSupplements } from "@/services/supplementService";
+import { getConfoundingFactors } from "@/services/confoundingFactorService";
+import { Supplement } from "@/types/supplement";
+import { ConfoundingFactor } from "@/types/confoundingFactor";
+import { StatisticalSignificanceForm } from "@/components/analysis/StatisticalSignificanceForm";
+import { StatisticalSignificanceCard } from "@/components/analysis/StatisticalSignificanceCard";
 
 export default function StatisticalSignificance() {
   const { user } = useSupabaseAuth();
@@ -52,7 +47,9 @@ export default function StatisticalSignificance() {
   const [isRunningAnalysis, setIsRunningAnalysis] = useState(false);
   const [analyses, setAnalyses] = useState<StatisticalAnalysis[]>([]);
   const [supplements, setSupplements] = useState<Supplement[]>([]);
-  const [confoundingFactors, setConfoundingFactors] = useState<ConfoundingFactor[]>([]);
+  const [confoundingFactors, setConfoundingFactors] = useState<
+    ConfoundingFactor[]
+  >([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showNewAnalysisForm, setShowNewAnalysisForm] = useState(false);
 
@@ -78,7 +75,9 @@ export default function StatisticalSignificance() {
         contextType = ContextType.GENERAL;
       }
 
-      console.log(`Loading analyses for tab: ${activeTab}, contextType: ${contextType}`);
+      console.log(
+        `Loading analyses for tab: ${activeTab}, contextType: ${contextType}`,
+      );
 
       const result = await getStatisticalAnalyses(user.id, contextType);
       if (result.success) {
@@ -91,8 +90,9 @@ export default function StatisticalSignificance() {
           console.error("Error loading analyses:", result.error);
           toast({
             title: "Error",
-            description: "Failed to load statistical analyses. Please try again.",
-            variant: "destructive"
+            description:
+              "Failed to load statistical analyses. Please try again.",
+            variant: "destructive",
           });
         } else {
           // Set empty array for analyses when none exist
@@ -107,7 +107,7 @@ export default function StatisticalSignificance() {
         toast({
           title: "Error",
           description: "An unexpected error occurred. Please try again.",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     } finally {
@@ -158,17 +158,20 @@ export default function StatisticalSignificance() {
       if (result.success && result.analysis) {
         toast({
           title: "Analysis Complete",
-          description: "Statistical significance analysis has been completed successfully."
+          description:
+            "Statistical significance analysis has been completed successfully.",
         });
 
         // Add the new analysis to the list
-        setAnalyses(prev => [result.analysis, ...prev]);
+        setAnalyses((prev) => [result.analysis, ...prev]);
         setShowNewAnalysisForm(false);
       } else {
         toast({
           title: "Analysis Failed",
-          description: result.error || "Failed to run statistical analysis. Please try again.",
-          variant: "destructive"
+          description:
+            result.error ||
+            "Failed to run statistical analysis. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -176,7 +179,7 @@ export default function StatisticalSignificance() {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsRunningAnalysis(false);
@@ -197,16 +200,18 @@ export default function StatisticalSignificance() {
       if (result.success) {
         toast({
           title: "Analysis Deleted",
-          description: "The statistical analysis has been deleted successfully."
+          description:
+            "The statistical analysis has been deleted successfully.",
         });
 
         // Remove the deleted analysis from the list
-        setAnalyses(prev => prev.filter(a => a.id !== deleteId));
+        setAnalyses((prev) => prev.filter((a) => a.id !== deleteId));
       } else {
         toast({
           title: "Deletion Failed",
-          description: result.error || "Failed to delete the analysis. Please try again.",
-          variant: "destructive"
+          description:
+            result.error || "Failed to delete the analysis. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -214,7 +219,7 @@ export default function StatisticalSignificance() {
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setDeleteId(null);
@@ -247,9 +252,12 @@ export default function StatisticalSignificance() {
     <div className="container py-8 md:py-12 max-w-screen-xl">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Statistical Significance</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Statistical Significance
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Determine if observed cognitive changes are statistically significant
+            Determine if observed cognitive changes are statistically
+            significant
           </p>
         </div>
         <Button
@@ -311,11 +319,13 @@ export default function StatisticalSignificance() {
               <p className="text-muted-foreground mb-6">
                 {getEmptyStateMessage()}
               </p>
-              <Button onClick={() => setShowNewAnalysisForm(true)}>Run Your First Analysis</Button>
+              <Button onClick={() => setShowNewAnalysisForm(true)}>
+                Run Your First Analysis
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
-              {analyses.map(analysis => (
+              {analyses.map((analysis) => (
                 <StatisticalSignificanceCard
                   key={analysis.id}
                   analysis={analysis}
@@ -327,17 +337,24 @@ export default function StatisticalSignificance() {
         </>
       )}
 
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Analysis</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this statistical analysis? This action cannot be undone.
+              Are you sure you want to delete this statistical analysis? This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
