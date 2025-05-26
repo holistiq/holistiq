@@ -6,9 +6,9 @@
  * Supplement cycle status enum
  */
 export enum SupplementCycleStatus {
-  NOT_STARTED = 'not_started',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed'
+  NOT_STARTED = "not_started",
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
 }
 
 /**
@@ -41,14 +41,14 @@ export interface Supplement {
   specific_time?: string; // Optional specific time in HH:MM format
 
   // New brand and formulation fields
-  manufacturer?: string;           // Company that manufactures the supplement
-  brand?: string;                  // Brand name of the supplement
-  brand_reputation?: number;       // Rating of brand reputation (1-5)
-  formulation_type?: string;       // Type of formulation (e.g., "extended-release", "liposomal")
-  batch_number?: string;           // Batch or lot number from the supplement container
-  expiration_date?: string;        // Expiration date of the supplement (ISO string)
-  third_party_tested?: boolean;    // Whether the supplement has been third-party tested
-  certification?: string;          // Certification standards met (e.g., "USP", "NSF", "GMP")
+  manufacturer?: string; // Company that manufactures the supplement
+  brand?: string; // Brand name of the supplement
+  brand_reputation?: number; // Rating of brand reputation (1-5)
+  formulation_type?: string; // Type of formulation (e.g., "extended-release", "liposomal")
+  batch_number?: string; // Batch or lot number from the supplement container
+  expiration_date?: string; // Expiration date of the supplement (ISO string)
+  third_party_tested?: boolean; // Whether the supplement has been third-party tested
+  certification?: string; // Certification standards met (e.g., "USP", "NSF", "GMP")
 
   // Evaluation cycle fields
   cycle_status?: SupplementCycleStatus;

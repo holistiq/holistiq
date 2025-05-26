@@ -17,21 +17,21 @@ export function TestimonialCard({
   className,
 }: Readonly<TestimonialCardProps>) {
   return (
-    <div className={cn(
-      "flex flex-col p-6 bg-background rounded-xl border shadow-sm h-full",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex flex-col p-6 bg-background rounded-xl border shadow-sm h-full",
+        className,
+      )}
+    >
       <div className="mb-4 text-primary">
         <Quote className="h-8 w-8 opacity-50" />
       </div>
-      <blockquote className="flex-1 text-lg italic mb-4">
-        "{quote}"
-      </blockquote>
+      <blockquote className="flex-1 text-lg italic mb-4">"{quote}"</blockquote>
       <div className="flex items-center gap-3 mt-auto">
         {avatarUrl ? (
-          <img 
-            src={avatarUrl} 
-            alt={author} 
+          <img
+            src={avatarUrl}
+            alt={author}
             className="w-10 h-10 rounded-full object-cover"
           />
         ) : (

@@ -6,30 +6,33 @@
  */
 
 // Constants
-const SYNC_CHANNEL_KEY = 'holistiq_cache_sync';
-const SYNC_LOCK_KEY = 'holistiq_cache_sync_lock';
-const SYNC_HEARTBEAT_KEY = 'holistiq_cache_sync_heartbeat';
-const SYNC_VERSION = '1.0.0';
+const SYNC_CHANNEL_KEY = "holistiq_cache_sync";
+const SYNC_LOCK_KEY = "holistiq_cache_sync_lock";
+const SYNC_HEARTBEAT_KEY = "holistiq_cache_sync_heartbeat";
+const SYNC_VERSION = "1.0.0";
 const LOCK_TIMEOUT = 5000; // 5 seconds
 const HEARTBEAT_INTERVAL = 10000; // 10 seconds
 
 // Sync message types
 export enum SyncMessageType {
-  UPDATE = 'update',
-  DELETE = 'delete',
-  CLEAR = 'clear',
-  BULK_UPDATE = 'bulk_update',
-  BULK_DELETE = 'bulk_delete',
-  HEARTBEAT = 'heartbeat',
-  LOCK_REQUEST = 'lock_request',
-  LOCK_ACQUIRED = 'lock_acquired',
-  LOCK_RELEASED = 'lock_released'
+  UPDATE = "update",
+  DELETE = "delete",
+  CLEAR = "clear",
+  BULK_UPDATE = "bulk_update",
+  BULK_DELETE = "bulk_delete",
+  HEARTBEAT = "heartbeat",
+  LOCK_REQUEST = "lock_request",
+  LOCK_ACQUIRED = "lock_acquired",
+  LOCK_RELEASED = "lock_released",
 }
 
 // Metadata type for sync messages
 export type SyncMetadataValue = string | number | boolean | null | undefined;
 export interface SyncMetadata {
-  [key: string]: SyncMetadataValue | SyncMetadataValue[] | Record<string, SyncMetadataValue>;
+  [key: string]:
+    | SyncMetadataValue
+    | SyncMetadataValue[]
+    | Record<string, SyncMetadataValue>;
 }
 
 // Sync message structure
@@ -46,7 +49,7 @@ export interface SyncMessage {
 // Sync configuration
 export interface SyncConfig {
   enabled: boolean;
-  logLevel: 'none' | 'error' | 'warn' | 'info' | 'debug';
+  logLevel: "none" | "error" | "warn" | "info" | "debug";
   resolveConflicts: boolean;
   heartbeatEnabled: boolean;
   lockTimeout: number;
@@ -57,12 +60,12 @@ export interface SyncConfig {
 // Default sync configuration
 export const DEFAULT_SYNC_CONFIG: SyncConfig = {
   enabled: true,
-  logLevel: process.env.NODE_ENV !== 'production' ? 'error' : 'none',
+  logLevel: process.env.NODE_ENV !== "production" ? "error" : "none",
   resolveConflicts: true,
   heartbeatEnabled: true,
   lockTimeout: LOCK_TIMEOUT,
   retryAttempts: 3,
-  retryDelay: 100
+  retryDelay: 100,
 };
 
 // Sync metrics
@@ -94,10 +97,14 @@ export class CacheSyncManager {
   private syncInProgress: boolean = false;
   private heartbeatIntervalId: number | null = null;
   private lockTimeoutId: number | null = null;
-  private readonly eventListeners: Map<SyncMessageType, SyncEventListener[]> = new Map();
+  private readonly eventListeners: Map<SyncMessageType, SyncEventListener[]> =
+    new Map();
   private readonly activeTabs: Set<string> = new Set();
   private lockOwner: string | null = null;
-  private readonly lockQueue: Array<{ resolve: (value: boolean) => void, reject: (reason: Error) => void }> = [];
+  private readonly lockQueue: Array<{
+    resolve: (value: boolean) => void;
+    reject: (reason: Error) => void;
+  }> = [];
 
   /**
    * Create a new CacheSyncManager
@@ -116,9 +123,9 @@ export class CacheSyncManager {
     if (this.isInitialized || !this.config.enabled) return;
 
     // Set up storage event listener
-    if (typeof window !== 'undefined' && window.addEventListener) {
-      window.addEventListener('storage', this.handleStorageEvent);
-      window.addEventListener('beforeunload', this.handleBeforeUnload);
+    if (typeof window !== "undefined" && window.addEventListener) {
+      window.addEventListener("storage", this.handleStorageEvent);
+      window.addEventListener("beforeunload", this.handleBeforeUnload);
       this.isInitialized = true;
 
       // Start heartbeat if enabled
@@ -129,8 +136,10 @@ export class CacheSyncManager {
       // Announce this tab
       this.sendHeartbeat();
 
-      if (this.config.logLevel === 'info' || this.config.logLevel === 'debug') {
-        console.log(`[CacheSyncManager] Initialized with tab ID: ${this.tabId}`);
+      if (this.config.logLevel === "info" || this.config.logLevel === "debug") {
+        console.log(
+          `[CacheSyncManager] Initialized with tab ID: ${this.tabId}`,
+        );
       }
     }
   }
@@ -142,9 +151,9 @@ export class CacheSyncManager {
     if (!this.isInitialized) return;
 
     // Remove event listeners
-    if (typeof window !== 'undefined' && window.removeEventListener) {
-      window.removeEventListener('storage', this.handleStorageEvent);
-      window.removeEventListener('beforeunload', this.handleBeforeUnload);
+    if (typeof window !== "undefined" && window.removeEventListener) {
+      window.removeEventListener("storage", this.handleStorageEvent);
+      window.removeEventListener("beforeunload", this.handleBeforeUnload);
     }
 
     // Stop heartbeat
@@ -160,7 +169,7 @@ export class CacheSyncManager {
 
     this.isInitialized = false;
 
-    if (this.config.logLevel === 'info' || this.config.logLevel === 'debug') {
+    if (this.config.logLevel === "info" || this.config.logLevel === "debug") {
       console.log(`[CacheSyncManager] Shut down tab ID: ${this.tabId}`);
     }
   }
@@ -216,7 +225,10 @@ export class CacheSyncManager {
    * @param type The type of event
    * @param listener The listener function to remove
    */
-  removeEventListener(type: SyncMessageType, listener: SyncEventListener): void {
+  removeEventListener(
+    type: SyncMessageType,
+    listener: SyncEventListener,
+  ): void {
     if (!this.eventListeners.has(type)) return;
 
     const listeners = this.eventListeners.get(type);
@@ -242,7 +254,7 @@ export class CacheSyncManager {
       timestamp: Date.now(),
       tabId: this.tabId,
       version: SYNC_VERSION,
-      metadata
+      metadata,
     });
   }
 
@@ -260,7 +272,7 @@ export class CacheSyncManager {
       timestamp: Date.now(),
       tabId: this.tabId,
       version: SYNC_VERSION,
-      metadata
+      metadata,
     });
   }
 
@@ -276,7 +288,7 @@ export class CacheSyncManager {
       timestamp: Date.now(),
       tabId: this.tabId,
       version: SYNC_VERSION,
-      metadata
+      metadata,
     });
   }
 
@@ -286,7 +298,8 @@ export class CacheSyncManager {
    * @param metadata Additional metadata about the updates
    */
   broadcastBulkUpdate(keys: string[], metadata?: SyncMetadata): void {
-    if (!this.config.enabled || !this.isInitialized || keys.length === 0) return;
+    if (!this.config.enabled || !this.isInitialized || keys.length === 0)
+      return;
 
     this.broadcastMessage({
       type: SyncMessageType.BULK_UPDATE,
@@ -294,7 +307,7 @@ export class CacheSyncManager {
       timestamp: Date.now(),
       tabId: this.tabId,
       version: SYNC_VERSION,
-      metadata
+      metadata,
     });
   }
 
@@ -304,7 +317,8 @@ export class CacheSyncManager {
    * @param metadata Additional metadata about the deletions
    */
   broadcastBulkDelete(keys: string[], metadata?: SyncMetadata): void {
-    if (!this.config.enabled || !this.isInitialized || keys.length === 0) return;
+    if (!this.config.enabled || !this.isInitialized || keys.length === 0)
+      return;
 
     this.broadcastMessage({
       type: SyncMessageType.BULK_DELETE,
@@ -312,7 +326,7 @@ export class CacheSyncManager {
       timestamp: Date.now(),
       tabId: this.tabId,
       version: SYNC_VERSION,
-      metadata
+      metadata,
     });
   }
 
@@ -385,11 +399,13 @@ export class CacheSyncManager {
 
         // Set timeout to reject if lock isn't acquired in time
         setTimeout(() => {
-          const index = this.lockQueue.findIndex(item => item.resolve === resolve);
+          const index = this.lockQueue.findIndex(
+            (item) => item.resolve === resolve,
+          );
           if (index !== -1) {
             this.lockQueue.splice(index, 1);
             this.metrics.lockTimeouts++;
-            reject(new Error('Lock acquisition timed out'));
+            reject(new Error("Lock acquisition timed out"));
           }
         }, timeoutMs || this.config.lockTimeout);
       });
@@ -399,7 +415,7 @@ export class CacheSyncManager {
     try {
       const lockData = {
         tabId: this.tabId,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       localStorage.setItem(SYNC_LOCK_KEY, JSON.stringify(lockData));
@@ -409,7 +425,7 @@ export class CacheSyncManager {
         type: SyncMessageType.LOCK_ACQUIRED,
         timestamp: Date.now(),
         tabId: this.tabId,
-        version: SYNC_VERSION
+        version: SYNC_VERSION,
       });
 
       this.lockOwner = this.tabId;
@@ -422,8 +438,8 @@ export class CacheSyncManager {
 
       return true;
     } catch (error) {
-      if (this.config.logLevel !== 'none') {
-        console.error('[CacheSyncManager] Error acquiring lock:', error);
+      if (this.config.logLevel !== "none") {
+        console.error("[CacheSyncManager] Error acquiring lock:", error);
       }
       this.metrics.errors++;
       return false;
@@ -447,7 +463,7 @@ export class CacheSyncManager {
         type: SyncMessageType.LOCK_RELEASED,
         timestamp: Date.now(),
         tabId: this.tabId,
-        version: SYNC_VERSION
+        version: SYNC_VERSION,
       });
 
       this.lockOwner = null;
@@ -469,8 +485,8 @@ export class CacheSyncManager {
 
       return true;
     } catch (error) {
-      if (this.config.logLevel !== 'none') {
-        console.error('[CacheSyncManager] Error releasing lock:', error);
+      if (this.config.logLevel !== "none") {
+        console.error("[CacheSyncManager] Error releasing lock:", error);
       }
       this.metrics.errors++;
       return false;
@@ -492,7 +508,7 @@ export class CacheSyncManager {
       lastSyncTime: null,
       activeTabs: 0,
       lockAcquisitions: 0,
-      lockTimeouts: 0
+      lockTimeouts: 0,
     };
   }
 
@@ -524,7 +540,7 @@ export class CacheSyncManager {
       type: SyncMessageType.HEARTBEAT,
       timestamp: Date.now(),
       tabId: this.tabId,
-      version: SYNC_VERSION
+      version: SYNC_VERSION,
     });
 
     // Add ourselves to active tabs
@@ -553,8 +569,11 @@ export class CacheSyncManager {
         const message = JSON.parse(event.newValue) as SyncMessage;
         this.handleSyncMessage(message);
       } catch (error) {
-        if (this.config.logLevel !== 'none') {
-          console.error('[CacheSyncManager] Error parsing sync message:', error);
+        if (this.config.logLevel !== "none") {
+          console.error(
+            "[CacheSyncManager] Error parsing sync message:",
+            error,
+          );
         }
         this.metrics.errors++;
       }
@@ -593,8 +612,11 @@ export class CacheSyncManager {
       try {
         listener(message);
       } catch (error) {
-        if (this.config.logLevel !== 'none') {
-          console.error(`[CacheSyncManager] Error in listener for ${message.type}:`, error);
+        if (this.config.logLevel !== "none") {
+          console.error(
+            `[CacheSyncManager] Error in listener for ${message.type}:`,
+            error,
+          );
         }
         this.metrics.errors++;
       }
@@ -612,7 +634,7 @@ export class CacheSyncManager {
       localStorage.setItem(SYNC_CHANNEL_KEY, JSON.stringify(message));
       this.metrics.messagesSent++;
 
-      if (this.config.logLevel === 'debug') {
+      if (this.config.logLevel === "debug") {
         console.log(`[CacheSyncManager] Broadcast ${message.type}:`, message);
       }
 
@@ -621,8 +643,8 @@ export class CacheSyncManager {
         this.syncInProgress = false;
       }, 50);
     } catch (error) {
-      if (this.config.logLevel !== 'none') {
-        console.error('[CacheSyncManager] Error broadcasting message:', error);
+      if (this.config.logLevel !== "none") {
+        console.error("[CacheSyncManager] Error broadcasting message:", error);
       }
       this.metrics.errors++;
       this.syncInProgress = false;

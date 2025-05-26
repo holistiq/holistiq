@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
   className?: string;
   delay?: number; // delay in ms
-  direction?: 'up' | 'down' | 'left' | 'right' | 'none';
+  direction?: "up" | "down" | "left" | "right" | "none";
   duration?: number; // duration in ms
   once?: boolean; // animate only once
   threshold?: number; // 0-1, percentage of element visible to trigger animation
@@ -13,9 +13,9 @@ interface AnimatedSectionProps {
 
 export function AnimatedSection({
   children,
-  className = '',
+  className = "",
   delay = 0,
-  direction = 'up',
+  direction = "up",
   duration = 500,
   once = true,
   threshold = 0.1,
@@ -29,7 +29,7 @@ export function AnimatedSection({
       ([entry]) => {
         // If we only want to animate once and have already animated, do nothing
         if (once && hasAnimated) return;
-        
+
         // Set visibility based on intersection
         if (entry.isIntersecting) {
           setIsVisible(true);
@@ -40,9 +40,9 @@ export function AnimatedSection({
       },
       {
         root: null,
-        rootMargin: '0px',
+        rootMargin: "0px",
         threshold,
-      }
+      },
     );
 
     const currentRef = ref.current;
@@ -58,11 +58,11 @@ export function AnimatedSection({
   }, [once, hasAnimated, threshold]);
 
   // Define transform based on direction
-  let transform = 'translateY(20px)';
-  if (direction === 'down') transform = 'translateY(-20px)';
-  if (direction === 'left') transform = 'translateX(20px)';
-  if (direction === 'right') transform = 'translateX(-20px)';
-  if (direction === 'none') transform = 'none';
+  let transform = "translateY(20px)";
+  if (direction === "down") transform = "translateY(-20px)";
+  if (direction === "left") transform = "translateX(20px)";
+  if (direction === "right") transform = "translateX(-20px)";
+  if (direction === "none") transform = "none";
 
   return (
     <div
@@ -70,7 +70,7 @@ export function AnimatedSection({
       className={cn(className)}
       style={{
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'none' : transform,
+        transform: isVisible ? "none" : transform,
         transition: `opacity ${duration}ms ease-out ${delay}ms, transform ${duration}ms ease-out ${delay}ms`,
       }}
     >

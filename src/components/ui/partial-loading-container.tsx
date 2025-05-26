@@ -1,15 +1,15 @@
 /**
  * Component for handling partial loading states
  */
-import React, { memo } from 'react';
-import { cn } from '@/lib/utils';
-import { LoadingStatus } from '@/hooks/useLoadingState';
-import { LoadingIndicator } from './loading-indicator';
-import { Skeleton } from './skeleton';
-import { createLogger } from '@/lib/logger';
+import React, { memo } from "react";
+import { cn } from "@/lib/utils";
+import { LoadingStatus } from "@/hooks/useLoadingState";
+import { LoadingIndicator } from "./loading-indicator";
+import { Skeleton } from "./skeleton";
+import { createLogger } from "@/lib/logger";
 
 // Create a logger for the PartialLoadingContainer component
-const logger = createLogger({ namespace: 'PartialLoadingContainer' });
+const logger = createLogger({ namespace: "PartialLoadingContainer" });
 
 /**
  * Props for the PartialLoadingContainer component
@@ -90,9 +90,9 @@ interface PartialLoadingContainerProps {
 export const PartialLoadingContainer = memo(function PartialLoadingContainer({
   status,
   hasData,
-  loadingMessage = 'Loading...',
-  emptyMessage = 'No data available',
-  errorMessage = 'An error occurred',
+  loadingMessage = "Loading...",
+  emptyMessage = "No data available",
+  errorMessage = "An error occurred",
   error = null,
   progress = 0,
   className = "",
@@ -106,10 +106,10 @@ export const PartialLoadingContainer = memo(function PartialLoadingContainer({
   testId,
   onRetry,
   onDismiss,
-  children
+  children,
 }: Readonly<PartialLoadingContainerProps>): JSX.Element {
   // Convert height to string with px if it's a number
-  const heightStyle = typeof height === 'number' ? `${height}px` : height;
+  const heightStyle = typeof height === "number" ? `${height}px` : height;
 
   // Loading state with no data
   if (status === LoadingStatus.LOADING && !hasData) {
@@ -117,7 +117,7 @@ export const PartialLoadingContainer = memo(function PartialLoadingContainer({
       <div
         className={cn(
           "flex flex-col items-center justify-center",
-          loadingClassName
+          loadingClassName,
         )}
         style={{ minHeight: heightStyle }}
         id={id}
@@ -143,7 +143,7 @@ export const PartialLoadingContainer = memo(function PartialLoadingContainer({
       <div
         className={cn(
           "flex flex-col items-center justify-center p-4 border border-destructive/20 bg-destructive/5 rounded-md",
-          errorClassName
+          errorClassName,
         )}
         style={{ minHeight: heightStyle }}
         id={id}
@@ -168,7 +168,7 @@ export const PartialLoadingContainer = memo(function PartialLoadingContainer({
       <div
         className={cn(
           "flex flex-col items-center justify-center p-4 border border-warning/20 bg-warning/5 rounded-md",
-          errorClassName
+          errorClassName,
         )}
         style={{ minHeight: heightStyle }}
         id={id}
@@ -191,7 +191,7 @@ export const PartialLoadingContainer = memo(function PartialLoadingContainer({
       <div
         className={cn(
           "flex flex-col items-center justify-center p-4 border border-muted bg-muted/10 rounded-md",
-          emptyClassName
+          emptyClassName,
         )}
         style={{ minHeight: heightStyle }}
         id={id}

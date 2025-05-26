@@ -3,22 +3,27 @@
  *
  * Provides functionality for tracking and displaying achievements
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   Achievement,
   AchievementTrigger,
   AchievementTriggerData,
-  AchievementWithProgress
-} from '@/types/achievement';
-import { getUserAchievements, processAchievementTrigger } from '@/services/achievementService';
-import { useSupabaseAuth } from './useSupabaseAuth';
-import { useToast } from '@/components/ui/use-toast';
-import { AchievementNotification } from '@/components/achievements/AchievementNotification';
+  AchievementWithProgress,
+} from "@/types/achievement";
+import {
+  getUserAchievements,
+  processAchievementTrigger,
+} from "@/services/achievementService";
+import { useSupabaseAuth } from "./useSupabaseAuth";
+import { useToast } from "@/components/ui/use-toast";
+import { AchievementNotification } from "@/components/achievements/AchievementNotification";
 
 export function useAchievements() {
   const { user } = useSupabaseAuth();
   const { toast } = useToast();
-  const [achievements, setAchievements] = useState<AchievementWithProgress[]>([]);
+  const [achievements, setAchievements] = useState<AchievementWithProgress[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([]);
 
@@ -36,8 +41,14 @@ export function useAchievements() {
         }
       } catch (error) {
         // Check if this is a "relation does not exist" error
-        if (error instanceof Error && error.message.includes('relation') && error.message.includes('does not exist')) {
-          console.warn('Achievements tables not set up yet. Using empty achievements list.');
+        if (
+          error instanceof Error &&
+          error.message.includes("relation") &&
+          error.message.includes("does not exist")
+        ) {
+          console.warn(
+            "Achievements tables not set up yet. Using empty achievements list.",
+          );
           // Return empty achievements list to prevent breaking the app
           setAchievements([]);
         } else {
@@ -46,7 +57,7 @@ export function useAchievements() {
         }
       }
     } catch (error) {
-      console.error('Error fetching achievements:', error);
+      console.error("Error fetching achievements:", error);
       // Set empty achievements to prevent UI from breaking
       setAchievements([]);
     } finally {
@@ -55,61 +66,74 @@ export function useAchievements() {
   }, [user]);
 
   // Define a type for achievement metadata
-  type AchievementMetadata = Record<string, string | number | boolean | null | undefined>;
+  type AchievementMetadata = Record<
+    string,
+    string | number | boolean | null | undefined
+  >;
 
   // Trigger an achievement
-  const triggerAchievement = useCallback(async (
-    trigger: AchievementTrigger,
-    metadata?: AchievementMetadata
-  ) => {
-    if (!user) return;
-
-    try {
-      const triggerData: AchievementTriggerData = {
-        trigger,
-        userId: user.id,
-        metadata
-      };
+  const triggerAchievement = useCallback(
+    async (trigger: AchievementTrigger, metadata?: AchievementMetadata) => {
+      if (!user) return;
 
       try {
-        const response = await processAchievementTrigger(triggerData);
+        const triggerData: AchievementTriggerData = {
+          trigger,
+          userId: user.id,
+          metadata,
+        };
 
-        if (response.success && response.newAchievements && response.newAchievements.length > 0) {
-          // Show achievement notifications
-          response.newAchievements.forEach(achievement => {
-            // Add to new achievements state
-            setNewAchievements(prev => [...prev, achievement]);
+        try {
+          const response = await processAchievementTrigger(triggerData);
 
-            // Show toast notification
-            toast({
-              title: "Achievement Unlocked!",
-              description: achievement.title,
-              action: (
-                <AchievementNotification
-                  achievement={achievement}
-                  autoClose={false}
-                />
-              )
+          if (
+            response.success &&
+            response.newAchievements &&
+            response.newAchievements.length > 0
+          ) {
+            // Show achievement notifications
+            response.newAchievements.forEach((achievement) => {
+              // Add to new achievements state
+              setNewAchievements((prev) => [...prev, achievement]);
+
+              // Show toast notification
+              toast({
+                title: "Achievement Unlocked!",
+                description: achievement.title,
+                action: (
+                  <AchievementNotification
+                    achievement={achievement}
+                    autoClose={false}
+                  />
+                ),
+              });
             });
-          });
 
-          // Refresh achievements
-          fetchAchievements();
+            // Refresh achievements
+            fetchAchievements();
+          }
+        } catch (error) {
+          // Check if this is a "relation does not exist" error
+          if (
+            error instanceof Error &&
+            error.message.includes("relation") &&
+            error.message.includes("does not exist")
+          ) {
+            console.warn(
+              "Achievements tables not set up yet. Skipping achievement trigger.",
+            );
+            // Silently ignore the error to prevent breaking the app
+          } else {
+            // Re-throw other errors
+            throw error;
+          }
         }
       } catch (error) {
-        // Check if this is a "relation does not exist" error
-        if (error instanceof Error && error.message.includes('relation') && error.message.includes('does not exist')) {
-          console.warn('Achievements tables not set up yet. Skipping achievement trigger.');
-          // Silently ignore the error to prevent breaking the app
-        } else {
-          // Re-throw other errors
-          throw error;
-        }
+        console.error("Error triggering achievement:", error);
       }
-    } catch (error) {
-      console.error('Error triggering achievement:', error);
-    }
-  }, [user, fetchAchievements, toast]);
+    },
+    [user, fetchAchievements, toast],
+  );
 
   // Initial fetch
   useEffect(() => {
@@ -121,6 +145,6 @@ export function useAchievements() {
     loading,
     newAchievements,
     triggerAchievement,
-    refreshAchievements: fetchAchievements
+    refreshAchievements: fetchAchievements,
   };
 }

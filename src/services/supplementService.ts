@@ -1,14 +1,18 @@
-import { supabase } from '@/integrations/supabase/client';
-import { Supplement, SupplementsResponse, SupplementCycleStatus } from '@/types/supplement';
-import { cache, DEFAULT_CACHE_TTL } from '@/lib/cache';
-import { debugLog, debugError } from '@/utils/debugUtils';
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Supplement,
+  SupplementsResponse,
+  SupplementCycleStatus,
+} from "@/types/supplement";
+import { cache, DEFAULT_CACHE_TTL } from "@/lib/cache";
+import { debugLog, debugError } from "@/utils/debugUtils";
 
 /**
  * Save a supplement to Supabase and local storage
  */
 export async function saveSupplement(
   userId: string | undefined,
-  supplement: Omit<Supplement, 'id' | 'color' | 'user_id'>
+  supplement: Omit<Supplement, "id" | "color" | "user_id">,
 ): Promise<{ success: boolean; error?: string; data?: Supplement }> {
   try {
     console.log(`Saving supplement for user ${userId}`);
@@ -17,7 +21,7 @@ export async function saveSupplement(
     const formattedSupplement = {
       name: supplement.name,
       dosage: supplement.dosage,
-      notes: supplement.notes || '',
+      notes: supplement.notes || "",
       intake_time: supplement.intake_time || new Date().toISOString(),
 
       // New structured dosage fields
@@ -39,41 +43,45 @@ export async function saveSupplement(
       batch_number: supplement.batch_number,
       expiration_date: supplement.expiration_date,
       third_party_tested: supplement.third_party_tested,
-      certification: supplement.certification
+      certification: supplement.certification,
     };
 
     // Create a supplement object for local storage
     const supplementData = {
       id: crypto.randomUUID(), // Generate a temporary ID for local storage
       ...formattedSupplement,
-      color: '#4f46e5', // Default color
+      color: "#4f46e5", // Default color
     };
 
     // Save to local storage first (as backup and for offline use)
-    const storageKey = 'supplements';
-    const existingSupplements = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const storageKey = "supplements";
+    const existingSupplements = JSON.parse(
+      localStorage.getItem(storageKey) || "[]",
+    );
     const updatedSupplements = [...existingSupplements, supplementData];
     localStorage.setItem(storageKey, JSON.stringify(updatedSupplements));
-    console.log(`Updated localStorage with ${updatedSupplements.length} supplements`);
+    console.log(
+      `Updated localStorage with ${updatedSupplements.length} supplements`,
+    );
 
     // If user is logged in, save to Supabase
     if (userId) {
-      console.log('Saving supplement to Supabase...');
+      console.log("Saving supplement to Supabase...");
 
       const { data, error } = await supabase
-        .from('supplements')
+        .from("supplements")
         .insert({
           user_id: userId,
-          ...formattedSupplement
+          ...formattedSupplement,
         })
         .select();
 
       if (error) {
-        console.error('Error saving supplement to Supabase:', error);
+        console.error("Error saving supplement to Supabase:", error);
         return { success: false, error: error.message };
       }
 
-      console.log('Successfully saved supplement to Supabase:', data);
+      console.log("Successfully saved supplement to Supabase:", data);
 
       // Invalidate cache for this user's supplements
       cache.delete(`supplements_${userId}`);
@@ -84,20 +92,20 @@ export async function saveSupplement(
           success: true,
           data: {
             ...data[0],
-            color: '#4f46e5' // Add color for UI
-          }
+            color: "#4f46e5", // Add color for UI
+          },
         };
       }
     } else {
-      console.log('User not logged in, supplement saved to local storage only');
+      console.log("User not logged in, supplement saved to local storage only");
     }
 
     return { success: true, data: supplementData };
   } catch (error) {
-    console.error('Unexpected error saving supplement:', error);
+    console.error("Unexpected error saving supplement:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -105,9 +113,13 @@ export async function saveSupplement(
 /**
  * Get all supplements for a user from Supabase with caching
  */
-export async function getSupplements(userId: string): Promise<SupplementsResponse> {
+export async function getSupplements(
+  userId: string,
+): Promise<SupplementsResponse> {
   try {
-    debugLog(`Fetching supplements for user (ID: ${userId.substring(0, 8)}...)`);
+    debugLog(
+      `Fetching supplements for user (ID: ${userId.substring(0, 8)}...)`,
+    );
 
     // Try to get from cache first
     const cacheKey = `supplements_${userId}`;
@@ -115,7 +127,7 @@ export async function getSupplements(userId: string): Promise<SupplementsRespons
     return await cache.getOrSet(
       cacheKey,
       async () => {
-        debugLog('Cache miss for supplements, fetching from Supabase');
+        debugLog("Cache miss for supplements, fetching from Supabase");
 
         // Implement retry logic with exponential backoff
         const maxRetries = 3;
@@ -125,40 +137,61 @@ export async function getSupplements(userId: string): Promise<SupplementsRespons
         while (retryCount < maxRetries) {
           try {
             const { data, error } = await supabase
-              .from('supplements')
-              .select('*')
-              .eq('user_id', userId)
-              .order('intake_time', { ascending: false });
+              .from("supplements")
+              .select("*")
+              .eq("user_id", userId)
+              .order("intake_time", { ascending: false });
 
             if (error) {
-              debugError(`Error fetching supplements (attempt ${retryCount + 1}):`, error);
+              debugError(
+                `Error fetching supplements (attempt ${retryCount + 1}):`,
+                error,
+              );
               lastError = error;
               retryCount++;
               // Wait before retrying (exponential backoff)
-              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+              await new Promise((resolve) =>
+                setTimeout(resolve, 1000 * Math.pow(2, retryCount)),
+              );
               continue;
             }
 
-            debugLog(`Retrieved ${data?.length || 0} supplements from Supabase`);
+            debugLog(
+              `Retrieved ${data?.length || 0} supplements from Supabase`,
+            );
 
             // Generate colors for supplements
-            const colors = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-            const supplementsWithColors: Supplement[] = data.map((supplement, index) => ({
-              ...supplement,
-              color: colors[index % colors.length]
-            }));
+            const colors = [
+              "#4f46e5",
+              "#0ea5e9",
+              "#10b981",
+              "#f59e0b",
+              "#ef4444",
+              "#8b5cf6",
+            ];
+            const supplementsWithColors: Supplement[] = data.map(
+              (supplement, index) => ({
+                ...supplement,
+                color: colors[index % colors.length],
+              }),
+            );
 
             return {
               success: true,
               supplements: supplementsWithColors,
-              recentSupplements: supplementsWithColors.slice(0, 3)
+              recentSupplements: supplementsWithColors.slice(0, 3),
             };
           } catch (error) {
-            debugError(`Unexpected error fetching supplements (attempt ${retryCount + 1}):`, error);
+            debugError(
+              `Unexpected error fetching supplements (attempt ${retryCount + 1}):`,
+              error,
+            );
             lastError = error;
             retryCount++;
             // Wait before retrying
-            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1000 * Math.pow(2, retryCount)),
+            );
           }
         }
 
@@ -166,17 +199,17 @@ export async function getSupplements(userId: string): Promise<SupplementsRespons
         return {
           success: false,
           supplements: [],
-          recentSupplements: []
+          recentSupplements: [],
         };
       },
-      DEFAULT_CACHE_TTL.SHORT // Cache for 5 minutes
+      DEFAULT_CACHE_TTL.SHORT, // Cache for 5 minutes
     );
   } catch (error) {
-    debugError('Unexpected error in getSupplements:', error);
+    debugError("Unexpected error in getSupplements:", error);
     return {
       success: false,
       supplements: [],
-      recentSupplements: []
+      recentSupplements: [],
     };
   }
 }
@@ -186,12 +219,12 @@ export async function getSupplements(userId: string): Promise<SupplementsRespons
  */
 export function loadSupplementsFromLocalStorage(): Supplement[] {
   try {
-    const supplements = localStorage.getItem('supplements');
+    const supplements = localStorage.getItem("supplements");
     if (!supplements) return [];
 
     return JSON.parse(supplements);
   } catch (error) {
-    console.error('Error loading supplements from localStorage:', error);
+    console.error("Error loading supplements from localStorage:", error);
     return [];
   }
 }
@@ -202,7 +235,7 @@ export function loadSupplementsFromLocalStorage(): Supplement[] {
 export async function updateSupplement(
   userId: string | undefined,
   supplementId: string,
-  supplementData: Omit<Supplement, 'id' | 'color' | 'user_id'>
+  supplementData: Omit<Supplement, "id" | "color" | "user_id">,
 ): Promise<{ success: boolean; error?: string; data?: Supplement }> {
   try {
     console.log(`Updating supplement ${supplementId} for user ${userId}`);
@@ -211,7 +244,7 @@ export async function updateSupplement(
     const formattedSupplement = {
       name: supplementData.name,
       dosage: supplementData.dosage,
-      notes: supplementData.notes || '',
+      notes: supplementData.notes || "",
       intake_time: supplementData.intake_time || new Date().toISOString(),
 
       // Structured dosage fields
@@ -233,37 +266,40 @@ export async function updateSupplement(
       batch_number: supplementData.batch_number,
       expiration_date: supplementData.expiration_date,
       third_party_tested: supplementData.third_party_tested,
-      certification: supplementData.certification
+      certification: supplementData.certification,
     };
 
     // Update in local storage first
-    const storageKey = 'supplements';
-    const existingSupplements = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const updatedSupplements = existingSupplements.map((supplement: Supplement) =>
-      supplement.id === supplementId
-        ? { ...supplement, ...formattedSupplement }
-        : supplement
+    const storageKey = "supplements";
+    const existingSupplements = JSON.parse(
+      localStorage.getItem(storageKey) || "[]",
+    );
+    const updatedSupplements = existingSupplements.map(
+      (supplement: Supplement) =>
+        supplement.id === supplementId
+          ? { ...supplement, ...formattedSupplement }
+          : supplement,
     );
     localStorage.setItem(storageKey, JSON.stringify(updatedSupplements));
     console.log(`Updated supplement in localStorage`);
 
     // If user is logged in, update in Supabase
     if (userId) {
-      console.log('Updating supplement in Supabase...');
+      console.log("Updating supplement in Supabase...");
 
       const { data, error } = await supabase
-        .from('supplements')
+        .from("supplements")
         .update(formattedSupplement)
-        .eq('id', supplementId)
-        .eq('user_id', userId)
+        .eq("id", supplementId)
+        .eq("user_id", userId)
         .select();
 
       if (error) {
-        console.error('Error updating supplement in Supabase:', error);
+        console.error("Error updating supplement in Supabase:", error);
         return { success: false, error: error.message };
       }
 
-      console.log('Successfully updated supplement in Supabase:', data);
+      console.log("Successfully updated supplement in Supabase:", data);
 
       // Invalidate cache for this user's supplements
       cache.delete(`supplements_${userId}`);
@@ -274,22 +310,26 @@ export async function updateSupplement(
           success: true,
           data: {
             ...data[0],
-            color: '#4f46e5' // Add color for UI
-          }
+            color: "#4f46e5", // Add color for UI
+          },
         };
       }
     } else {
-      console.log('User not logged in, supplement updated in local storage only');
+      console.log(
+        "User not logged in, supplement updated in local storage only",
+      );
     }
 
     // Return the updated supplement from local storage
-    const updatedSupplement = updatedSupplements.find((s: Supplement) => s.id === supplementId);
+    const updatedSupplement = updatedSupplements.find(
+      (s: Supplement) => s.id === supplementId,
+    );
     return { success: true, data: updatedSupplement };
   } catch (error) {
-    console.error('Unexpected error updating supplement:', error);
+    console.error("Unexpected error updating supplement:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -300,22 +340,24 @@ export async function updateSupplement(
 export async function updateSupplementCycleStatus(
   userId: string,
   supplementId: string,
-  status: SupplementCycleStatus
+  status: SupplementCycleStatus,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log(`Updating cycle status for supplement ${supplementId} to ${status}`);
+    console.log(
+      `Updating cycle status for supplement ${supplementId} to ${status}`,
+    );
 
     if (!userId) {
-      return { success: false, error: 'User ID is required' };
+      return { success: false, error: "User ID is required" };
     }
 
     if (!supplementId) {
-      return { success: false, error: 'Supplement ID is required' };
+      return { success: false, error: "Supplement ID is required" };
     }
 
     // Prepare update data based on status
     const updateData: Record<string, string> = {
-      cycle_status: status
+      cycle_status: status,
     };
 
     // Add timestamps based on status
@@ -327,27 +369,27 @@ export async function updateSupplementCycleStatus(
 
     // Update in Supabase
     const { error } = await supabase
-      .from('supplements')
+      .from("supplements")
       .update(updateData)
-      .eq('id', supplementId)
-      .eq('user_id', userId);
+      .eq("id", supplementId)
+      .eq("user_id", userId);
 
     if (error) {
-      console.error('Error updating supplement cycle status:', error);
+      console.error("Error updating supplement cycle status:", error);
       return { success: false, error: error.message };
     }
 
-    console.log('Successfully updated supplement cycle status');
+    console.log("Successfully updated supplement cycle status");
 
     // Invalidate cache for this user's supplements
     cache.delete(`supplements_${userId}`);
 
     return { success: true };
   } catch (error) {
-    console.error('Unexpected error updating supplement cycle status:', error);
+    console.error("Unexpected error updating supplement cycle status:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

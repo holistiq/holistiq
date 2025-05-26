@@ -9,7 +9,11 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format, differenceInDays, isBefore, isAfter } from "date-fns";
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
-import { WashoutPeriod, ActiveWashoutPeriod, WashoutPeriodStatus } from "@/types/washoutPeriod";
+import {
+  WashoutPeriod,
+  ActiveWashoutPeriod,
+  WashoutPeriodStatus,
+} from "@/types/washoutPeriod";
 import {
   Tooltip,
   TooltipContent,
@@ -64,21 +68,30 @@ export function WashoutPeriodCard({
     switch (period.status) {
       case WashoutPeriodStatus.COMPLETED:
         return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
             <CheckCircle className="h-3 w-3 mr-1" />
             Completed
           </Badge>
         );
       case WashoutPeriodStatus.ACTIVE:
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
             <Clock className="h-3 w-3 mr-1" />
             Active
           </Badge>
         );
       case WashoutPeriodStatus.CANCELLED:
         return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
             <AlertCircle className="h-3 w-3 mr-1" />
             Cancelled
           </Badge>
@@ -97,11 +110,11 @@ export function WashoutPeriodCard({
   const getDaysRemaining = (): number => {
     const endDate = new Date(period.end_date);
     const today = new Date();
-    
+
     if (isAfter(today, endDate)) {
       return 0;
     }
-    
+
     return differenceInDays(endDate, today);
   };
 
@@ -127,7 +140,9 @@ export function WashoutPeriodCard({
       <CardContent className={cn("p-4", compact && "p-3")}>
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
-            <Clock className={cn("text-blue-500", compact ? "h-4 w-4" : "h-5 w-5")} />
+            <Clock
+              className={cn("text-blue-500", compact ? "h-4 w-4" : "h-5 w-5")}
+            />
             <h3 className={cn("font-medium", compact && "text-sm")}>
               Washout Period
             </h3>
@@ -157,7 +172,9 @@ export function WashoutPeriodCard({
           {/* Supplements being washed out */}
           {period.supplements && period.supplements.length > 0 && (
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Supplements:</span>
+              <span className="text-xs text-muted-foreground">
+                Supplements:
+              </span>
               <div className="flex flex-wrap gap-1">
                 {period.supplements.map((supplement, index) => (
                   <TooltipProvider key={index}>
@@ -168,7 +185,13 @@ export function WashoutPeriodCard({
                         </Badge>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Last taken: {format(new Date(supplement.last_intake), "MMM d, yyyy")}</p>
+                        <p>
+                          Last taken:{" "}
+                          {format(
+                            new Date(supplement.last_intake),
+                            "MMM d, yyyy",
+                          )}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

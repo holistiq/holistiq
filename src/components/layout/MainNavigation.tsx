@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/theme/ModeToggle";
@@ -11,13 +11,13 @@ import {
   User,
   Menu,
   X,
-  Trophy
+  Trophy,
 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
-  SheetClose
+  SheetClose,
 } from "@/components/ui/sheet";
 
 export function MainNavigation() {
@@ -26,11 +26,27 @@ export function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false);
 
   const mainNavItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
-    { label: 'Tests', href: '/tests', icon: <Brain className="h-4 w-4" /> },
-    { label: 'Supplements', href: '/supplements', icon: <Pill className="h-4 w-4" /> },
-    { label: 'Factors', href: '/confounding-factors', icon: <Activity className="h-4 w-4" /> },
-    { label: 'Achievements', href: '/achievements', icon: <Trophy className="h-4 w-4" /> },
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    { label: "Tests", href: "/tests", icon: <Brain className="h-4 w-4" /> },
+    {
+      label: "Supplements",
+      href: "/supplements",
+      icon: <Pill className="h-4 w-4" />,
+    },
+    {
+      label: "Factors",
+      href: "/confounding-factors",
+      icon: <Activity className="h-4 w-4" />,
+    },
+    {
+      label: "Achievements",
+      href: "/achievements",
+      icon: <Trophy className="h-4 w-4" />,
+    },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -39,32 +55,40 @@ export function MainNavigation() {
     <nav className="flex items-center gap-4">
       {/* Desktop Navigation */}
       <div className="hidden md:flex items-center gap-6">
-        {user && mainNavItems.map((item) => (
-          <Link
-            key={item.href}
-            to={item.href}
-            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-              isActive(item.href) ? 'text-primary' : 'text-muted-foreground'
-            }`}
-          >
-            {item.icon}
-            {item.label}
-          </Link>
-        ))}
+        {user &&
+          mainNavItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
+                isActive(item.href) ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          ))}
       </div>
 
       {/* Auth Buttons or User Menu */}
       <div className="flex items-center gap-2">
         {user ? (
           <Link to="/profile">
-            <Button variant="ghost" size="icon" className="rounded-full" aria-label="User profile">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              aria-label="User profile"
+            >
               <User className="h-5 w-5" />
             </Button>
           </Link>
         ) : (
           <>
             <Link to="/how-it-works">
-              <Button variant="outline" className="mr-2">How It Works</Button>
+              <Button variant="outline" className="mr-2">
+                How It Works
+              </Button>
             </Link>
             <Link to="/signin">
               <Button>Sign In</Button>
@@ -100,8 +124,8 @@ export function MainNavigation() {
                         to={item.href}
                         className={`flex items-center gap-3 px-2 py-1.5 rounded-md transition-colors ${
                           isActive(item.href)
-                            ? 'bg-primary/10 text-primary'
-                            : 'hover:bg-muted'
+                            ? "bg-primary/10 text-primary"
+                            : "hover:bg-muted"
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
@@ -131,7 +155,18 @@ export function MainNavigation() {
                       className="flex items-center gap-3 px-2 py-1.5 rounded-md transition-colors hover:bg-muted"
                       onClick={() => setIsOpen(false)}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4"
+                      >
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 16v-4" />
                         <path d="M12 8h.01" />
@@ -145,7 +180,18 @@ export function MainNavigation() {
                       className="flex items-center gap-3 px-2 py-1.5 rounded-md transition-colors hover:bg-muted"
                       onClick={() => setIsOpen(false)}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4"
+                      >
                         <circle cx="12" cy="12" r="10" />
                         <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                         <path d="M12 17h.01" />

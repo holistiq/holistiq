@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,13 +33,13 @@ import {
   MoreHorizontal,
   ExternalLink,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import {
   getUserPublicShares,
   revokePublicShare,
   generateShareableUrl,
-  UserPublicShare
+  UserPublicShare,
 } from "@/services/publicShareService";
 import { formatDistanceToNow } from "date-fns";
 
@@ -117,29 +123,34 @@ export function PublicShareManager() {
 
   const formatTestType = (testType: string): string => {
     switch (testType) {
-      case 'n-back-2':
-        return 'N-Back Test';
-      case 'reaction-time':
-        return 'Reaction Time Test';
+      case "n-back-2":
+        return "N-Back Test";
+      case "reaction-time":
+        return "Reaction Time Test";
       default:
-        return testType.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return testType
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
     }
   };
 
   const getShareStatus = (share: PublicShare) => {
     if (!share.is_active) {
-      return { status: 'revoked', color: 'bg-red-100 text-red-800' };
+      return { status: "revoked", color: "bg-red-100 text-red-800" };
     }
 
     if (share.expires_at && new Date(share.expires_at) <= new Date()) {
-      return { status: 'expired', color: 'bg-orange-100 text-orange-800' };
+      return { status: "expired", color: "bg-orange-100 text-orange-800" };
     }
 
     if (share.max_views && share.current_views >= share.max_views) {
-      return { status: 'limit reached', color: 'bg-orange-100 text-orange-800' };
+      return {
+        status: "limit reached",
+        color: "bg-orange-100 text-orange-800",
+      };
     }
 
-    return { status: 'active', color: 'bg-green-100 text-green-800' };
+    return { status: "active", color: "bg-green-100 text-green-800" };
   };
 
   if (loading) {
@@ -173,11 +184,7 @@ export function PublicShareManager() {
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-          <Button
-            variant="outline"
-            onClick={loadShares}
-            className="mt-4"
-          >
+          <Button variant="outline" onClick={loadShares} className="mt-4">
             Try Again
           </Button>
         </CardContent>
@@ -201,9 +208,12 @@ export function PublicShareManager() {
         {shares.length === 0 ? (
           <div className="text-center py-8">
             <Share2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No shared results yet</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              No shared results yet
+            </h3>
             <p className="text-muted-foreground">
-              Create shareable links for your test results to share with friends and family.
+              Create shareable links for your test results to share with friends
+              and family.
             </p>
           </div>
         ) : (
@@ -227,11 +237,15 @@ export function PublicShareManager() {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {share.title ?? `${formatTestType(share.test_results.test_type)} Result`}
+                            {share.title ??
+                              `${formatTestType(share.test_results.test_type)} Result`}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            Score: {share.test_results.score} • {' '}
-                            {formatDistanceToNow(new Date(share.test_results.timestamp), { addSuffix: true })}
+                            Score: {share.test_results.score} •{" "}
+                            {formatDistanceToNow(
+                              new Date(share.test_results.timestamp),
+                              { addSuffix: true },
+                            )}
                           </div>
                         </div>
                       </TableCell>
@@ -241,7 +255,7 @@ export function PublicShareManager() {
                           <Eye className="h-4 w-4 text-muted-foreground" />
                           <span>
                             {share.current_views}
-                            {share.max_views ? ` / ${share.max_views}` : ''}
+                            {share.max_views ? ` / ${share.max_views}` : ""}
                           </span>
                         </div>
                       </TableCell>
@@ -250,17 +264,23 @@ export function PublicShareManager() {
                         <Badge className={shareStatus.color}>
                           {shareStatus.status}
                         </Badge>
-                        {share.expires_at && shareStatus.status === 'active' && (
-                          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Expires {formatDistanceToNow(new Date(share.expires_at), { addSuffix: true })}
-                          </div>
-                        )}
+                        {share.expires_at &&
+                          shareStatus.status === "active" && (
+                            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              Expires{" "}
+                              {formatDistanceToNow(new Date(share.expires_at), {
+                                addSuffix: true,
+                              })}
+                            </div>
+                          )}
                       </TableCell>
 
                       <TableCell>
                         <div className="text-sm">
-                          {formatDistanceToNow(new Date(share.created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(share.created_at), {
+                            addSuffix: true,
+                          })}
                         </div>
                       </TableCell>
 
@@ -279,14 +299,21 @@ export function PublicShareManager() {
                               Copy Link
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => window.open(generateShareableUrl(share.share_token), '_blank')}
+                              onClick={() =>
+                                window.open(
+                                  generateShareableUrl(share.share_token),
+                                  "_blank",
+                                )
+                              }
                             >
                               <ExternalLink className="mr-2 h-4 w-4" />
                               View Share
                             </DropdownMenuItem>
                             {share.is_active && (
                               <DropdownMenuItem
-                                onClick={() => handleRevokeShare(share.share_token)}
+                                onClick={() =>
+                                  handleRevokeShare(share.share_token)
+                                }
                                 className="text-red-600"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />

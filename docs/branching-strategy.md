@@ -13,6 +13,7 @@
 ### Feature Development
 
 1. Create a feature branch from `develop`:
+
    ```bash
    git checkout develop
    git pull
@@ -22,12 +23,14 @@
 2. Develop and test your feature locally.
 
 3. Commit changes with meaningful commit messages:
+
    ```bash
    git add .
    git commit -m "feat: add user achievements display"
    ```
 
 4. Push your branch to GitHub:
+
    ```bash
    git push -u origin feature/your-feature-name
    ```
@@ -49,6 +52,7 @@
 ### Hotfixes
 
 1. For urgent production fixes, create a hotfix branch from `main`:
+
    ```bash
    git checkout main
    git pull

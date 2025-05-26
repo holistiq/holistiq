@@ -26,8 +26,8 @@ async function testUrl(url, description) {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
-        'User-Agent': 'HolistiQ-Deployment-Verification'
-      }
+        "User-Agent": "HolistiQ-Deployment-Verification",
+      },
     });
 
     clearTimeout(timeoutId);
@@ -56,7 +56,7 @@ async function testContent(url, expectedContent, description) {
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
     const response = await fetch(url, {
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
@@ -92,29 +92,26 @@ async function verifyDeployment(baseUrl) {
   const tests = [];
 
   // Test main page
-  tests.push(await testUrl(baseUrl, 'Main page accessibility'));
+  tests.push(await testUrl(baseUrl, "Main page accessibility"));
 
   // Test that it's a React app
-  tests.push(await testContent(baseUrl, [
-    'Holistiq',
-    'root',
-    'script'
-  ], 'React app structure'));
+  tests.push(
+    await testContent(
+      baseUrl,
+      ["Holistiq", "root", "script"],
+      "React app structure",
+    ),
+  );
 
   // Test common routes (SPA routing)
-  const routes = [
-    '/dashboard',
-    '/achievements',
-    '/supplements',
-    '/tests'
-  ];
+  const routes = ["/dashboard", "/achievements", "/supplements", "/tests"];
 
   for (const route of routes) {
     tests.push(await testUrl(`${baseUrl}${route}`, `Route: ${route}`));
   }
 
   // Test static assets
-  tests.push(await testUrl(`${baseUrl}/assets/favicon/favicon.svg`, 'Favicon'));
+  tests.push(await testUrl(`${baseUrl}/assets/favicon/favicon.svg`, "Favicon"));
 
   // Summary
   const passed = tests.filter(Boolean).length;
@@ -127,7 +124,9 @@ async function verifyDeployment(baseUrl) {
     console.log(`🎉 All tests passed! Deployment is working correctly.`);
     return true;
   } else {
-    console.log(`❌ ${total - passed} tests failed. Please check the deployment.`);
+    console.log(
+      `❌ ${total - passed} tests failed. Please check the deployment.`,
+    );
     return false;
   }
 }
@@ -157,7 +156,7 @@ Examples:
   try {
     new URL(url);
   } catch (error) {
-    console.error('❌ Invalid URL format:', error.message);
+    console.error("❌ Invalid URL format:", error.message);
     process.exit(1);
   }
 
@@ -166,7 +165,7 @@ Examples:
 }
 
 // Run the script
-main().catch(error => {
-  console.error('❌ Verification failed:', error.message);
+main().catch((error) => {
+  console.error("❌ Verification failed:", error.message);
   process.exit(1);
 });

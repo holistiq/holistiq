@@ -1,22 +1,27 @@
 # Staging Environment - Branch Deploy Setup
 
 ## Overview
+
 Using Netlify's free tier branch deploy feature for staging environment.
 
 ## URLs
+
 - **Production**: https://myholistiq.com (main branch)
 - **Staging**: https://develop--[SITE-NAME].netlify.app (develop branch)
 
 ## How It Works
 
 ### Automatic Deployments
+
 - **Push to `main`** → Deploys to production (myholistiq.com)
 - **Push to `develop`** → Deploys to staging (branch deploy URL)
 
 ### Environment Variables
+
 Both environments use the same environment variables from Netlify site settings.
 
 For staging-specific config, you can:
+
 1. Use branch-specific environment variables in Netlify
 2. Or detect environment in code using the URL
 
@@ -42,13 +47,14 @@ curl -s -o /dev/null -w "%{http_code}" https://develop--[SITE-NAME].netlify.app
 Update `scripts/verify-staging.js` with your actual branch deploy URL:
 
 ```javascript
-const NETLIFY_BRANCH_URL = 'https://develop--[YOUR-ACTUAL-SITE-NAME].netlify.app';
+const NETLIFY_BRANCH_URL =
+  "https://develop--[YOUR-ACTUAL-SITE-NAME].netlify.app";
 ```
 
 ## Benefits of This Approach
 
 ✅ **Free tier compatible**
-✅ **Automatic deployments** 
+✅ **Automatic deployments**
 ✅ **No additional sites needed**
 ✅ **Same codebase, different branches**
 
@@ -61,6 +67,7 @@ const NETLIFY_BRANCH_URL = 'https://develop--[YOUR-ACTUAL-SITE-NAME].netlify.app
 ## Future Upgrade Path
 
 When ready for professional staging:
+
 1. **Create separate Netlify site** for staging
 2. **Use custom domain**: staging.myholistiq.com
 3. **Separate environment variables**
@@ -68,11 +75,13 @@ When ready for professional staging:
 ## Team Usage
 
 **For Development:**
+
 - Work on feature branches
 - Merge to `develop` for staging testing
 - Merge to `main` for production deployment
 
 **For Testing:**
+
 - Use staging URL for testing new features
 - Verify changes before production deployment
 - Share staging URL with stakeholders for review

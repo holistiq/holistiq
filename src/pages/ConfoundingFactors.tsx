@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent
+  CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,12 +22,18 @@ import {
   Battery,
   Volume2,
   Droplets,
-  Wine
+  Wine,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
-import { getConfoundingFactors, analyzeConfoundingFactors } from "@/services/confoundingFactorService";
-import { ConfoundingFactor, FactorAnalysisResult } from "@/types/confoundingFactor";
+import {
+  getConfoundingFactors,
+  analyzeConfoundingFactors,
+} from "@/services/confoundingFactorService";
+import {
+  ConfoundingFactor,
+  FactorAnalysisResult,
+} from "@/types/confoundingFactor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
@@ -70,13 +76,15 @@ export default function ConfoundingFactors() {
     try {
       // Use last 30 days for analysis
       const endDate = new Date().toISOString();
-      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const startDate = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000,
+      ).toISOString();
 
       const result = await analyzeConfoundingFactors(
         user.id,
         "n-back-2", // Default test type
         startDate,
-        endDate
+        endDate,
       );
 
       if (result.success && result.analysis) {
@@ -94,21 +102,38 @@ export default function ConfoundingFactors() {
   const getFilteredFactors = () => {
     if (activeTab === "all") return factors;
 
-    return factors.filter(factor => {
+    return factors.filter((factor) => {
       switch (activeTab) {
         case "sleep":
-          return factor.sleep_duration !== null || factor.sleep_quality !== null;
+          return (
+            factor.sleep_duration !== null || factor.sleep_quality !== null
+          );
         case "stress":
           return factor.stress_level !== null;
         case "exercise":
-          return factor.exercise_duration !== null || factor.exercise_intensity !== null;
+          return (
+            factor.exercise_duration !== null ||
+            factor.exercise_intensity !== null
+          );
         case "diet":
-          return factor.caffeine_intake !== null || factor.alcohol_intake !== null ||
-                 factor.water_intake !== null || (factor.meal_timing && factor.meal_timing.length > 0);
+          return (
+            factor.caffeine_intake !== null ||
+            factor.alcohol_intake !== null ||
+            factor.water_intake !== null ||
+            (factor.meal_timing && factor.meal_timing.length > 0)
+          );
         case "environment":
-          return factor.location !== null || factor.noise_level !== null || factor.temperature !== null;
+          return (
+            factor.location !== null ||
+            factor.noise_level !== null ||
+            factor.temperature !== null
+          );
         case "health":
-          return factor.mood !== null || factor.energy_level !== null || factor.illness === true;
+          return (
+            factor.mood !== null ||
+            factor.energy_level !== null ||
+            factor.illness === true
+          );
         default:
           return true;
       }
@@ -131,7 +156,8 @@ export default function ConfoundingFactors() {
         <CardContent className="pt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Sleep Section */}
-            {(factor.sleep_duration !== null || factor.sleep_quality !== null) && (
+            {(factor.sleep_duration !== null ||
+              factor.sleep_quality !== null) && (
               <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
                 <Moon className="h-5 w-5 text-blue-500 mt-0.5" />
                 <div>
@@ -140,7 +166,8 @@ export default function ConfoundingFactors() {
                     {factor.sleep_duration !== null && (
                       <p className="text-sm">
                         <span className="text-muted-foreground">Duration:</span>{" "}
-                        {Math.floor(factor.sleep_duration / 60)}h {factor.sleep_duration % 60}m
+                        {Math.floor(factor.sleep_duration / 60)}h{" "}
+                        {factor.sleep_duration % 60}m
                       </p>
                     )}
                     {factor.sleep_quality !== null && (
@@ -171,7 +198,8 @@ export default function ConfoundingFactors() {
             )}
 
             {/* Exercise Section */}
-            {(factor.exercise_duration !== null || factor.exercise_intensity !== null) && (
+            {(factor.exercise_duration !== null ||
+              factor.exercise_intensity !== null) && (
               <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
                 <Dumbbell className="h-5 w-5 text-green-500 mt-0.5" />
                 <div>
@@ -180,7 +208,8 @@ export default function ConfoundingFactors() {
                     {factor.exercise_type && (
                       <p className="text-sm">
                         <span className="text-muted-foreground">Type:</span>{" "}
-                        {factor.exercise_type.charAt(0).toUpperCase() + factor.exercise_type.slice(1)}
+                        {factor.exercise_type.charAt(0).toUpperCase() +
+                          factor.exercise_type.slice(1)}
                       </p>
                     )}
                     {factor.exercise_duration !== null && (
@@ -191,7 +220,9 @@ export default function ConfoundingFactors() {
                     )}
                     {factor.exercise_intensity !== null && (
                       <p className="text-sm">
-                        <span className="text-muted-foreground">Intensity:</span>{" "}
+                        <span className="text-muted-foreground">
+                          Intensity:
+                        </span>{" "}
                         {factor.exercise_intensity}/10
                       </p>
                     )}
@@ -201,7 +232,9 @@ export default function ConfoundingFactors() {
             )}
 
             {/* Diet Section */}
-            {(factor.caffeine_intake !== null || factor.alcohol_intake !== null || factor.water_intake !== null) && (
+            {(factor.caffeine_intake !== null ||
+              factor.alcohol_intake !== null ||
+              factor.water_intake !== null) && (
               <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
                 <Coffee className="h-5 w-5 text-amber-500 mt-0.5" />
                 <div>
@@ -210,13 +243,17 @@ export default function ConfoundingFactors() {
                     {factor.caffeine_intake !== null && (
                       <div className="flex items-center gap-1">
                         <Coffee className="h-3.5 w-3.5 text-muted-foreground" />
-                        <p className="text-sm">{factor.caffeine_intake}mg caffeine</p>
+                        <p className="text-sm">
+                          {factor.caffeine_intake}mg caffeine
+                        </p>
                       </div>
                     )}
                     {factor.alcohol_intake !== null && (
                       <div className="flex items-center gap-1">
                         <Wine className="h-3.5 w-3.5 text-muted-foreground" />
-                        <p className="text-sm">{factor.alcohol_intake} drinks</p>
+                        <p className="text-sm">
+                          {factor.alcohol_intake} drinks
+                        </p>
                       </div>
                     )}
                     {factor.water_intake !== null && (
@@ -231,7 +268,9 @@ export default function ConfoundingFactors() {
             )}
 
             {/* Environment Section */}
-            {(factor.location !== null || factor.noise_level !== null || factor.temperature !== null) && (
+            {(factor.location !== null ||
+              factor.noise_level !== null ||
+              factor.temperature !== null) && (
               <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
                 <MapPin className="h-5 w-5 text-purple-500 mt-0.5" />
                 <div>
@@ -246,7 +285,9 @@ export default function ConfoundingFactors() {
                     {factor.noise_level !== null && (
                       <div className="flex items-center gap-1">
                         <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        <p className="text-sm">Noise: {factor.noise_level}/10</p>
+                        <p className="text-sm">
+                          Noise: {factor.noise_level}/10
+                        </p>
                       </div>
                     )}
                     {factor.temperature !== null && (
@@ -261,7 +302,9 @@ export default function ConfoundingFactors() {
             )}
 
             {/* Health Section */}
-            {(factor.mood !== null || factor.energy_level !== null || factor.illness === true) && (
+            {(factor.mood !== null ||
+              factor.energy_level !== null ||
+              factor.illness === true) && (
               <div className="flex items-start gap-3 p-3 bg-secondary/20 rounded-lg">
                 <Smile className="h-5 w-5 text-yellow-500 mt-0.5" />
                 <div>
@@ -276,14 +319,20 @@ export default function ConfoundingFactors() {
                     {factor.energy_level !== null && (
                       <div className="flex items-center gap-1">
                         <Battery className="h-3.5 w-3.5 text-muted-foreground" />
-                        <p className="text-sm">Energy: {factor.energy_level}/10</p>
+                        <p className="text-sm">
+                          Energy: {factor.energy_level}/10
+                        </p>
                       </div>
                     )}
                     {factor.illness === true && (
                       <div>
-                        <Badge variant="destructive" className="mt-1">Illness</Badge>
+                        <Badge variant="destructive" className="mt-1">
+                          Illness
+                        </Badge>
                         {factor.illness_details && (
-                          <p className="text-sm mt-1">{factor.illness_details}</p>
+                          <p className="text-sm mt-1">
+                            {factor.illness_details}
+                          </p>
                         )}
                       </div>
                     )}
@@ -309,7 +358,9 @@ export default function ConfoundingFactors() {
     <div className="container py-8 md:py-12 max-w-screen-xl">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Confounding Factors</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Confounding Factors
+          </h1>
           <p className="text-muted-foreground mt-1">
             Track variables that might affect your cognitive performance
           </p>
@@ -373,9 +424,7 @@ export default function ConfoundingFactors() {
               </Link>
             </div>
           ) : (
-            <div>
-              {getFilteredFactors().map(renderFactorDetail)}
-            </div>
+            <div>{getFilteredFactors().map(renderFactorDetail)}</div>
           )}
         </>
       )}

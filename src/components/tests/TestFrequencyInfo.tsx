@@ -3,16 +3,32 @@
  *
  * Displays information about test frequency, cooldown periods, and recommendations
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, Calendar, AlertCircle, Info, CheckCircle2 } from 'lucide-react';
-import { checkTestFrequency, TestFrequencyStatus, TEST_FREQUENCY } from '@/services/testFrequencyService';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { formatDistanceToNow, format, addHours } from 'date-fns';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Clock, Calendar, AlertCircle, Info, CheckCircle2 } from "lucide-react";
+import {
+  checkTestFrequency,
+  TestFrequencyStatus,
+  TEST_FREQUENCY,
+} from "@/services/testFrequencyService";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { formatDistanceToNow, format, addHours } from "date-fns";
 
 interface TestFrequencyInfoProps {
   onTakeTest?: () => void;
@@ -29,12 +45,13 @@ function TestFrequencyInfoComponent({
   onTakeTest,
   compact = false,
   frequencyStatus: externalStatus = null,
-  loading: externalLoading = false
+  loading: externalLoading = false,
 }: Readonly<TestFrequencyInfoProps>) {
   const { user } = useSupabaseAuth();
-  const [internalFrequencyStatus, setInternalFrequencyStatus] = useState<TestFrequencyStatus | null>(null);
+  const [internalFrequencyStatus, setInternalFrequencyStatus] =
+    useState<TestFrequencyStatus | null>(null);
   const [internalLoading, setInternalLoading] = useState(true);
-  const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
 
   // Use external status if provided, otherwise use internal
   const frequencyStatus = externalStatus || internalFrequencyStatus;
@@ -42,16 +59,16 @@ function TestFrequencyInfoComponent({
 
   // Helper function to calculate time remaining
   const calculateTimeRemaining = useCallback((status: TestFrequencyStatus) => {
-    if (!status?.lastTestTime) return 'Unknown';
+    if (!status?.lastTestTime) return "Unknown";
 
     const cooldownEnd = addHours(
       status.lastTestTime,
-      TEST_FREQUENCY.MIN_HOURS_BETWEEN_TESTS
+      TEST_FREQUENCY.MIN_HOURS_BETWEEN_TESTS,
     );
 
     const now = new Date();
     if (now >= cooldownEnd) {
-      return 'Ready now';
+      return "Ready now";
     }
 
     return formatDistanceToNow(cooldownEnd, { addSuffix: true });
@@ -74,7 +91,7 @@ function TestFrequencyInfoComponent({
             setTimeRemaining(calculateTimeRemaining(status));
           }
         } catch (error) {
-          console.error('Error fetching test frequency status:', error);
+          console.error("Error fetching test frequency status:", error);
         } finally {
           setInternalLoading(false);
         }
@@ -100,28 +117,36 @@ function TestFrequencyInfoComponent({
   }, [externalStatus, calculateTimeRemaining]);
 
   // Memoized loading state component
-  const loadingComponent = useMemo(() => (
-    <Card className={compact ? "p-4" : ""}>
-      <CardContent className="pt-4 pb-2">
-        <div className="flex items-center space-x-2">
-          <Clock className="h-5 w-5 text-muted-foreground animate-pulse" />
-          <div className="h-4 w-40 bg-muted animate-pulse rounded"></div>
-        </div>
-      </CardContent>
-    </Card>
-  ), [compact]);
+  const loadingComponent = useMemo(
+    () => (
+      <Card className={compact ? "p-4" : ""}>
+        <CardContent className="pt-4 pb-2">
+          <div className="flex items-center space-x-2">
+            <Clock className="h-5 w-5 text-muted-foreground animate-pulse" />
+            <div className="h-4 w-40 bg-muted animate-pulse rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    ),
+    [compact],
+  );
 
   // Memoized unauthenticated state component
-  const unauthenticatedComponent = useMemo(() => (
-    <Card className={compact ? "p-4" : ""}>
-      <CardContent className="pt-4 pb-2">
-        <div className="flex items-center space-x-2">
-          <AlertCircle className="h-5 w-5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Sign in to track your test frequency</p>
-        </div>
-      </CardContent>
-    </Card>
-  ), [compact]);
+  const unauthenticatedComponent = useMemo(
+    () => (
+      <Card className={compact ? "p-4" : ""}>
+        <CardContent className="pt-4 pb-2">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="h-5 w-5 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Sign in to track your test frequency
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    ),
+    [compact],
+  );
 
   // Memoized compact version component
   const compactComponent = useMemo(() => {
@@ -147,11 +172,7 @@ function TestFrequencyInfoComponent({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                  >
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Info className="h-4 w-4" />
                     <span className="sr-only">Test frequency info</span>
                   </Button>
@@ -159,7 +180,8 @@ function TestFrequencyInfoComponent({
                 <TooltipContent className="max-w-xs">
                   <p>{frequencyStatus.message}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {frequencyStatus.testsRemainingToday} of {TEST_FREQUENCY.MAX_TESTS_PER_DAY} tests remaining today
+                    {frequencyStatus.testsRemainingToday} of{" "}
+                    {TEST_FREQUENCY.MAX_TESTS_PER_DAY} tests remaining today
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -184,9 +206,15 @@ function TestFrequencyInfoComponent({
             </div>
             <Badge
               variant={frequencyStatus.canTakeTest ? "default" : "outline"}
-              className={frequencyStatus.canTakeTest ? "bg-green-500 hover:bg-green-600" : "text-amber-500 border-amber-500"}
+              className={
+                frequencyStatus.canTakeTest
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "text-amber-500 border-amber-500"
+              }
             >
-              {frequencyStatus.canTakeTest ? "Available Now" : "Cooldown Active"}
+              {frequencyStatus.canTakeTest
+                ? "Available Now"
+                : "Cooldown Active"}
             </Badge>
           </div>
         </CardHeader>
@@ -205,7 +233,12 @@ function TestFrequencyInfoComponent({
 
               {!frequencyStatus.canTakeTest && (
                 <Progress
-                  value={100 - (frequencyStatus.cooldownRemaining / (TEST_FREQUENCY.MIN_HOURS_BETWEEN_TESTS * 60) * 100)}
+                  value={
+                    100 -
+                    (frequencyStatus.cooldownRemaining /
+                      (TEST_FREQUENCY.MIN_HOURS_BETWEEN_TESTS * 60)) *
+                      100
+                  }
                   className="h-2"
                 />
               )}
@@ -218,7 +251,8 @@ function TestFrequencyInfoComponent({
                   <span className="text-sm font-medium">Today</span>
                 </div>
                 <p className="text-2xl font-bold">
-                  {frequencyStatus.testsRemainingToday}/{TEST_FREQUENCY.MAX_TESTS_PER_DAY}
+                  {frequencyStatus.testsRemainingToday}/
+                  {TEST_FREQUENCY.MAX_TESTS_PER_DAY}
                 </p>
                 <p className="text-xs text-muted-foreground">tests remaining</p>
               </div>
@@ -229,7 +263,8 @@ function TestFrequencyInfoComponent({
                   <span className="text-sm font-medium">This Week</span>
                 </div>
                 <p className="text-2xl font-bold">
-                  {frequencyStatus.testsRemainingThisWeek}/{TEST_FREQUENCY.MAX_TESTS_PER_WEEK}
+                  {frequencyStatus.testsRemainingThisWeek}/
+                  {TEST_FREQUENCY.MAX_TESTS_PER_WEEK}
                 </p>
                 <p className="text-xs text-muted-foreground">tests remaining</p>
               </div>
@@ -239,7 +274,7 @@ function TestFrequencyInfoComponent({
               <div className="text-sm">
                 <span className="text-muted-foreground">Last test: </span>
                 <span className="font-medium">
-                  {format(frequencyStatus.lastTestTime, 'MMM d, yyyy h:mm a')}
+                  {format(frequencyStatus.lastTestTime, "MMM d, yyyy h:mm a")}
                 </span>
               </div>
             )}
@@ -262,7 +297,9 @@ function TestFrequencyInfoComponent({
               disabled={!frequencyStatus.canTakeTest}
               className="w-full"
             >
-              {frequencyStatus.canTakeTest ? "Take Test Now" : "Test in Cooldown"}
+              {frequencyStatus.canTakeTest
+                ? "Take Test Now"
+                : "Test in Cooldown"}
             </Button>
           </CardFooter>
         )}

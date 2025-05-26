@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { createLogger } from '@/lib/logger';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { createLogger } from "@/lib/logger";
 
 // Create a logger for the useRefreshState hook
-const logger = createLogger({ namespace: 'useRefreshState' });
+const logger = createLogger({ namespace: "useRefreshState" });
 
 interface RefreshState {
   /** Whether a refresh operation is in progress */
@@ -29,29 +29,32 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
   const {
     minRefreshInterval = 2000,
     autoResetTimeout = 8000,
-    debug = false
+    debug = false,
   } = options;
 
   // Use a single state object to prevent multiple re-renders
   const [state, setState] = useState<RefreshState>({
     isRefreshing: false,
     lastRefreshTime: 0,
-    progress: 0
+    progress: 0,
   });
 
   // Use a ref to track if a refresh is in progress to prevent race conditions
   const refreshRef = useRef({
     isRefreshing: false,
     timeoutId: null as number | null,
-    startTime: 0
+    startTime: 0,
   });
 
   // Debug logging helper - use our centralized logger
-  const log = useCallback((message: string, data?: unknown) => {
-    if (debug) {
-      logger.debug(message, data);
-    }
-  }, [debug]);
+  const log = useCallback(
+    (message: string, data?: unknown) => {
+      if (debug) {
+        logger.debug(message, data);
+      }
+    },
+    [debug],
+  );
 
   // Complete the refresh operation
   const completeRefresh = useCallback(() => {
@@ -72,34 +75,37 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
 
     // Update the state with a small delay to allow for a smooth transition
     // Only update if the state actually needs to change to prevent unnecessary re-renders
-    setState(prev => {
+    setState((prev) => {
       if (!prev.isRefreshing && prev.progress === 100) return prev;
       return {
         ...prev,
         isRefreshing: false,
-        progress: 100
+        progress: 100,
       };
     });
   }, [log]);
 
   // Update the progress of the current refresh operation
-  const updateProgress = useCallback((progress: number) => {
-    if (!refreshRef.current.isRefreshing) return;
+  const updateProgress = useCallback(
+    (progress: number) => {
+      if (!refreshRef.current.isRefreshing) return;
 
-    // Normalize the progress value
-    const normalizedProgress = Math.min(Math.max(0, progress), 100);
+      // Normalize the progress value
+      const normalizedProgress = Math.min(Math.max(0, progress), 100);
 
-    // Only update state if the progress has actually changed
-    setState(prev => {
-      if (prev.progress === normalizedProgress) return prev;
-      return {
-        ...prev,
-        progress: normalizedProgress
-      };
-    });
+      // Only update state if the progress has actually changed
+      setState((prev) => {
+        if (prev.progress === normalizedProgress) return prev;
+        return {
+          ...prev,
+          progress: normalizedProgress,
+        };
+      });
 
-    log(`Progress updated: ${normalizedProgress}%`);
-  }, [log]);
+      log(`Progress updated: ${normalizedProgress}%`);
+    },
+    [log],
+  );
 
   // Start a refresh operation
   const startRefresh = useCallback(() => {
@@ -108,13 +114,15 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
 
     // Prevent rapid successive refreshes
     if (refreshRef.current.isRefreshing) {
-      log('Refresh already in progress, ignoring request');
+      log("Refresh already in progress, ignoring request");
       return false;
     }
 
     // Enforce minimum interval between refreshes
     if (timeSinceLastRefresh < minRefreshInterval) {
-      log(`Ignoring refresh request - last refresh was ${timeSinceLastRefresh}ms ago`);
+      log(
+        `Ignoring refresh request - last refresh was ${timeSinceLastRefresh}ms ago`,
+      );
       return false;
     }
 
@@ -126,7 +134,7 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
     setState({
       isRefreshing: true,
       lastRefreshTime: now,
-      progress: 0
+      progress: 0,
     });
 
     // We're removing the auto-reset timeout to prevent automatic completion
@@ -137,7 +145,7 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
       refreshRef.current.timeoutId = null;
     }
 
-    log('Refresh started');
+    log("Refresh started");
     return true;
   }, [state.lastRefreshTime, minRefreshInterval, log]);
 
@@ -161,6 +169,6 @@ export function useRefreshState(options: UseRefreshStateOptions = {}) {
     lastRefreshTime: state.lastRefreshTime,
     startRefresh,
     updateProgress,
-    completeRefresh
+    completeRefresh,
   };
 }

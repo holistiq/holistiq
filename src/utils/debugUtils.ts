@@ -21,8 +21,8 @@ type LogArgs = unknown[];
  * @returns {boolean} True if debug mode is available, false otherwise
  */
 export function isDebugModeAvailable(): boolean {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const isDebugEnabled = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDebugEnabled = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === "true";
 
   return isDevelopment && isDebugEnabled;
 }
@@ -37,7 +37,9 @@ export function isDebugModeAvailable(): boolean {
  * @returns {boolean} True if debug logging is enabled, false otherwise
  */
 export function isDebugLoggingEnabled(): boolean {
-  return isDebugModeAvailable() && localStorage.getItem('debug_logging') === 'true';
+  return (
+    isDebugModeAvailable() && localStorage.getItem("debug_logging") === "true"
+  );
 }
 
 /**
@@ -50,8 +52,8 @@ export function isDebugLoggingEnabled(): boolean {
  */
 export function enableDebugLogging(): boolean {
   if (isDebugModeAvailable()) {
-    localStorage.setItem('debug_logging', 'true');
-    console.log('Debug logging enabled');
+    localStorage.setItem("debug_logging", "true");
+    console.log("Debug logging enabled");
     return true;
   }
   return false;
@@ -65,8 +67,8 @@ export function enableDebugLogging(): boolean {
  * @returns {boolean} True if debug logging was disabled, false otherwise
  */
 export function disableDebugLogging(): boolean {
-  localStorage.setItem('debug_logging', 'false');
-  console.log('Debug logging disabled');
+  localStorage.setItem("debug_logging", "false");
+  console.log("Debug logging disabled");
   return true;
 }
 
@@ -149,7 +151,7 @@ export function initializeDebugLogging(): void {
 
   // In debug mode, check if debug_logging is set
   // If not set, enable it by default (as per user preference)
-  if (localStorage.getItem('debug_logging') === null) {
+  if (localStorage.getItem("debug_logging") === null) {
     enableDebugLogging();
   }
 }

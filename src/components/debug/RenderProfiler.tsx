@@ -1,7 +1,7 @@
-import React, { Profiler, ProfilerOnRenderCallback, ReactNode } from 'react';
-import { createLogger } from '@/lib/logger';
+import React, { Profiler, ProfilerOnRenderCallback, ReactNode } from "react";
+import { createLogger } from "@/lib/logger";
 
-const logger = createLogger({ namespace: 'RenderProfiler' });
+const logger = createLogger({ namespace: "RenderProfiler" });
 
 interface RenderProfilerProps {
   id: string;
@@ -13,7 +13,11 @@ interface RenderProfilerProps {
  * A component that wraps children and logs render performance
  * Use this to identify components that are rendering too frequently or taking too long
  */
-export function RenderProfiler({ id, children, logThreshold = 1 }: RenderProfilerProps) {
+export function RenderProfiler({
+  id,
+  children,
+  logThreshold = 1,
+}: RenderProfilerProps) {
   const onRender: ProfilerOnRenderCallback = (
     profilerId,
     phase,
@@ -21,11 +25,13 @@ export function RenderProfiler({ id, children, logThreshold = 1 }: RenderProfile
     baseDuration,
     startTime,
     commitTime,
-    interactions
+    interactions,
   ) => {
     // Only log renders that take longer than the threshold
     if (actualDuration > logThreshold) {
-      logger.debug(`[${profilerId}] rendered in ${actualDuration.toFixed(2)}ms (phase: ${phase})`);
+      logger.debug(
+        `[${profilerId}] rendered in ${actualDuration.toFixed(2)}ms (phase: ${phase})`,
+      );
     }
   };
 

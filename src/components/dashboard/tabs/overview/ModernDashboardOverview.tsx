@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   BarChart,
   Clock,
@@ -7,20 +7,20 @@ import {
   Pill,
   Activity,
   Calendar,
-  Plus
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { TestResult } from '@/lib/testResultUtils';
-import { Supplement } from '@/types/supplement';
-import { ConfoundingFactor } from '@/types/confoundingFactor';
-import { ActiveWashoutPeriod } from '@/types/washoutPeriod';
-import { PerformanceChart } from '@/components/dashboard/charts';
+  Plus,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TestResult } from "@/lib/testResultUtils";
+import { Supplement } from "@/types/supplement";
+import { ConfoundingFactor } from "@/types/confoundingFactor";
+import { ActiveWashoutPeriod } from "@/types/washoutPeriod";
+import { PerformanceChart } from "@/components/dashboard/charts";
 import {
   DashboardCard,
   DashboardGrid,
   DashboardGridItem,
-  DashboardMetricsRow
-} from '@/components/dashboard/layout';
+  DashboardMetricsRow,
+} from "@/components/dashboard/layout";
 
 interface ModernDashboardOverviewProps {
   readonly baselineResult: TestResult | null;
@@ -45,7 +45,7 @@ export function ModernDashboardOverview({
   isLoadingTests,
   isLoadingSupplements,
   isLoadingFactors,
-  isLoadingWashoutPeriods
+  isLoadingWashoutPeriods,
 }: ModernDashboardOverviewProps) {
   // State for Moving Average toggle
   const [showMovingAverage, setShowMovingAverage] = useState(false);
@@ -53,49 +53,71 @@ export function ModernDashboardOverview({
   // Prepare metrics for the metrics row
   const metrics = [
     {
-      title: 'Overall Score',
+      title: "Overall Score",
       value: latestResult?.score || 0,
       icon: <Target className="h-4 w-4" />,
-      description: 'Overall cognitive performance score compared to your baseline. Higher is better.',
-      change: latestResult && baselineResult ? {
-        value: ((latestResult.score - baselineResult.score) / baselineResult.score) * 100,
-        isPositive: latestResult.score > baselineResult.score,
-        label: 'vs. baseline'
-      } : undefined,
-      isLoading: isLoadingTests
+      description:
+        "Overall cognitive performance score compared to your baseline. Higher is better.",
+      change:
+        latestResult && baselineResult
+          ? {
+              value:
+                ((latestResult.score - baselineResult.score) /
+                  baselineResult.score) *
+                100,
+              isPositive: latestResult.score > baselineResult.score,
+              label: "vs. baseline",
+            }
+          : undefined,
+      isLoading: isLoadingTests,
     },
     {
-      title: 'Reaction Time',
+      title: "Reaction Time",
       value: `${latestResult?.reactionTime || 0}ms`,
       icon: <Clock className="h-4 w-4" />,
-      description: 'How quickly you respond to stimuli compared to your baseline. Lower is better.',
-      change: latestResult && baselineResult ? {
-        value: ((baselineResult.reactionTime - latestResult.reactionTime) / baselineResult.reactionTime) * 100,
-        isPositive: latestResult.reactionTime < baselineResult.reactionTime,
-        isInverted: true,
-        label: 'faster'
-      } : undefined,
-      isLoading: isLoadingTests
+      description:
+        "How quickly you respond to stimuli compared to your baseline. Lower is better.",
+      change:
+        latestResult && baselineResult
+          ? {
+              value:
+                ((baselineResult.reactionTime - latestResult.reactionTime) /
+                  baselineResult.reactionTime) *
+                100,
+              isPositive:
+                latestResult.reactionTime < baselineResult.reactionTime,
+              isInverted: true,
+              label: "faster",
+            }
+          : undefined,
+      isLoading: isLoadingTests,
     },
     {
-      title: 'Accuracy',
+      title: "Accuracy",
       value: `${latestResult?.accuracy || 0}%`,
       icon: <Target className="h-4 w-4" />,
-      description: 'How accurately you respond to test stimuli compared to your baseline. Higher is better.',
-      change: latestResult && baselineResult ? {
-        value: ((latestResult.accuracy - baselineResult.accuracy) / baselineResult.accuracy) * 100,
-        isPositive: latestResult.accuracy > baselineResult.accuracy,
-        label: 'vs. baseline'
-      } : undefined,
-      isLoading: isLoadingTests
+      description:
+        "How accurately you respond to test stimuli compared to your baseline. Higher is better.",
+      change:
+        latestResult && baselineResult
+          ? {
+              value:
+                ((latestResult.accuracy - baselineResult.accuracy) /
+                  baselineResult.accuracy) *
+                100,
+              isPositive: latestResult.accuracy > baselineResult.accuracy,
+              label: "vs. baseline",
+            }
+          : undefined,
+      isLoading: isLoadingTests,
     },
     {
-      title: 'Active Supplements',
+      title: "Active Supplements",
       value: recentSupplements.length,
       icon: <Pill className="h-4 w-4" />,
-      description: 'Number of supplements you are currently taking.',
-      isLoading: isLoadingSupplements
-    }
+      description: "Number of supplements you are currently taking.",
+      isLoading: isLoadingSupplements,
+    },
   ];
 
   // Render the performance trend chart
@@ -104,9 +126,12 @@ export function ModernDashboardOverview({
       return (
         <div className="flex flex-col items-center justify-center h-full py-12">
           <BarChart className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold mb-2">No Performance Data Yet</h3>
+          <h3 className="text-xl font-semibold mb-2">
+            No Performance Data Yet
+          </h3>
           <p className="text-muted-foreground mb-6 text-center max-w-md">
-            Take a test to see your performance data and track your cognitive enhancement journey.
+            Take a test to see your performance data and track your cognitive
+            enhancement journey.
           </p>
           <Link to="/test">
             <Button className="gap-2">
@@ -144,7 +169,8 @@ export function ModernDashboardOverview({
           <Pill className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <h3 className="text-lg font-semibold mb-2">No Active Supplements</h3>
           <p className="text-muted-foreground mb-4">
-            Log supplements to track their effects on your cognitive performance.
+            Log supplements to track their effects on your cognitive
+            performance.
           </p>
           <div className="mt-auto pt-2">
             <Link to="/log-supplement">
@@ -161,18 +187,28 @@ export function ModernDashboardOverview({
       <div className="space-y-4 h-full flex flex-col">
         <div className="flex-grow overflow-auto">
           {recentSupplements.slice(0, 3).map((supplement) => (
-            <div key={supplement.id} className="flex items-center justify-between p-3 border rounded-md mb-4">
+            <div
+              key={supplement.id}
+              className="flex items-center justify-between p-3 border rounded-md mb-4"
+            >
               <div>
                 <div className="font-medium">{supplement.name}</div>
-                <div className="text-sm text-muted-foreground">{supplement.dosage}</div>
+                <div className="text-sm text-muted-foreground">
+                  {supplement.dosage}
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">{supplement.frequency}</div>
+              <div className="text-sm text-muted-foreground">
+                {supplement.frequency}
+              </div>
             </div>
           ))}
         </div>
         {recentSupplements.length > 3 && (
           <div className="mt-auto pt-2">
-            <Link to="/supplements" className="text-sm text-primary hover:underline block text-center">
+            <Link
+              to="/supplements"
+              className="text-sm text-primary hover:underline block text-center"
+            >
               View all {recentSupplements.length} supplements
             </Link>
           </div>
@@ -189,7 +225,8 @@ export function ModernDashboardOverview({
           <Activity className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <h3 className="text-lg font-semibold mb-2">No Factors Logged</h3>
           <p className="text-muted-foreground mb-4">
-            Track factors like sleep, stress, and exercise that may affect your cognitive performance.
+            Track factors like sleep, stress, and exercise that may affect your
+            cognitive performance.
           </p>
           <div className="mt-auto pt-2">
             <Link to="/confounding-factors">
@@ -206,18 +243,28 @@ export function ModernDashboardOverview({
       <div className="space-y-4 h-full flex flex-col">
         <div className="flex-grow overflow-auto">
           {recentFactors.slice(0, 3).map((factor) => (
-            <div key={factor.id} className="flex items-center justify-between p-3 border rounded-md mb-4">
+            <div
+              key={factor.id}
+              className="flex items-center justify-between p-3 border rounded-md mb-4"
+            >
               <div>
                 <div className="font-medium">{factor.factor_type}</div>
-                <div className="text-sm text-muted-foreground">{factor.value}</div>
+                <div className="text-sm text-muted-foreground">
+                  {factor.value}
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">{new Date(factor.date).toLocaleDateString()}</div>
+              <div className="text-sm text-muted-foreground">
+                {new Date(factor.date).toLocaleDateString()}
+              </div>
             </div>
           ))}
         </div>
         {recentFactors.length > 3 && (
           <div className="mt-auto pt-2">
-            <Link to="/confounding-factors" className="text-sm text-primary hover:underline block text-center">
+            <Link
+              to="/confounding-factors"
+              className="text-sm text-primary hover:underline block text-center"
+            >
               View all {recentFactors.length} factors
             </Link>
           </div>
@@ -292,9 +339,12 @@ export function ModernDashboardOverview({
             {activeWashoutPeriods.length === 0 ? (
               <div className="text-center py-6 h-full flex flex-col justify-center">
                 <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <h3 className="text-lg font-semibold mb-2">No Active Washouts</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  No Active Washouts
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  Track periods when you're not taking supplements to establish baseline performance.
+                  Track periods when you're not taking supplements to establish
+                  baseline performance.
                 </p>
                 <div className="mt-auto pt-2">
                   <Link to="/washout-periods">
@@ -308,10 +358,18 @@ export function ModernDashboardOverview({
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex-grow overflow-auto">
                   {activeWashoutPeriods.map((period) => (
-                    <div key={period.id} className="flex items-center justify-between p-3 border rounded-md mb-4">
+                    <div
+                      key={period.id}
+                      className="flex items-center justify-between p-3 border rounded-md mb-4"
+                    >
                       <div>
-                        <div className="font-medium">{period.supplement_name}</div>
-                        <div className="text-sm text-muted-foreground">Started: {new Date(period.start_date).toLocaleDateString()}</div>
+                        <div className="font-medium">
+                          {period.supplement_name}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Started:{" "}
+                          {new Date(period.start_date).toLocaleDateString()}
+                        </div>
                       </div>
                       <div className="text-sm font-medium">
                         {period.days_remaining} days left
@@ -321,7 +379,10 @@ export function ModernDashboardOverview({
                 </div>
                 {activeWashoutPeriods.length > 3 && (
                   <div className="mt-auto pt-2">
-                    <Link to="/washout-periods" className="text-sm text-primary hover:underline block text-center">
+                    <Link
+                      to="/washout-periods"
+                      className="text-sm text-primary hover:underline block text-center"
+                    >
                       View all washout periods
                     </Link>
                   </div>

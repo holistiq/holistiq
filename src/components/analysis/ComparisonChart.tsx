@@ -7,51 +7,65 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Cell
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Brain, Clock, Target, TrendingUp, TrendingDown, Minus, CheckCircle } from 'lucide-react';
-import { TestResult } from '@/lib/testResultUtils';
-import { ComparisonMetrics } from '@/utils/comparativeAnalysisUtils';
-import { ReactNode } from 'react';
+  Cell,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Brain,
+  Clock,
+  Target,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  CheckCircle,
+} from "lucide-react";
+import { TestResult } from "@/lib/testResultUtils";
+import { ComparisonMetrics } from "@/utils/comparativeAnalysisUtils";
+import { ReactNode } from "react";
 
 // Define a type alias for metric types
-type MetricType = 'score' | 'reactionTime' | 'accuracy';
+type MetricType = "score" | "reactionTime" | "accuracy";
 
 // Helper function to get metric label
 function getMetricLabel(metricType: MetricType): string {
   switch (metricType) {
-    case 'score':
-      return 'Score';
-    case 'reactionTime':
-      return 'Reaction Time (ms)';
-    case 'accuracy':
-      return 'Accuracy (%)';
+    case "score":
+      return "Score";
+    case "reactionTime":
+      return "Reaction Time (ms)";
+    case "accuracy":
+      return "Accuracy (%)";
   }
 }
 
 // Helper function to get metric name for bar chart
 function getMetricName(metricType: MetricType): string {
   switch (metricType) {
-    case 'score':
-      return 'Score';
-    case 'reactionTime':
-      return 'Reaction Time';
-    case 'accuracy':
-      return 'Accuracy';
+    case "score":
+      return "Score";
+    case "reactionTime":
+      return "Reaction Time";
+    case "accuracy":
+      return "Accuracy";
   }
 }
 
 // Helper function to get metric icon
 function getMetricIcon(metricType: MetricType): ReactNode {
   switch (metricType) {
-    case 'score':
+    case "score":
       return <Brain className="h-5 w-5 text-blue-500" />;
-    case 'reactionTime':
+    case "reactionTime":
       return <Clock className="h-5 w-5 text-amber-500" />;
-    case 'accuracy':
+    case "accuracy":
       return <Target className="h-5 w-5 text-green-500" />;
   }
 }
@@ -65,7 +79,11 @@ interface ChartDataPoint {
 
 interface CustomTooltipProps {
   readonly active?: boolean;
-  readonly payload?: Array<{ name: string; value: number; payload: ChartDataPoint }>;
+  readonly payload?: Array<{
+    name: string;
+    value: number;
+    payload: ChartDataPoint;
+  }>;
   readonly baselineLabel: string;
   readonly baselineDataLength: number;
   readonly comparisonDataLength: number;
@@ -78,16 +96,20 @@ function CustomTooltip({
   baselineLabel,
   baselineDataLength,
   comparisonDataLength,
-  metricType
+  metricType,
 }: Readonly<CustomTooltipProps>) {
   if (!active || !payload?.length) return null;
 
   const data = payload[0];
-  const sampleSize = data.payload.name === baselineLabel ? baselineDataLength : comparisonDataLength;
+  const sampleSize =
+    data.payload.name === baselineLabel
+      ? baselineDataLength
+      : comparisonDataLength;
 
-  let valueLabel = '';
-  if (metricType === 'score') valueLabel = `Score: ${data.value.toFixed(1)}`;
-  else if (metricType === 'reactionTime') valueLabel = `Reaction Time: ${data.value.toFixed(1)}ms`;
+  let valueLabel = "";
+  if (metricType === "score") valueLabel = `Score: ${data.value.toFixed(1)}`;
+  else if (metricType === "reactionTime")
+    valueLabel = `Reaction Time: ${data.value.toFixed(1)}ms`;
   else valueLabel = `Accuracy: ${data.value.toFixed(1)}%`;
 
   return (
@@ -109,7 +131,7 @@ interface ComparisonChartProps {
   readonly baselineData: TestResult[];
   readonly comparisonData: TestResult[];
   readonly metrics: ComparisonMetrics;
-  readonly metricType: 'score' | 'reactionTime' | 'accuracy';
+  readonly metricType: "score" | "reactionTime" | "accuracy";
   readonly isLoading?: boolean;
   readonly higherIsBetter?: boolean;
 }
@@ -124,7 +146,7 @@ export function ComparisonChart({
   metrics,
   metricType,
   isLoading = false,
-  higherIsBetter = true
+  higherIsBetter = true,
 }: Readonly<ComparisonChartProps>) {
   if (isLoading) {
     return (
@@ -141,53 +163,65 @@ export function ComparisonChart({
   }
 
   // Calculate averages
-  const baselineAvg = baselineData.reduce((sum, test) => sum + test[metricType], 0) / baselineData.length;
-  const comparisonAvg = comparisonData.reduce((sum, test) => sum + test[metricType], 0) / comparisonData.length;
+  const baselineAvg =
+    baselineData.reduce((sum, test) => sum + test[metricType], 0) /
+    baselineData.length;
+  const comparisonAvg =
+    comparisonData.reduce((sum, test) => sum + test[metricType], 0) /
+    comparisonData.length;
 
   // Prepare data for the chart
   const chartData = [
     {
       name: baselineLabel,
       value: baselineAvg,
-      color: '#8884d8'
+      color: "#8884d8",
     },
     {
       name: comparisonLabel,
       value: comparisonAvg,
-      color: '#82ca9d'
-    }
+      color: "#82ca9d",
+    },
   ];
 
   // Get the change value based on metric type
   let changeValue = 0;
   switch (metricType) {
-    case 'score':
+    case "score":
       changeValue = metrics.scoreChange;
       break;
-    case 'reactionTime':
+    case "reactionTime":
       changeValue = metrics.reactionTimeChange;
       break;
-    case 'accuracy':
+    case "accuracy":
       changeValue = metrics.accuracyChange;
       break;
   }
 
   // Format change text and determine color/icon
-  let changeText = '';
-  let changeColor = '';
+  let changeText = "";
+  let changeColor = "";
   let changeIcon: ReactNode = null;
 
   if (changeValue > 0) {
     changeText = `+${changeValue.toFixed(1)}%`;
-    changeColor = higherIsBetter ? 'text-green-500' : 'text-red-500';
-    changeIcon = higherIsBetter ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />;
+    changeColor = higherIsBetter ? "text-green-500" : "text-red-500";
+    changeIcon = higherIsBetter ? (
+      <TrendingUp className="h-4 w-4" />
+    ) : (
+      <TrendingDown className="h-4 w-4" />
+    );
   } else if (changeValue < 0) {
     changeText = `${changeValue.toFixed(1)}%`;
-    changeColor = higherIsBetter ? 'text-red-500' : 'text-green-500';
-    changeIcon = higherIsBetter ? <TrendingDown className="h-4 w-4" /> : <TrendingUp className="h-4 w-4" />;
+    changeColor = higherIsBetter ? "text-red-500" : "text-green-500";
+    changeIcon = higherIsBetter ? (
+      <TrendingDown className="h-4 w-4" />
+    ) : (
+      <TrendingUp className="h-4 w-4" />
+    );
   } else {
-    changeText = '0%';
-    changeColor = 'text-yellow-500';
+    changeText = "0%";
+    changeColor = "text-yellow-500";
     changeIcon = <Minus className="h-4 w-4" />;
   }
 
@@ -203,7 +237,9 @@ export function ComparisonChart({
             <CardTitle>{title}</CardTitle>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`flex items-center gap-1 font-medium ${changeColor}`}>
+            <span
+              className={`flex items-center gap-1 font-medium ${changeColor}`}
+            >
               {changeIcon}
               {changeText}
             </span>
@@ -229,12 +265,12 @@ export function ComparisonChart({
               <YAxis
                 domain={[
                   (dataMin: number) => Math.max(0, dataMin * 0.9),
-                  (dataMax: number) => dataMax * 1.1
+                  (dataMax: number) => dataMax * 1.1,
                 ]}
                 label={{
                   value: getMetricLabel(metricType),
                   angle: -90,
-                  position: 'insideLeft'
+                  position: "insideLeft",
                 }}
               />
               <Tooltip
@@ -248,10 +284,7 @@ export function ComparisonChart({
                 }
               />
               <Legend />
-              <Bar
-                dataKey="value"
-                name={getMetricName(metricType)}
-              >
+              <Bar dataKey="value" name={getMetricName(metricType)}>
                 {chartData.map((entry) => (
                   <Cell key={`cell-${entry.name}`} fill={entry.color} />
                 ))}
@@ -261,7 +294,8 @@ export function ComparisonChart({
         </div>
         <div className="mt-4 text-sm text-muted-foreground">
           <p>
-            Sample sizes: {baselineLabel} ({baselineData.length} tests), {comparisonLabel} ({comparisonData.length} tests)
+            Sample sizes: {baselineLabel} ({baselineData.length} tests),{" "}
+            {comparisonLabel} ({comparisonData.length} tests)
           </p>
         </div>
       </CardContent>

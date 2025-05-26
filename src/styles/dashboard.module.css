@@ -176,11 +176,11 @@
   .smHidden {
     @apply hidden;
   }
-  
+
   .smBlock {
     @apply block;
   }
-  
+
   .smFlex {
     @apply flex;
   }
@@ -190,11 +190,11 @@
   .mdHidden {
     @apply hidden;
   }
-  
+
   .mdBlock {
     @apply block;
   }
-  
+
   .mdFlex {
     @apply flex;
   }
@@ -204,11 +204,11 @@
   .lgHidden {
     @apply hidden;
   }
-  
+
   .lgBlock {
     @apply block;
   }
-  
+
   .lgFlex {
     @apply flex;
   }

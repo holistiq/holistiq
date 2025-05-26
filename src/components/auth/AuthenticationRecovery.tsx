@@ -13,7 +13,9 @@ interface AuthenticationRecoveryProps {
  * Component that provides recovery options when authentication is taking too long
  * or appears to be stuck.
  */
-export function AuthenticationRecovery({ loadingTime = 10000 }: Readonly<AuthenticationRecoveryProps>) {
+export function AuthenticationRecovery({
+  loadingTime = 10000,
+}: Readonly<AuthenticationRecoveryProps>) {
   const [showRecovery, setShowRecovery] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
   const navigate = useNavigate();
@@ -31,38 +33,48 @@ export function AuthenticationRecovery({ loadingTime = 10000 }: Readonly<Authent
   // Function to clear all authentication data
   const clearAuthData = () => {
     console.log("Clearing authentication data...");
-    
+
     try {
       // Clear Supabase-related items from localStorage
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth'))) {
+        if (
+          key &&
+          (key.startsWith("sb-") ||
+            key.includes("supabase") ||
+            key.includes("auth"))
+        ) {
           keysToRemove.push(key);
         }
       }
 
       // Remove the identified keys
-      keysToRemove.forEach(key => {
+      keysToRemove.forEach((key) => {
         console.log(`Removing: ${key}`);
         localStorage.removeItem(key);
       });
-      
+
       // Also check sessionStorage
       const sessionKeysToRemove = [];
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth'))) {
+        if (
+          key &&
+          (key.startsWith("sb-") ||
+            key.includes("supabase") ||
+            key.includes("auth"))
+        ) {
           sessionKeysToRemove.push(key);
         }
       }
-      
+
       // Remove the identified session keys
-      sessionKeysToRemove.forEach(key => {
+      sessionKeysToRemove.forEach((key) => {
         console.log(`Removing from sessionStorage: ${key}`);
         sessionStorage.removeItem(key);
       });
-      
+
       return true;
     } catch (error) {
       console.error("Error clearing authentication data:", error);
@@ -73,46 +85,52 @@ export function AuthenticationRecovery({ loadingTime = 10000 }: Readonly<Authent
   // Function to force sign out
   const forceSignOut = async () => {
     setIsRecovering(true);
-    
+
     try {
       // Try to sign out through Supabase
       await supabase.auth.signOut();
-      
+
       // Clear all authentication data
       const cleared = clearAuthData();
-      
+
       if (cleared) {
         toast({
           title: "Signed Out",
-          description: "Authentication data has been cleared. Please sign in again.",
+          description:
+            "Authentication data has been cleared. Please sign in again.",
         });
       } else {
         toast({
           title: "Warning",
-          description: "Could not fully clear authentication data. You may need to clear browser data manually.",
+          description:
+            "Could not fully clear authentication data. You may need to clear browser data manually.",
           variant: "destructive",
         });
       }
-      
+
       // Navigate to sign-in page
-      navigate('/signin', { 
-        state: { message: 'Authentication was reset. Please sign in again.' } 
+      navigate("/signin", {
+        state: { message: "Authentication was reset. Please sign in again." },
       });
     } catch (error) {
       console.error("Error during force sign out:", error);
-      
+
       // Even if there's an error, try to clear auth data and redirect
       clearAuthData();
-      
+
       toast({
         title: "Error",
-        description: "There was an error signing out. Authentication data has been cleared.",
+        description:
+          "There was an error signing out. Authentication data has been cleared.",
         variant: "destructive",
       });
-      
+
       // Navigate to sign-in page
-      navigate('/signin', { 
-        state: { message: 'Authentication was reset due to an error. Please sign in again.' } 
+      navigate("/signin", {
+        state: {
+          message:
+            "Authentication was reset due to an error. Please sign in again.",
+        },
       });
     } finally {
       setIsRecovering(false);
@@ -133,9 +151,12 @@ export function AuthenticationRecovery({ loadingTime = 10000 }: Readonly<Authent
       <div className="flex items-start gap-3">
         <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
         <div>
-          <h3 className="font-medium text-amber-800 mb-2">Authentication Taking Too Long</h3>
+          <h3 className="font-medium text-amber-800 mb-2">
+            Authentication Taking Too Long
+          </h3>
           <p className="text-sm text-amber-700 mb-4">
-            The authentication process seems to be taking longer than expected. This might be due to:
+            The authentication process seems to be taking longer than expected.
+            This might be due to:
           </p>
           <ul className="text-sm text-amber-700 list-disc pl-5 mb-4 space-y-1">
             <li>Stale authentication data</li>
@@ -144,8 +165,8 @@ export function AuthenticationRecovery({ loadingTime = 10000 }: Readonly<Authent
             <li>Database connection problems</li>
           </ul>
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="bg-white border-amber-300 text-amber-800 hover:bg-amber-100"
               onClick={reloadPage}
@@ -154,8 +175,8 @@ export function AuthenticationRecovery({ loadingTime = 10000 }: Readonly<Authent
               <RefreshCw className="h-4 w-4 mr-2" />
               Reload Page
             </Button>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               size="sm"
               className="bg-amber-600 hover:bg-amber-700"
               onClick={forceSignOut}

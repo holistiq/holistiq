@@ -4,16 +4,31 @@
  * Displays all user achievements and progress
  */
 import React, { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { AchievementCard } from "@/components/achievements/AchievementCard";
 import { AchievementNotification } from "@/components/achievements/AchievementNotification";
 import { BadgeManagement } from "@/components/achievements/BadgeManagement";
-import { getUserAchievements, invalidateAchievementsCache } from "@/services/achievementService";
+import {
+  getUserAchievements,
+  invalidateAchievementsCache,
+} from "@/services/achievementService";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
 import { useUserBadges } from "@/hooks/useUserBadges";
@@ -21,21 +36,24 @@ import {
   AchievementCategory,
   AchievementDifficulty,
   AchievementStatus,
-  AchievementWithProgress
+  AchievementWithProgress,
 } from "@/types/achievement";
 import { Trophy, Search, Filter, Medal, Award, RefreshCw } from "lucide-react";
 
 export default function Achievements() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const { loading: badgesLoading } = useUserBadges();
-  const [achievements, setAchievements] = useState<AchievementWithProgress[]>([]);
+  const [achievements, setAchievements] = useState<AchievementWithProgress[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [selectedAchievement, setSelectedAchievement] = useState<AchievementWithProgress | null>(null);
+  const [selectedAchievement, setSelectedAchievement] =
+    useState<AchievementWithProgress | null>(null);
 
   // Coordinated loading state
   const isLoading = authLoading || loading || badgesLoading;
@@ -53,7 +71,7 @@ export default function Achievements() {
   const CACHE_TTL = 30 * 60 * 1000;
 
   // Enable debug logging in development
-  const enableDebugLogging = process.env.NODE_ENV === 'development';
+  const enableDebugLogging = process.env.NODE_ENV === "development";
 
   // Simplified data fetching
   useEffect(() => {
@@ -66,7 +84,9 @@ export default function Achievements() {
       // Skip fetch if user hasn't changed and we have data
       if (!userChanged && achievements.length > 0) {
         if (enableDebugLogging) {
-          console.log('[Achievements Component] Using existing data - skipping fetch');
+          console.log(
+            "[Achievements Component] Using existing data - skipping fetch",
+          );
         }
         setIsFromCache(true);
         return;
@@ -82,7 +102,9 @@ export default function Achievements() {
 
       try {
         if (enableDebugLogging) {
-          console.log(`[Achievements Component] Fetching achievements for user ${userId}`);
+          console.log(
+            `[Achievements Component] Fetching achievements for user ${userId}`,
+          );
         }
 
         // Use the cached service which handles caching internally
@@ -93,7 +115,7 @@ export default function Achievements() {
           setIsFromCache(false);
         }
       } catch (error) {
-        console.error('Error fetching achievements:', error);
+        console.error("Error fetching achievements:", error);
       } finally {
         setLoading(false);
         isFetchingRef.current = false;
@@ -106,51 +128,60 @@ export default function Achievements() {
     }
   }, [user?.id]);
 
-
-
   // Filter achievements
-  const filteredAchievements = achievements.filter(achievement => {
+  const filteredAchievements = achievements.filter((achievement) => {
     // Search filter
-    const matchesSearch = searchQuery === "" ||
+    const matchesSearch =
+      searchQuery === "" ||
       achievement.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       achievement.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Category filter
-    const matchesCategory = selectedCategory === "all" ||
-      achievement.category === selectedCategory;
+    const matchesCategory =
+      selectedCategory === "all" || achievement.category === selectedCategory;
 
     // Difficulty filter
-    const matchesDifficulty = selectedDifficulty === "all" ||
+    const matchesDifficulty =
+      selectedDifficulty === "all" ||
       achievement.difficulty === selectedDifficulty;
 
     // Status filter
-    const matchesStatus = selectedStatus === "all" ||
-      achievement.status === selectedStatus;
+    const matchesStatus =
+      selectedStatus === "all" || achievement.status === selectedStatus;
 
-    return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
+    return (
+      matchesSearch && matchesCategory && matchesDifficulty && matchesStatus
+    );
   });
 
   // Group achievements by category
-  const groupedAchievements = filteredAchievements.reduce<Record<string, AchievementWithProgress[]>>(
-    (groups, achievement) => {
-      const category = achievement.category;
-      if (!groups[category]) {
-        groups[category] = [];
-      }
-      groups[category].push(achievement);
-      return groups;
-    },
-    {}
-  );
+  const groupedAchievements = filteredAchievements.reduce<
+    Record<string, AchievementWithProgress[]>
+  >((groups, achievement) => {
+    const category = achievement.category;
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(achievement);
+    return groups;
+  }, {});
 
   // Calculate achievement stats
   const totalAchievements = achievements.length;
-  const completedAchievements = achievements.filter(a => a.status === AchievementStatus.COMPLETED).length;
-  const inProgressAchievements = achievements.filter(a => a.status === AchievementStatus.IN_PROGRESS).length;
-  const totalPoints = achievements.reduce((sum, a) => sum + (a.status === AchievementStatus.COMPLETED ? a.points : 0), 0);
-  const completionPercentage = totalAchievements > 0
-    ? Math.round((completedAchievements / totalAchievements) * 100)
-    : 0;
+  const completedAchievements = achievements.filter(
+    (a) => a.status === AchievementStatus.COMPLETED,
+  ).length;
+  const inProgressAchievements = achievements.filter(
+    (a) => a.status === AchievementStatus.IN_PROGRESS,
+  ).length;
+  const totalPoints = achievements.reduce(
+    (sum, a) => sum + (a.status === AchievementStatus.COMPLETED ? a.points : 0),
+    0,
+  );
+  const completionPercentage =
+    totalAchievements > 0
+      ? Math.round((completedAchievements / totalAchievements) * 100)
+      : 0;
 
   // Handle achievement click
   const handleAchievementClick = (achievement: AchievementWithProgress) => {
@@ -167,7 +198,9 @@ export default function Achievements() {
 
     try {
       if (enableDebugLogging) {
-        console.log('[Achievements Component] Manually refreshing achievements data');
+        console.log(
+          "[Achievements Component] Manually refreshing achievements data",
+        );
       }
 
       // Invalidate the cache first
@@ -193,21 +226,26 @@ export default function Achievements() {
 
         // Store in localStorage as a backup
         try {
-          localStorage.setItem(`holistiq_cache_${cacheKey}`, JSON.stringify({
-            value: response,
-            created: now,
-            expiry: now + CACHE_TTL
-          }));
+          localStorage.setItem(
+            `holistiq_cache_${cacheKey}`,
+            JSON.stringify({
+              value: response,
+              created: now,
+              expiry: now + CACHE_TTL,
+            }),
+          );
         } catch (e) {
-          console.error('Error caching achievements in localStorage:', e);
+          console.error("Error caching achievements in localStorage:", e);
         }
 
         if (enableDebugLogging) {
-          console.log(`[Achievements Component] Refresh complete, fetched ${response.achievements.length} achievements`);
+          console.log(
+            `[Achievements Component] Refresh complete, fetched ${response.achievements.length} achievements`,
+          );
         }
       }
     } catch (error) {
-      console.error('Error refreshing achievements:', error);
+      console.error("Error refreshing achievements:", error);
     } finally {
       setLoading(false);
       isFetchingRef.current = false;
@@ -221,7 +259,9 @@ export default function Achievements() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Loading achievements...</p>
+          <p className="text-sm text-muted-foreground">
+            Loading achievements...
+          </p>
         </div>
       </div>
     </div>
@@ -255,7 +295,9 @@ export default function Achievements() {
                 disabled={isFetchingRef.current}
                 className="flex items-center gap-1"
               >
-                <RefreshCw className={`h-4 w-4 ${isFetchingRef.current ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 ${isFetchingRef.current ? "animate-spin" : ""}`}
+                />
                 <span>Refresh</span>
               </Button>
             </div>
@@ -349,29 +391,45 @@ export default function Achievements() {
             </div>
 
             {/* Category filter */}
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger className="h-8 text-xs w-[130px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value={AchievementCategory.TESTING}>Testing</SelectItem>
-                <SelectItem value={AchievementCategory.SUPPLEMENTS}>Supplements</SelectItem>
-                <SelectItem value={AchievementCategory.ENGAGEMENT}>Engagement</SelectItem>
+                <SelectItem value={AchievementCategory.TESTING}>
+                  Testing
+                </SelectItem>
+                <SelectItem value={AchievementCategory.SUPPLEMENTS}>
+                  Supplements
+                </SelectItem>
+                <SelectItem value={AchievementCategory.ENGAGEMENT}>
+                  Engagement
+                </SelectItem>
               </SelectContent>
             </Select>
 
             {/* Difficulty filter */}
-            <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+            <Select
+              value={selectedDifficulty}
+              onValueChange={setSelectedDifficulty}
+            >
               <SelectTrigger className="h-8 text-xs w-[130px]">
                 <SelectValue placeholder="Difficulty" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Difficulties</SelectItem>
                 <SelectItem value={AchievementDifficulty.EASY}>Easy</SelectItem>
-                <SelectItem value={AchievementDifficulty.MEDIUM}>Medium</SelectItem>
+                <SelectItem value={AchievementDifficulty.MEDIUM}>
+                  Medium
+                </SelectItem>
                 <SelectItem value={AchievementDifficulty.HARD}>Hard</SelectItem>
-                <SelectItem value={AchievementDifficulty.EXPERT}>Expert</SelectItem>
+                <SelectItem value={AchievementDifficulty.EXPERT}>
+                  Expert
+                </SelectItem>
               </SelectContent>
             </Select>
 
@@ -382,14 +440,21 @@ export default function Achievements() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value={AchievementStatus.COMPLETED}>Completed</SelectItem>
-                <SelectItem value={AchievementStatus.IN_PROGRESS}>In Progress</SelectItem>
+                <SelectItem value={AchievementStatus.COMPLETED}>
+                  Completed
+                </SelectItem>
+                <SelectItem value={AchievementStatus.IN_PROGRESS}>
+                  In Progress
+                </SelectItem>
                 <SelectItem value={AchievementStatus.LOCKED}>Locked</SelectItem>
               </SelectContent>
             </Select>
 
             {/* Reset filters */}
-            {(selectedCategory !== "all" || selectedDifficulty !== "all" || selectedStatus !== "all" || searchQuery !== "") && (
+            {(selectedCategory !== "all" ||
+              selectedDifficulty !== "all" ||
+              selectedStatus !== "all" ||
+              searchQuery !== "") && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -411,7 +476,9 @@ export default function Achievements() {
           {filteredAchievements.length === 0 ? (
             <div className="text-center py-8">
               <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-              <h3 className="text-lg font-medium mb-1">No achievements found</h3>
+              <h3 className="text-lg font-medium mb-1">
+                No achievements found
+              </h3>
               <p className="text-muted-foreground">
                 Try adjusting your filters or search query
               </p>
@@ -424,7 +491,7 @@ export default function Achievements() {
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                {filteredAchievements.map(achievement => (
+                {filteredAchievements.map((achievement) => (
                   <AchievementCard
                     key={achievement.id}
                     achievement={achievement}
@@ -434,22 +501,24 @@ export default function Achievements() {
               </TabsContent>
 
               <TabsContent value="by-category">
-                {Object.entries(groupedAchievements).map(([category, categoryAchievements]) => (
-                  <div key={category} className="mb-6">
-                    <h3 className="text-lg font-medium mb-3 capitalize">
-                      {category.replace('_', ' ')}
-                    </h3>
-                    <div className="space-y-4">
-                      {categoryAchievements.map(achievement => (
-                        <AchievementCard
-                          key={achievement.id}
-                          achievement={achievement}
-                          onClick={handleAchievementClick}
-                        />
-                      ))}
+                {Object.entries(groupedAchievements).map(
+                  ([category, categoryAchievements]) => (
+                    <div key={category} className="mb-6">
+                      <h3 className="text-lg font-medium mb-3 capitalize">
+                        {category.replace("_", " ")}
+                      </h3>
+                      <div className="space-y-4">
+                        {categoryAchievements.map((achievement) => (
+                          <AchievementCard
+                            key={achievement.id}
+                            achievement={achievement}
+                            onClick={handleAchievementClick}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </TabsContent>
             </Tabs>
           )}
@@ -469,16 +538,10 @@ export default function Achievements() {
   // Simple loading state like other pages
   if (isLoading) {
     return (
-      <AuthenticationRequired>
-        {renderLoadingSkeleton()}
-      </AuthenticationRequired>
+      <AuthenticationRequired>{renderLoadingSkeleton()}</AuthenticationRequired>
     );
   }
 
   // Render content when loaded
-  return (
-    <AuthenticationRequired>
-      {renderContent()}
-    </AuthenticationRequired>
-  );
+  return <AuthenticationRequired>{renderContent()}</AuthenticationRequired>;
 }

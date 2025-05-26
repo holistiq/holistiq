@@ -19,7 +19,9 @@ interface DeleteAccountButtonProps {
   readonly className?: string;
 }
 
-export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps) {
+export function DeleteAccountButton({
+  className = "",
+}: DeleteAccountButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
@@ -29,7 +31,8 @@ export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps
       setIsDeleting(true);
 
       // Get current user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
 
       if (userError || !userData.user) {
         console.error("Error getting current user:", userError);
@@ -42,7 +45,9 @@ export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps
 
       // Call the RPC function to delete the account
       console.log("Calling request_account_deletion RPC function");
-      const { data: rpcData, error: rpcError } = await supabase.rpc('request_account_deletion');
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "request_account_deletion",
+      );
 
       console.log("RPC response:", { data: rpcData, error: rpcError });
 
@@ -51,7 +56,7 @@ export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps
           message: rpcError.message,
           details: rpcError.details,
           hint: rpcError.hint,
-          code: rpcError.code
+          code: rpcError.code,
         });
 
         throw new Error(`Failed to delete account: ${rpcError.message}`);
@@ -60,7 +65,8 @@ export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps
       // RPC was successful
       toast({
         title: "Account deleted",
-        description: "Your account and all associated data have been permanently deleted.",
+        description:
+          "Your account and all associated data have been permanently deleted.",
         duration: 6000,
       });
 
@@ -74,15 +80,18 @@ export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps
       console.error("Error details:", {
         name: (error as Error).name,
         message: (error as Error).message,
-        stack: (error as Error).stack
+        stack: (error as Error).stack,
       });
 
       // Provide a more specific error message if possible
-      let errorMessage = "Failed to delete account. Please try again later or contact support.";
+      let errorMessage =
+        "Failed to delete account. Please try again later or contact support.";
       if ((error as Error).message.includes("permission denied")) {
-        errorMessage = "Permission denied. The system doesn't have the necessary permissions to delete your account. Please contact support.";
+        errorMessage =
+          "Permission denied. The system doesn't have the necessary permissions to delete your account. Please contact support.";
       } else if ((error as Error).message.includes("foreign key constraint")) {
-        errorMessage = "Unable to delete account due to data dependencies. Please contact support for assistance.";
+        errorMessage =
+          "Unable to delete account due to data dependencies. Please contact support for assistance.";
       }
 
       toast({
@@ -115,7 +124,8 @@ export function DeleteAccountButton({ className = "" }: DeleteAccountButtonProps
               <AlertDialogTitle>Delete Account</AlertDialogTitle>
             </div>
             <AlertDialogDescription className="text-muted-foreground">
-              Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data, including:
+              Are you sure you want to delete your account? This action cannot
+              be undone and will permanently delete all your data, including:
               <ul className="list-disc pl-5 mt-2 space-y-1">
                 <li>Your profile information</li>
                 <li>All test results and history</li>

@@ -47,19 +47,19 @@ export function SupplementTimeline({
 }: Readonly<SupplementTimelineProps>): JSX.Element {
   // Filter periods for this supplement
   const supplementPeriods = periods.filter(
-    (period) => period.supplementId === supplementId
+    (period) => period.supplementId === supplementId,
   );
 
   // Calculate the total number of days in the date range
   const totalDays = differenceInDays(
     dateRange.to || new Date(),
-    dateRange.from || new Date()
+    dateRange.from || new Date(),
   );
 
   // Function to calculate the position and width of a period on the timeline
   const calculateTimelinePosition = (
     startDate: Date,
-    endDate?: Date
+    endDate?: Date,
   ): { left: string; width: string } => {
     const rangeStart = dateRange.from || new Date();
     const rangeEnd = dateRange.to || new Date();
@@ -71,23 +71,23 @@ export function SupplementTimeline({
     })
       ? startDate
       : startDate < rangeStart
-      ? rangeStart
-      : rangeEnd;
+        ? rangeStart
+        : rangeEnd;
 
     // Ensure the end date is within the range
     const effectiveEndDate = endDate
       ? isWithinInterval(endDate, { start: rangeStart, end: rangeEnd })
         ? endDate
         : endDate > rangeEnd
-        ? rangeEnd
-        : rangeStart
+          ? rangeEnd
+          : rangeStart
       : new Date(); // If no end date, use current date
 
     // Calculate position and width as percentages
     const startOffset = differenceInDays(effectiveStartDate, rangeStart);
     const periodDuration = differenceInDays(
       effectiveEndDate,
-      effectiveStartDate
+      effectiveStartDate,
     );
 
     const left = `${(startOffset / totalDays) * 100}%`;
@@ -130,7 +130,7 @@ export function SupplementTimeline({
               <div
                 key={i}
                 className="h-full w-px bg-muted-foreground/20"
-                style={{ left: `${(i * 25)}%` }}
+                style={{ left: `${i * 25}%` }}
               />
             ))}
           </div>
@@ -139,7 +139,7 @@ export function SupplementTimeline({
           {supplementPeriods.map((period, index) => {
             const { left, width } = calculateTimelinePosition(
               period.startDate,
-              period.endDate
+              period.endDate,
             );
 
             return (
@@ -158,7 +158,8 @@ export function SupplementTimeline({
                         {formatDateRange(period.startDate, period.endDate)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Duration: {calculateDuration(period.startDate, period.endDate)}
+                        Duration:{" "}
+                        {calculateDuration(period.startDate, period.endDate)}
                       </p>
                     </div>
                   </TooltipContent>

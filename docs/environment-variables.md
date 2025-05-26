@@ -64,26 +64,27 @@ Always validate that required environment variables are set:
 
 ```typescript
 if (!import.meta.env.VITE_PUBLIC_SUPABASE_URL) {
-  console.error('VITE_PUBLIC_SUPABASE_URL is not set');
+  console.error("VITE_PUBLIC_SUPABASE_URL is not set");
   // Handle gracefully
 }
 ```
 
 ## Required Environment Variables
 
-| Variable | Purpose | Required | Client-Exposed | Example |
-|----------|---------|----------|---------------|---------|
-| `VITE_APP_NAME` | Application name | Yes | Yes | `HolistiQ` |
-| `VITE_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes | Yes | `https://your-project-id.supabase.co` |
-| `VITE_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes | Yes | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |
-| `NODE_ENV` | Environment name | Yes | No | `development`, `production` |
-| `VITE_ENABLE_DEBUG_LOGGING` | Enable debug logging | No | Yes | `true`, `false` |
+| Variable                        | Purpose                | Required | Client-Exposed | Example                                   |
+| ------------------------------- | ---------------------- | -------- | -------------- | ----------------------------------------- |
+| `VITE_APP_NAME`                 | Application name       | Yes      | Yes            | `HolistiQ`                                |
+| `VITE_PUBLIC_SUPABASE_URL`      | Supabase project URL   | Yes      | Yes            | `https://your-project-id.supabase.co`     |
+| `VITE_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes      | Yes            | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` |
+| `NODE_ENV`                      | Environment name       | Yes      | No             | `development`, `production`               |
+| `VITE_ENABLE_DEBUG_LOGGING`     | Enable debug logging   | No       | Yes            | `true`, `false`                           |
 
 ## Setting Up Environment Variables
 
 ### Local Development
 
 1. Copy `.env.example` to `.env`:
+
    ```bash
    cp .env.example .env
    ```

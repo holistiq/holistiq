@@ -3,17 +3,36 @@
  *
  * Displays a notification when a user earns an achievement
  */
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Achievement } from '@/types/achievement';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Achievement } from "@/types/achievement";
 import {
-  Trophy, Star, Zap, Brain, Activity, Calendar,
-  CalendarCheck, CalendarRange, Repeat, Pill,
-  List, User, Rocket, CalendarClock, Lightbulb, Target,
-  ClipboardList, RefreshCw, BarChart2, CheckCircle,
-  Map, Heart, Layers, Clock
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  Trophy,
+  Star,
+  Zap,
+  Brain,
+  Activity,
+  Calendar,
+  CalendarCheck,
+  CalendarRange,
+  Repeat,
+  Pill,
+  List,
+  User,
+  Rocket,
+  CalendarClock,
+  Lightbulb,
+  Target,
+  ClipboardList,
+  RefreshCw,
+  BarChart2,
+  CheckCircle,
+  Map,
+  Heart,
+  Layers,
+  Clock,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AchievementNotificationProps {
   readonly achievement: Achievement;
@@ -26,7 +45,7 @@ export function AchievementNotification({
   achievement,
   onClose,
   autoClose = true,
-  autoCloseDelay = 5000
+  autoCloseDelay = 5000,
 }: Readonly<AchievementNotificationProps>) {
   const [isVisible, setIsVisible] = useState(true);
 
@@ -51,33 +70,33 @@ export function AchievementNotification({
   // Get icon component based on achievement icon name
   const getIconComponent = (iconName: string) => {
     const iconMap: Record<string, React.ReactNode> = {
-      'trophy': <Trophy className="h-6 w-6" />,
-      'star': <Star className="h-6 w-6" />,
-      'zap': <Zap className="h-6 w-6" />,
-      'brain': <Brain className="h-6 w-6" />,
-      'activity': <Activity className="h-6 w-6" />,
-      'calendar': <Calendar className="h-6 w-6" />,
-      'calendar-check': <CalendarCheck className="h-6 w-6" />,
-      'calendar-range': <CalendarRange className="h-6 w-6" />,
-      'calendar-clock': <CalendarClock className="h-6 w-6" />,
-      'repeat': <Repeat className="h-6 w-6" />,
-      'pill': <Pill className="h-6 w-6" />,
-      'list': <List className="h-6 w-6" />,
-      'user': <User className="h-6 w-6" />,
-      'rocket': <Rocket className="h-6 w-6" />,
-      'lightbulb': <Lightbulb className="h-6 w-6" />,
-      'target': <Target className="h-6 w-6" />,
-      'clipboard-list': <ClipboardList className="h-6 w-6" />,
-      'refresh-cw': <RefreshCw className="h-6 w-6" />,
-      'bar-chart-2': <BarChart2 className="h-6 w-6" />,
-      'check-circle': <CheckCircle className="h-6 w-6" />,
-      'map': <Map className="h-6 w-6" />,
-      'heart': <Heart className="h-6 w-6" />,
-      'layers': <Layers className="h-6 w-6" />,
-      'clock': <Clock className="h-6 w-6" />,
+      trophy: <Trophy className="h-6 w-6" />,
+      star: <Star className="h-6 w-6" />,
+      zap: <Zap className="h-6 w-6" />,
+      brain: <Brain className="h-6 w-6" />,
+      activity: <Activity className="h-6 w-6" />,
+      calendar: <Calendar className="h-6 w-6" />,
+      "calendar-check": <CalendarCheck className="h-6 w-6" />,
+      "calendar-range": <CalendarRange className="h-6 w-6" />,
+      "calendar-clock": <CalendarClock className="h-6 w-6" />,
+      repeat: <Repeat className="h-6 w-6" />,
+      pill: <Pill className="h-6 w-6" />,
+      list: <List className="h-6 w-6" />,
+      user: <User className="h-6 w-6" />,
+      rocket: <Rocket className="h-6 w-6" />,
+      lightbulb: <Lightbulb className="h-6 w-6" />,
+      target: <Target className="h-6 w-6" />,
+      "clipboard-list": <ClipboardList className="h-6 w-6" />,
+      "refresh-cw": <RefreshCw className="h-6 w-6" />,
+      "bar-chart-2": <BarChart2 className="h-6 w-6" />,
+      "check-circle": <CheckCircle className="h-6 w-6" />,
+      map: <Map className="h-6 w-6" />,
+      heart: <Heart className="h-6 w-6" />,
+      layers: <Layers className="h-6 w-6" />,
+      clock: <Clock className="h-6 w-6" />,
       // Legacy mappings for backward compatibility
-      'flask': <Lightbulb className="h-6 w-6" />,
-      'beaker': <Target className="h-6 w-6" />
+      flask: <Lightbulb className="h-6 w-6" />,
+      beaker: <Target className="h-6 w-6" />,
     };
 
     return iconMap[iconName] || <Trophy className="h-6 w-6" />;
@@ -86,16 +105,16 @@ export function AchievementNotification({
   // Get difficulty color
   const getDifficultyColor = () => {
     switch (achievement.difficulty) {
-      case 'easy':
-        return 'bg-green-500';
-      case 'medium':
-        return 'bg-blue-500';
-      case 'hard':
-        return 'bg-purple-500';
-      case 'expert':
-        return 'bg-amber-500';
+      case "easy":
+        return "bg-green-500";
+      case "medium":
+        return "bg-blue-500";
+      case "hard":
+        return "bg-purple-500";
+      case "expert":
+        return "bg-amber-500";
       default:
-        return 'bg-primary';
+        return "bg-primary";
     }
   };
 
@@ -126,8 +145,12 @@ export function AchievementNotification({
                     {/* Header */}
                     <div className="flex justify-between items-start mb-1">
                       <div>
-                        <h3 className="font-semibold text-lg">{achievement.title}</h3>
-                        <p className="text-muted-foreground text-sm">{achievement.description}</p>
+                        <h3 className="font-semibold text-lg">
+                          {achievement.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm">
+                          {achievement.description}
+                        </p>
                       </div>
 
                       {/* Points */}
@@ -152,9 +175,9 @@ export function AchievementNotification({
             {autoClose && (
               <motion.div
                 className="h-1 bg-primary"
-                initial={{ width: '100%' }}
-                animate={{ width: '0%' }}
-                transition={{ duration: autoCloseDelay / 1000, ease: 'linear' }}
+                initial={{ width: "100%" }}
+                animate={{ width: "0%" }}
+                transition={{ duration: autoCloseDelay / 1000, ease: "linear" }}
               />
             )}
           </div>

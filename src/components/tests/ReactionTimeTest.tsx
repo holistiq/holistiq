@@ -3,12 +3,12 @@
  *
  * A simple test that measures user reaction time to visual stimuli
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
-import { calculateReactionTestResults } from '@/utils/test/reaction-time';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
+import { calculateReactionTestResults } from "@/utils/test/reaction-time";
 
 export interface ReactionTimeTestProps {
   readonly testDuration: number; // in milliseconds
@@ -38,14 +38,18 @@ export interface ReactionTimeTestResult {
 export function ReactionTimeTest({
   testDuration,
   onTestComplete,
-  onCancel
+  onCancel,
 }: Readonly<ReactionTimeTestProps>) {
   // Test state
-  const [testState, setTestState] = useState<'ready' | 'waiting' | 'react' | 'feedback' | 'completed'>('ready');
+  const [testState, setTestState] = useState<
+    "ready" | "waiting" | "react" | "feedback" | "completed"
+  >("ready");
   const [progress, setProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(testDuration);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [feedbackType, setFeedbackType] = useState<'success' | 'error' | 'warning' | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackType, setFeedbackType] = useState<
+    "success" | "error" | "warning" | null
+  >(null);
 
   // Trial data
   const [currentTrial, setCurrentTrial] = useState(0);
@@ -55,11 +59,13 @@ export function ReactionTimeTest({
   const testStartTimeRef = useRef<number>(0);
   const stimulusStartTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | null>(null);
-  const trialsRef = useRef<{
-    reactionTime: number | null;
-    correct: boolean;
-    tooEarly: boolean;
-  }[]>([]);
+  const trialsRef = useRef<
+    {
+      reactionTime: number | null;
+      correct: boolean;
+      tooEarly: boolean;
+    }[]
+  >([]);
   const windowSwitchesRef = useRef<number>(0);
 
   // Constants
@@ -67,7 +73,7 @@ export function ReactionTimeTest({
   const maxWaitTime = 4000; // Maximum wait time in ms
   const stimulusDuration = 1500; // How long the stimulus stays visible if no response
   const feedbackDuration = 1000; // How long to show feedback
-  const targetColor = 'rgb(139, 92, 246)'; // Primary color
+  const targetColor = "rgb(139, 92, 246)"; // Primary color
 
   // Calculate total trials based on test duration
   useEffect(() => {
@@ -76,43 +82,49 @@ export function ReactionTimeTest({
     setTotalTrials(estimatedTrials);
 
     // Initialize trials array
-    trialsRef.current = Array(estimatedTrials).fill(null).map(() => ({
-      reactionTime: null,
-      correct: false,
-      tooEarly: false
-    }));
+    trialsRef.current = Array(estimatedTrials)
+      .fill(null)
+      .map(() => ({
+        reactionTime: null,
+        correct: false,
+        tooEarly: false,
+      }));
   }, [testDuration]);
 
   // Track window focus/blur for environmental factors
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && testState !== 'ready' && testState !== 'completed') {
+      if (
+        document.hidden &&
+        testState !== "ready" &&
+        testState !== "completed"
+      ) {
         windowSwitchesRef.current += 1;
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [testState]);
 
   // Handle user response
   const handleResponse = useCallback(() => {
-    if (testState !== 'react') {
+    if (testState !== "react") {
       // If they clicked during waiting period
-      if (testState === 'waiting') {
+      if (testState === "waiting") {
         // Record as too early
         trialsRef.current[currentTrial] = {
           reactionTime: null,
           correct: false,
-          tooEarly: true
+          tooEarly: true,
         };
 
         // Show feedback
-        setFeedbackMessage('Too early! Wait for the color change.');
-        setFeedbackType('error');
-        setTestState('feedback');
+        setFeedbackMessage("Too early! Wait for the color change.");
+        setFeedbackType("error");
+        setTestState("feedback");
       }
       return;
     }
@@ -124,33 +136,33 @@ export function ReactionTimeTest({
     trialsRef.current[currentTrial] = {
       reactionTime,
       correct: true,
-      tooEarly: false
+      tooEarly: false,
     };
 
     // Show feedback
     setFeedbackMessage(`${Math.round(reactionTime)}ms`);
-    setFeedbackType('success');
-    setTestState('feedback');
+    setFeedbackType("success");
+    setTestState("feedback");
   }, [testState, currentTrial]);
 
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.key === ' ') {
+      if (e.code === "Space" || e.key === " ") {
         handleResponse();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleResponse]);
 
   // Start the test
   const startTest = useCallback(() => {
     testStartTimeRef.current = performance.now();
-    setTestState('waiting');
+    setTestState("waiting");
     setCurrentTrial(0);
 
     // Start the test loop
@@ -158,27 +170,30 @@ export function ReactionTimeTest({
   }, [testLoop]);
 
   // Main test loop
-  const testLoop = useCallback((timestamp: number) => {
-    const elapsedTime = timestamp - testStartTimeRef.current;
+  const testLoop = useCallback(
+    (timestamp: number) => {
+      const elapsedTime = timestamp - testStartTimeRef.current;
 
-    // Update progress
-    const newProgress = Math.min(100, (elapsedTime / testDuration) * 100);
-    setProgress(newProgress);
-    setTimeRemaining(Math.max(0, testDuration - elapsedTime));
+      // Update progress
+      const newProgress = Math.min(100, (elapsedTime / testDuration) * 100);
+      setProgress(newProgress);
+      setTimeRemaining(Math.max(0, testDuration - elapsedTime));
 
-    // Check if test is complete
-    if (elapsedTime >= testDuration || currentTrial >= totalTrials) {
-      completeTest();
-      return;
-    }
+      // Check if test is complete
+      if (elapsedTime >= testDuration || currentTrial >= totalTrials) {
+        completeTest();
+        return;
+      }
 
-    // Continue the animation loop
-    animationFrameRef.current = requestAnimationFrame(testLoop);
-  }, [testDuration, currentTrial, totalTrials, completeTest]);
+      // Continue the animation loop
+      animationFrameRef.current = requestAnimationFrame(testLoop);
+    },
+    [testDuration, currentTrial, totalTrials, completeTest],
+  );
 
   // Handle the waiting state
   useEffect(() => {
-    if (testState !== 'waiting') return;
+    if (testState !== "waiting") return;
 
     // Random wait time between min and max
     const waitTime = Math.random() * (maxWaitTime - minWaitTime) + minWaitTime;
@@ -186,22 +201,22 @@ export function ReactionTimeTest({
     const waitTimer = setTimeout(() => {
       // Record the stimulus start time
       stimulusStartTimeRef.current = performance.now();
-      setTestState('react');
+      setTestState("react");
 
       // Set a timeout for if they don't react
       const stimulusTimer = setTimeout(() => {
-        if (testState === 'react') {
+        if (testState === "react") {
           // Record as missed
           trialsRef.current[currentTrial] = {
             reactionTime: null,
             correct: false,
-            tooEarly: false
+            tooEarly: false,
           };
 
           // Show feedback
-          setFeedbackMessage('Too slow! Try to react faster.');
-          setFeedbackType('warning');
-          setTestState('feedback');
+          setFeedbackMessage("Too slow! Try to react faster.");
+          setFeedbackType("warning");
+          setTestState("feedback");
         }
       }, stimulusDuration);
 
@@ -213,13 +228,13 @@ export function ReactionTimeTest({
 
   // Handle the feedback state
   useEffect(() => {
-    if (testState !== 'feedback') return;
+    if (testState !== "feedback") return;
 
     const feedbackTimer = setTimeout(() => {
       // Move to next trial
       if (currentTrial < totalTrials - 1) {
-        setCurrentTrial(prev => prev + 1);
-        setTestState('waiting');
+        setCurrentTrial((prev) => prev + 1);
+        setTestState("waiting");
       } else {
         completeTest();
       }
@@ -229,10 +244,12 @@ export function ReactionTimeTest({
   }, [testState, currentTrial, totalTrials, completeTest]);
 
   // Helper function to get feedback color class
-  const getFeedbackColorClass = (type: 'success' | 'error' | 'warning' | null): string => {
-    if (type === 'success') return 'text-green-500';
-    if (type === 'error') return 'text-red-500';
-    return 'text-amber-500';
+  const getFeedbackColorClass = (
+    type: "success" | "error" | "warning" | null,
+  ): string => {
+    if (type === "success") return "text-green-500";
+    if (type === "error") return "text-red-500";
+    return "text-amber-500";
   };
 
   // Complete the test
@@ -241,20 +258,22 @@ export function ReactionTimeTest({
       cancelAnimationFrame(animationFrameRef.current);
     }
 
-    setTestState('completed');
+    setTestState("completed");
 
     // Calculate environmental factors
     const environmentalFactors = {
       windowSwitches: windowSwitchesRef.current,
       browserInfo: navigator.userAgent,
       screenSize: `${window.innerWidth}x${window.innerHeight}`,
-      deviceType: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+      deviceType: /Mobi|Android/i.test(navigator.userAgent)
+        ? "mobile"
+        : "desktop",
     };
 
     // Calculate test results
     const results = calculateReactionTestResults(
       trialsRef.current,
-      environmentalFactors
+      environmentalFactors,
     );
 
     // Call the onTestComplete callback
@@ -265,7 +284,7 @@ export function ReactionTimeTest({
   return (
     <div className="flex flex-col items-center w-full">
       {/* Progress bar */}
-      {testState !== 'ready' && testState !== 'completed' && (
+      {testState !== "ready" && testState !== "completed" && (
         <div className="w-full mb-6">
           <div className="flex justify-between items-center mb-2">
             <div className="text-sm font-medium">
@@ -282,10 +301,11 @@ export function ReactionTimeTest({
       {/* Test content */}
       <Card className="w-full max-w-md">
         <CardContent className="p-6">
-          {testState === 'ready' && (
+          {testState === "ready" && (
             <div className="flex flex-col items-center gap-6">
               <p className="text-center">
-                Click the button or press spacebar when the color changes to purple.
+                Click the button or press spacebar when the color changes to
+                purple.
               </p>
               <Button onClick={startTest} size="lg">
                 Start Test
@@ -298,29 +318,31 @@ export function ReactionTimeTest({
             </div>
           )}
 
-          {(testState === 'waiting' || testState === 'react') && (
+          {(testState === "waiting" || testState === "react") && (
             <div className="flex flex-col items-center py-12">
               <motion.div
                 className="w-40 h-40 rounded-full flex items-center justify-center"
                 style={{
-                  backgroundColor: testState === 'react' ? targetColor : 'rgb(255, 255, 255)',
-                  border: '2px solid #e2e8f0' // Light gray border color
+                  backgroundColor:
+                    testState === "react" ? targetColor : "rgb(255, 255, 255)",
+                  border: "2px solid #e2e8f0", // Light gray border color
                 }}
                 animate={{
-                  scale: testState === 'react' ? 1.1 : 1,
-                  backgroundColor: testState === 'react' ? targetColor : 'rgb(255, 255, 255)'
+                  scale: testState === "react" ? 1.1 : 1,
+                  backgroundColor:
+                    testState === "react" ? targetColor : "rgb(255, 255, 255)",
                 }}
                 transition={{ duration: 0.2 }}
                 onClick={handleResponse}
               >
                 <span className="text-lg font-medium">
-                  {testState === 'waiting' ? 'Wait...' : 'Click Now!'}
+                  {testState === "waiting" ? "Wait..." : "Click Now!"}
                 </span>
               </motion.div>
             </div>
           )}
 
-          {testState === 'feedback' && (
+          {testState === "feedback" && (
             <div className="flex flex-col items-center py-12">
               <div
                 className={`text-2xl font-bold ${getFeedbackColorClass(feedbackType)}`}

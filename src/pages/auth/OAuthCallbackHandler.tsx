@@ -27,7 +27,9 @@ export default function OAuthCallbackHandler() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
-  const [processingStep, setProcessingStep] = useState<string>("Checking authentication...");
+  const [processingStep, setProcessingStep] = useState<string>(
+    "Checking authentication...",
+  );
   const processingRef = useRef<boolean>(false);
 
   // Helper function to clear any stale auth data (but preserve PKCE code verifier)
@@ -39,16 +41,16 @@ export default function OAuthCallbackHandler() {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+        if (key && (key.startsWith("sb-") || key.includes("supabase"))) {
           // Don't remove PKCE code verifier as it's needed for OAuth flow
-          if (!key.includes('code-verifier')) {
+          if (!key.includes("code-verifier")) {
             keysToRemove.push(key);
           }
         }
       }
 
       // Remove the identified keys
-      keysToRemove.forEach(key => {
+      keysToRemove.forEach((key) => {
         console.log(`Clearing stale auth data from localStorage: ${key}`);
         localStorage.removeItem(key);
       });
@@ -57,16 +59,16 @@ export default function OAuthCallbackHandler() {
       const sessionKeysToRemove = [];
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
-        if (key && (key.startsWith('sb-') || key.includes('supabase'))) {
+        if (key && (key.startsWith("sb-") || key.includes("supabase"))) {
           // Don't remove PKCE code verifier as it's needed for OAuth flow
-          if (!key.includes('code-verifier')) {
+          if (!key.includes("code-verifier")) {
             sessionKeysToRemove.push(key);
           }
         }
       }
 
       // Remove the identified session keys
-      sessionKeysToRemove.forEach(key => {
+      sessionKeysToRemove.forEach((key) => {
         console.log(`Clearing stale auth data from sessionStorage: ${key}`);
         sessionStorage.removeItem(key);
       });
@@ -87,14 +89,16 @@ export default function OAuthCallbackHandler() {
         clearStaleAuthData();
         setError("Authentication process timed out. Please try again.");
         navigate("/signin", {
-          state: { error: "Authentication process timed out. Please try again." }
+          state: {
+            error: "Authentication process timed out. Please try again.",
+          },
         });
       }
     }, 15000); // 15 seconds timeout
 
     // Process hash fragment tokens (implicit flow)
     const processHashTokens = async (hash: string) => {
-      if (!hash?.includes('access_token')) {
+      if (!hash?.includes("access_token")) {
         return false;
       }
 
@@ -114,19 +118,27 @@ export default function OAuthCallbackHandler() {
       try {
         // Prepare session data - handle case where refresh token might be missing
         const sessionData = tokens.refresh_token
-          ? { access_token: tokens.access_token, refresh_token: tokens.refresh_token }
+          ? {
+              access_token: tokens.access_token,
+              refresh_token: tokens.refresh_token,
+            }
           : { access_token: tokens.access_token };
 
         const sessionResult = await supabase.auth.setSession(sessionData);
 
         if (sessionResult.error) {
-          console.error("Error setting session from hash:", sessionResult.error);
+          console.error(
+            "Error setting session from hash:",
+            sessionResult.error,
+          );
 
           // Try to get the session directly as a fallback
           const { data: currentSession } = await supabase.auth.getSession();
 
           if (currentSession?.session) {
-            console.log("Found existing session despite error, proceeding with it");
+            console.log(
+              "Found existing session despite error, proceeding with it",
+            );
             return await completeAuthentication();
           }
 
@@ -136,17 +148,25 @@ export default function OAuthCallbackHandler() {
             description: sessionResult.error.message,
             variant: "destructive",
           });
-          navigate("/signin", { state: { error: sessionResult.error.message } });
+          navigate("/signin", {
+            state: { error: sessionResult.error.message },
+          });
           return false;
         }
 
         console.log("Session set successfully from hash");
         return await completeAuthentication();
       } catch (sessionError) {
-        console.error("Unexpected error setting session from hash:", sessionError);
+        console.error(
+          "Unexpected error setting session from hash:",
+          sessionError,
+        );
         setError("An unexpected error occurred during authentication");
         navigate("/signin", {
-          state: { error: "An unexpected error occurred during authentication. Please try again." }
+          state: {
+            error:
+              "An unexpected error occurred during authentication. Please try again.",
+          },
         });
         return false;
       }
@@ -154,7 +174,7 @@ export default function OAuthCallbackHandler() {
 
     // Process code parameter (PKCE flow)
     const processCodeParameter = async (search: string) => {
-      if (!search?.includes('code=')) {
+      if (!search?.includes("code=")) {
         return false;
       }
 
@@ -164,7 +184,7 @@ export default function OAuthCallbackHandler() {
       try {
         // Extract the code from the URL
         const urlParams = new URLSearchParams(search);
-        const code = urlParams.get('code');
+        const code = urlParams.get("code");
 
         if (!code) {
           console.error("No code found in URL parameters");
@@ -174,12 +194,15 @@ export default function OAuthCallbackHandler() {
         console.log("Exchanging code for session...");
 
         // Use exchangeCodeForSession to handle the PKCE flow properly
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(code);
 
         if (error) {
           console.error("Error exchanging code for session:", error);
           setError(`Authentication failed: ${error.message}`);
-          navigate("/signin", { state: { error: `Authentication failed: ${error.message}` } });
+          navigate("/signin", {
+            state: { error: `Authentication failed: ${error.message}` },
+          });
           return false;
         }
 
@@ -190,12 +213,21 @@ export default function OAuthCallbackHandler() {
 
         console.error("No session returned after code exchange");
         setError("Failed to complete authentication");
-        navigate("/signin", { state: { error: "Failed to complete authentication. Please try again." } });
+        navigate("/signin", {
+          state: {
+            error: "Failed to complete authentication. Please try again.",
+          },
+        });
         return false;
       } catch (exchangeError) {
         console.error("Unexpected error during code exchange:", exchangeError);
         setError("An unexpected error occurred during authentication");
-        navigate("/signin", { state: { error: "An unexpected error occurred during authentication. Please try again." } });
+        navigate("/signin", {
+          state: {
+            error:
+              "An unexpected error occurred during authentication. Please try again.",
+          },
+        });
         return false;
       }
     };
@@ -230,7 +262,9 @@ export default function OAuthCallbackHandler() {
     const handleAuthFailure = () => {
       console.warn("No authentication method available");
       setError("No authentication data found");
-      navigate("/signin", { state: { error: "Authentication failed. Please try again." } });
+      navigate("/signin", {
+        state: { error: "Authentication failed. Please try again." },
+      });
     };
 
     // Main OAuth redirect handler
@@ -267,11 +301,15 @@ export default function OAuthCallbackHandler() {
         setError("An unexpected error occurred");
         toast({
           title: "Authentication Error",
-          description: "An unexpected error occurred during authentication. Please try again.",
+          description:
+            "An unexpected error occurred during authentication. Please try again.",
           variant: "destructive",
         });
         navigate("/signin", {
-          state: { error: "An unexpected error occurred during authentication. Please try again." }
+          state: {
+            error:
+              "An unexpected error occurred during authentication. Please try again.",
+          },
         });
       } finally {
         // Set processing flag to false
@@ -286,7 +324,7 @@ export default function OAuthCallbackHandler() {
         console.log("Initializing session manager...");
 
         // Mark that user just signed in to prevent inappropriate session recovery
-        sessionStorage.setItem('holistiq_just_signed_in', 'true');
+        sessionStorage.setItem("holistiq_just_signed_in", "true");
 
         // Initialize the session manager to ensure proper session handling
         await sessionManager.initialize();
@@ -306,7 +344,7 @@ export default function OAuthCallbackHandler() {
         console.error("Session initialization error:", sessionError);
         setError("Failed to initialize session. Please try again.");
         navigate("/signin", {
-          state: { error: "Failed to initialize session. Please try again." }
+          state: { error: "Failed to initialize session. Please try again." },
         });
         return false;
       }
@@ -326,8 +364,8 @@ export default function OAuthCallbackHandler() {
     clearStaleAuthData();
 
     // Navigate to sign-in page
-    navigate('/signin', {
-      state: { message: 'Please try signing in again.' }
+    navigate("/signin", {
+      state: { message: "Please try signing in again." },
     });
   };
 

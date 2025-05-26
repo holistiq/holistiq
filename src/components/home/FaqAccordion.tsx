@@ -16,14 +16,18 @@ interface FaqAccordionProps {
   className?: string;
 }
 
-export function FaqAccordion({ 
-  items, 
-  className = "" 
+export function FaqAccordion({
+  items,
+  className = "",
 }: Readonly<FaqAccordionProps>) {
   return (
     <Accordion type="single" collapsible className={className}>
       {items.map((item) => (
-        <AccordionItem key={item.id} value={item.id} className="border-b border-border">
+        <AccordionItem
+          key={item.id}
+          value={item.id}
+          className="border-b border-border"
+        >
           <AccordionTrigger className="text-left text-lg font-medium py-4">
             {item.question}
           </AccordionTrigger>

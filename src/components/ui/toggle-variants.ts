@@ -1,4 +1,4 @@
-import { cva } from "class-variance-authority"
+import { cva } from "class-variance-authority";
 
 /**
  * Toggle variants using class-variance-authority
@@ -22,5 +22,5 @@ export const toggleVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
-)
+  },
+);

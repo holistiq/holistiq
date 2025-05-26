@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { LockIcon, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { sessionManager, SessionAction } from '@/services/sessionManager';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LockIcon, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { sessionManager, SessionAction } from "@/services/sessionManager";
 
 export function SessionExpiredModal() {
   const [isVisible, setIsVisible] = useState(false);
@@ -17,25 +23,28 @@ export function SessionExpiredModal() {
 
     // Listen for session expired events from storage events
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'holistiq_session_action' && event.newValue === SessionAction.SESSION_EXPIRED) {
+      if (
+        event.key === "holistiq_session_action" &&
+        event.newValue === SessionAction.SESSION_EXPIRED
+      ) {
         setIsVisible(true);
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
   // Handle login redirect
   const handleLogin = () => {
     setIsVisible(false);
-    navigate('/signin', {
+    navigate("/signin", {
       state: {
-        message: 'Your session has expired. Please sign in again.'
-      }
+        message: "Your session has expired. Please sign in again.",
+      },
     });
   };
 
@@ -69,16 +78,15 @@ export function SessionExpiredModal() {
         </CardHeader>
         <CardContent>
           <p>
-            Your session has expired due to inactivity. Please sign in again to continue.
+            Your session has expired due to inactivity. Please sign in again to
+            continue.
           </p>
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleLogin}>
-            Sign In
-          </Button>
+          <Button onClick={handleLogin}>Sign In</Button>
         </CardFooter>
       </Card>
     </div>

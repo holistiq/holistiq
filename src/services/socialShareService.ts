@@ -21,41 +21,39 @@ export interface TrackShareResponse {
 export async function trackSocialShare(
   userId: string,
   testId: string | undefined,
-  platform: string
+  platform: string,
 ): Promise<TrackShareResponse> {
   try {
     // Record the share in the database
-    const { error } = await supabase
-      .from('social_shares')
-      .insert({
-        user_id: userId,
-        test_id: testId,
-        platform,
-        shared_at: new Date().toISOString()
-      });
+    const { error } = await supabase.from("social_shares").insert({
+      user_id: userId,
+      test_id: testId,
+      platform,
+      shared_at: new Date().toISOString(),
+    });
 
     if (error) {
-      console.error('Error tracking social share:', error);
+      console.error("Error tracking social share:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
 
     // Trigger achievement for engagement
     processAchievementTrigger({
       trigger: AchievementTrigger.DAILY_LOGIN,
-      userId
+      userId,
     });
 
     return {
-      success: true
+      success: true,
     };
   } catch (error) {
-    console.error('Unexpected error tracking social share:', error);
+    console.error("Unexpected error tracking social share:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

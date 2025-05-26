@@ -8,7 +8,7 @@
  * - Respects user debug preferences from localStorage
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LoggerOptions {
   namespace?: string;
@@ -20,10 +20,12 @@ interface LoggerOptions {
  * Debug logging is enabled when debug mode is available and debug_logging is set to 'true' in localStorage
  */
 function isDebugEnabled(): boolean {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const isDebugModeEnabled = import.meta.env.VITE_ENABLE_DEBUG_LOGGING === 'true';
-  const isLocalStorageDebugEnabled = typeof localStorage !== 'undefined' &&
-                                    localStorage.getItem('debug_logging') === 'true';
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDebugModeEnabled =
+    import.meta.env.VITE_ENABLE_DEBUG_LOGGING === "true";
+  const isLocalStorageDebugEnabled =
+    typeof localStorage !== "undefined" &&
+    localStorage.getItem("debug_logging") === "true";
 
   return isDevelopment && isDebugModeEnabled && isLocalStorageDebugEnabled;
 }
@@ -32,15 +34,15 @@ function isDebugEnabled(): boolean {
  * Check if we're in a production environment
  */
 function isProduction(): boolean {
-  return process.env.NODE_ENV === 'production';
+  return process.env.NODE_ENV === "production";
 }
 
 /**
  * Create a logger instance
  */
 export function createLogger(options: LoggerOptions = {}) {
-  const { namespace = '', enabled = true } = options;
-  const prefix = namespace ? `[${namespace}]` : '';
+  const { namespace = "", enabled = true } = options;
+  const prefix = namespace ? `[${namespace}]` : "";
 
   return {
     /**
@@ -68,7 +70,7 @@ export function createLogger(options: LoggerOptions = {}) {
     warn(message: string, ...args: unknown[]): void {
       if (!enabled) return;
       // In production, we only want to show critical warnings
-      if (isProduction() && !message.includes('CRITICAL:')) return;
+      if (isProduction() && !message.includes("CRITICAL:")) return;
       console.warn(`${prefix} ${message}`, ...args);
     },
 
@@ -79,7 +81,7 @@ export function createLogger(options: LoggerOptions = {}) {
     error(message: string, ...args: unknown[]): void {
       if (!enabled) return;
       console.error(`${prefix} ${message}`, ...args);
-    }
+    },
   };
 }
 

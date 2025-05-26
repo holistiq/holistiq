@@ -6,24 +6,51 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ReactionTimeTest, ReactionTimeTestResult } from "@/components/tests/ReactionTimeTest";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  ReactionTimeTest,
+  ReactionTimeTestResult,
+} from "@/components/tests/ReactionTimeTest";
 import { ReactionTimeInstructions } from "@/components/tests/ReactionTimeInstructions";
 import { TestFrequencyInfo } from "@/components/tests/TestFrequencyInfo";
 import { TestCompletionFlow } from "@/components/tests/TestCompletionFlow";
 import { saveTestResult } from "@/services/testResultService";
-import { checkTestFrequency, TestFrequencyStatus } from "@/services/testFrequencyService";
+import {
+  checkTestFrequency,
+  TestFrequencyStatus,
+} from "@/services/testFrequencyService";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import { useTestResults } from "@/hooks/useTestResults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
 
 export default function ReactionTimeTestPage() {
-  const [testState, setTestState] = useState<"intro" | "ready" | "running" | "completed">("intro");
+  const [testState, setTestState] = useState<
+    "intro" | "ready" | "running" | "completed"
+  >("intro");
   const [showFullScreen, setShowFullScreen] = useState(false);
-  const [testResult, setTestResult] = useState<ReactionTimeTestResult | null>(null);
-  const [frequencyStatus, setFrequencyStatus] = useState<TestFrequencyStatus | null>(null);
+  const [testResult, setTestResult] = useState<ReactionTimeTestResult | null>(
+    null,
+  );
+  const [frequencyStatus, setFrequencyStatus] =
+    useState<TestFrequencyStatus | null>(null);
   const [isCheckingFrequency, setIsCheckingFrequency] = useState(false);
   const navigate = useNavigate();
   const { user, loading } = useSupabaseAuth();
@@ -37,7 +64,10 @@ export default function ReactionTimeTestPage() {
     baselineResult = testResultsContext.baselineResult;
     refreshTestResults = testResultsContext.refreshTestResults;
   } catch (error) {
-    console.warn('TestResultsContext not available, using default values', error);
+    console.warn(
+      "TestResultsContext not available, using default values",
+      error,
+    );
   }
 
   // Check test frequency when component mounts
@@ -50,7 +80,7 @@ export default function ReactionTimeTestPage() {
         const status = await checkTestFrequency(user.id);
         setFrequencyStatus(status);
       } catch (error) {
-        console.error('Error checking test frequency:', error);
+        console.error("Error checking test frequency:", error);
       } finally {
         setIsCheckingFrequency(false);
       }
@@ -68,9 +98,9 @@ export default function ReactionTimeTestPage() {
     // Save the result
     const saveResponse = await saveTestResult(
       user?.id,
-      'reaction-time',
+      "reaction-time",
       result,
-      false // This is not a baseline test
+      false, // This is not a baseline test
     );
 
     if (saveResponse.success) {
@@ -141,8 +171,8 @@ export default function ReactionTimeTestPage() {
             <div className="space-y-6 px-6">
               <div className="space-y-4">
                 <p>
-                  This test will measure your reaction time. You'll need about 2 minutes in a quiet,
-                  distraction-free environment.
+                  This test will measure your reaction time. You'll need about 2
+                  minutes in a quiet, distraction-free environment.
                 </p>
                 <div className="bg-secondary p-4 rounded-md space-y-2">
                   <h3 className="font-medium">Before you begin:</h3>
@@ -211,7 +241,8 @@ export default function ReactionTimeTestPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>Fullscreen Recommended</AlertDialogTitle>
               <AlertDialogDescription>
-                This test works best in fullscreen mode. Would you like to enable fullscreen?
+                This test works best in fullscreen mode. Would you like to
+                enable fullscreen?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

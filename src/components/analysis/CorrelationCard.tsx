@@ -1,6 +1,12 @@
 import { Brain, Clock, Zap } from "lucide-react";
-import { SupplementCorrelation, getImpactDescription } from '@/types/correlation';
-import { renderImpactIndicator, renderConfidenceLevel } from '@/utils/correlationUtils';
+import {
+  SupplementCorrelation,
+  getImpactDescription,
+} from "@/types/correlation";
+import {
+  renderImpactIndicator,
+  renderConfidenceLevel,
+} from "@/utils/correlationUtils";
 
 interface CorrelationCardProps {
   readonly correlation: SupplementCorrelation;
@@ -13,20 +19,23 @@ interface CorrelationCardProps {
  * @returns Formatted impact string or 'N/A' if null
  */
 function formatImpactValue(impact: number | null): string {
-  if (impact === null) return 'N/A';
+  if (impact === null) return "N/A";
 
-  const sign = impact > 0 ? '+' : '';
+  const sign = impact > 0 ? "+" : "";
   return `${sign}${impact.toFixed(1)}%`;
 }
 
 /**
  * A card component that displays correlation analysis results for a supplement
  */
-export function CorrelationCard({ correlation, supplementName }: Readonly<CorrelationCardProps>): JSX.Element {
+export function CorrelationCard({
+  correlation,
+  supplementName,
+}: Readonly<CorrelationCardProps>): JSX.Element {
   return (
     <div className="bg-primary/5 p-4 rounded-lg">
       <h3 className="text-lg font-medium mb-2">
-        {supplementName || 'Supplement'} Analysis Results
+        {supplementName || "Supplement"} Analysis Results
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -42,7 +51,7 @@ export function CorrelationCard({ correlation, supplementName }: Readonly<Correl
             {formatImpactValue(correlation.score_impact)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {getImpactDescription(correlation.score_impact, 'score')}
+            {getImpactDescription(correlation.score_impact, "score")}
           </p>
         </div>
 
@@ -58,7 +67,11 @@ export function CorrelationCard({ correlation, supplementName }: Readonly<Correl
             {formatImpactValue(correlation.reaction_time_impact)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {getImpactDescription(correlation.reaction_time_impact, 'reaction_time', true)}
+            {getImpactDescription(
+              correlation.reaction_time_impact,
+              "reaction_time",
+              true,
+            )}
           </p>
         </div>
 
@@ -74,7 +87,7 @@ export function CorrelationCard({ correlation, supplementName }: Readonly<Correl
             {formatImpactValue(correlation.accuracy_impact)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {getImpactDescription(correlation.accuracy_impact, 'accuracy')}
+            {getImpactDescription(correlation.accuracy_impact, "accuracy")}
           </p>
         </div>
       </div>

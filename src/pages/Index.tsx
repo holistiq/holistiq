@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -16,7 +15,7 @@ import {
   ArrowRight,
   Star,
   Sparkles,
-  LineChart
+  LineChart,
 } from "lucide-react";
 
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
@@ -41,10 +40,12 @@ const Index = () => {
               </div>
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
-                  Measure Your <span className="text-primary">Cognitive Enhancement</span>
+                  Measure Your{" "}
+                  <span className="text-primary">Cognitive Enhancement</span>
                 </h1>
                 <p className="text-xl text-muted-foreground md:text-2xl max-w-[600px]">
-                  Discover if your supplements are actually working with data-driven insights and standardized cognitive assessments.
+                  Discover if your supplements are actually working with
+                  data-driven insights and standardized cognitive assessments.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-2">
@@ -65,13 +66,17 @@ const Index = () => {
               <div className="flex items-center gap-4 mt-4">
                 <div className="flex -space-x-2">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className={`w-8 h-8 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center text-xs font-medium text-primary`}>
+                    <div
+                      key={i}
+                      className={`w-8 h-8 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center text-xs font-medium text-primary`}
+                    >
                       {String.fromCharCode(64 + i)}
                     </div>
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">500+</span> users tracking their cognitive enhancement
+                  <span className="font-medium">500+</span> users tracking their
+                  cognitive enhancement
                 </p>
               </div>
             </AnimatedSection>
@@ -92,13 +97,13 @@ const Index = () => {
                 </div>
                 <div className="h-16 bg-primary/5 rounded-md flex items-end p-1">
                   {[
-                    { id: 'bar-1', height: 30 },
-                    { id: 'bar-2', height: 45 },
-                    { id: 'bar-3', height: 40 },
-                    { id: 'bar-4', height: 60 },
-                    { id: 'bar-5', height: 55 },
-                    { id: 'bar-6', height: 75 },
-                    { id: 'bar-7', height: 85 }
+                    { id: "bar-1", height: 30 },
+                    { id: "bar-2", height: 45 },
+                    { id: "bar-3", height: 40 },
+                    { id: "bar-4", height: 60 },
+                    { id: "bar-5", height: 55 },
+                    { id: "bar-6", height: 75 },
+                    { id: "bar-7", height: 85 },
                   ].map((bar) => (
                     <div
                       key={bar.id}
@@ -129,7 +134,8 @@ const Index = () => {
                 How Holistiq Works
               </h2>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                A science-based approach to tracking your cognitive enhancement journey
+                A science-based approach to tracking your cognitive enhancement
+                journey
               </p>
             </div>
           </AnimatedSection>
@@ -155,12 +161,16 @@ const Index = () => {
                 <div className="text-center">
                   <h3 className="text-xl font-bold mb-2">Establish Baseline</h3>
                   <p className="text-muted-foreground min-h-[60px]">
-                    Complete an initial cognitive assessment to establish your baseline performance metrics.
+                    Complete an initial cognitive assessment to establish your
+                    baseline performance metrics.
                   </p>
                 </div>
 
                 {/* Action Link */}
-                <Link to="/baseline-test" className="text-primary font-medium hover:underline inline-flex items-center mt-auto">
+                <Link
+                  to="/baseline-test"
+                  className="text-primary font-medium hover:underline inline-flex items-center mt-auto"
+                >
                   Take baseline test
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
@@ -184,12 +194,16 @@ const Index = () => {
                 <div className="text-center">
                   <h3 className="text-xl font-bold mb-2">Track Supplements</h3>
                   <p className="text-muted-foreground min-h-[60px]">
-                    Log your supplement intake including dosage, timing, and frequency for accurate analysis.
+                    Log your supplement intake including dosage, timing, and
+                    frequency for accurate analysis.
                   </p>
                 </div>
 
                 {/* Action Link */}
-                <Link to="/log-supplement" className="text-primary font-medium hover:underline inline-flex items-center mt-auto">
+                <Link
+                  to="/log-supplement"
+                  className="text-primary font-medium hover:underline inline-flex items-center mt-auto"
+                >
                   Log supplements
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
@@ -213,12 +227,16 @@ const Index = () => {
                 <div className="text-center">
                   <h3 className="text-xl font-bold mb-2">Measure Progress</h3>
                   <p className="text-muted-foreground min-h-[60px]">
-                    Take follow-up assessments and view your performance trends over time with detailed insights.
+                    Take follow-up assessments and view your performance trends
+                    over time with detailed insights.
                   </p>
                 </div>
 
                 {/* Action Link */}
-                <Link to="/take-test" className="text-primary font-medium hover:underline inline-flex items-center mt-auto">
+                <Link
+                  to="/take-test"
+                  className="text-primary font-medium hover:underline inline-flex items-center mt-auto"
+                >
                   Take follow-up test
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
@@ -241,7 +259,8 @@ const Index = () => {
                 Quick Actions
               </h2>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Jump right in with these common tasks to start tracking your cognitive enhancement
+                Jump right in with these common tasks to start tracking your
+                cognitive enhancement
               </p>
             </div>
           </AnimatedSection>
@@ -253,9 +272,12 @@ const Index = () => {
                   <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
                     <Brain className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-3">Take Cognitive Test</h3>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Take Cognitive Test
+                  </h3>
                   <p className="text-sm text-muted-foreground text-center mb-4">
-                    Measure your cognitive performance with our standardized assessment
+                    Measure your cognitive performance with our standardized
+                    assessment
                   </p>
                   <div className="mt-auto pt-2 text-primary text-sm font-medium group-hover:underline flex items-center">
                     Start test
@@ -273,7 +295,8 @@ const Index = () => {
                   </div>
                   <h3 className="text-lg font-semibold mb-3">Log Supplement</h3>
                   <p className="text-sm text-muted-foreground text-center mb-4">
-                    Track your supplement intake with dosage and timing information
+                    Track your supplement intake with dosage and timing
+                    information
                   </p>
                   <div className="mt-auto pt-2 text-primary text-sm font-medium group-hover:underline flex items-center">
                     Log supplement
@@ -291,7 +314,8 @@ const Index = () => {
                   </div>
                   <h3 className="text-lg font-semibold mb-3">Log Factors</h3>
                   <p className="text-sm text-muted-foreground text-center mb-4">
-                    Record lifestyle factors that may affect your cognitive performance
+                    Record lifestyle factors that may affect your cognitive
+                    performance
                   </p>
                   <div className="mt-auto pt-2 text-primary text-sm font-medium group-hover:underline flex items-center">
                     Log factors
@@ -309,7 +333,8 @@ const Index = () => {
                   </div>
                   <h3 className="text-lg font-semibold mb-3">View Dashboard</h3>
                   <p className="text-sm text-muted-foreground text-center mb-4">
-                    See your performance trends and analyze your supplement effectiveness
+                    See your performance trends and analyze your supplement
+                    effectiveness
                   </p>
                   <div className="mt-auto pt-2 text-primary text-sm font-medium group-hover:underline flex items-center">
                     Go to dashboard
@@ -336,7 +361,8 @@ const Index = () => {
                 Key Features
               </h2>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Comprehensive tools to optimize your cognitive enhancement journey
+                Comprehensive tools to optimize your cognitive enhancement
+                journey
               </p>
             </div>
           </AnimatedSection>
@@ -415,7 +441,8 @@ const Index = () => {
                 What Our Users Say
               </h2>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Discover how Holistiq is helping people optimize their cognitive enhancement
+                Discover how Holistiq is helping people optimize their cognitive
+                enhancement
               </p>
             </div>
           </AnimatedSection>
@@ -472,28 +499,33 @@ const Index = () => {
                 {
                   id: "faq-1",
                   question: "How does Holistiq measure cognitive performance?",
-                  answer: "Holistiq uses scientifically validated cognitive assessments that measure working memory, attention, and processing speed. These tests provide objective metrics that can be tracked over time to measure the effects of supplements."
+                  answer:
+                    "Holistiq uses scientifically validated cognitive assessments that measure working memory, attention, and processing speed. These tests provide objective metrics that can be tracked over time to measure the effects of supplements.",
                 },
                 {
                   id: "faq-2",
                   question: "Can I track multiple supplements at once?",
-                  answer: "Yes, you can track multiple supplements simultaneously. Our analytics engine helps identify which supplements are contributing to cognitive improvements by analyzing patterns in your performance data."
+                  answer:
+                    "Yes, you can track multiple supplements simultaneously. Our analytics engine helps identify which supplements are contributing to cognitive improvements by analyzing patterns in your performance data.",
                 },
                 {
                   id: "faq-3",
                   question: "How long does it take to see results?",
-                  answer: "This varies by supplement and individual. Some effects may be noticeable after a single dose, while others require consistent use over weeks. Holistiq helps you track both acute and long-term effects."
+                  answer:
+                    "This varies by supplement and individual. Some effects may be noticeable after a single dose, while others require consistent use over weeks. Holistiq helps you track both acute and long-term effects.",
                 },
                 {
                   id: "faq-4",
                   question: "Is my data private and secure?",
-                  answer: "Yes, your data privacy is our priority. All personal information and test results are encrypted and stored securely. You maintain full control over your data and can export or delete it at any time."
+                  answer:
+                    "Yes, your data privacy is our priority. All personal information and test results are encrypted and stored securely. You maintain full control over your data and can export or delete it at any time.",
                 },
                 {
                   id: "faq-5",
                   question: "Can I use Holistiq on mobile devices?",
-                  answer: "Yes, Holistiq is fully responsive and works on smartphones, tablets, and desktop computers. The cognitive tests are optimized for all screen sizes."
-                }
+                  answer:
+                    "Yes, Holistiq is fully responsive and works on smartphones, tablets, and desktop computers. The cognitive tests are optimized for all screen sizes.",
+                },
               ]}
               className="mt-8"
             />
@@ -515,7 +547,8 @@ const Index = () => {
                 Ready to Track Your Cognitive Enhancement?
               </h2>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Join Holistiq today and discover if your supplements are actually working with data-driven insights.
+                Join Holistiq today and discover if your supplements are
+                actually working with data-driven insights.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">

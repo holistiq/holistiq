@@ -1,11 +1,11 @@
 /**
  * Component for displaying loading state with various visual options
  */
-import React from 'react';
-import { Loader2, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import { LoadingStatus } from '@/hooks/useLoadingState';
+import React from "react";
+import { Loader2, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
+import { LoadingStatus } from "@/hooks/useLoadingState";
 
 /**
  * Props for the LoadingIndicator component
@@ -22,7 +22,7 @@ interface LoadingIndicatorProps {
   /** Optional className for styling */
   className?: string;
   /** Size variant */
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   /** Whether to show the progress bar */
   showProgress?: boolean;
   /** Whether to show the icon */
@@ -52,7 +52,7 @@ export function LoadingIndicator({
   progress = 0,
   error = null,
   className = "",
-  size = 'md',
+  size = "md",
   showProgress = true,
   showIcon = true,
   showMessage = true,
@@ -61,7 +61,7 @@ export function LoadingIndicator({
   id,
   testId,
   onRetry,
-  onDismiss
+  onDismiss,
 }: Readonly<LoadingIndicatorProps>): JSX.Element {
   // Determine icon based on status
   const getIcon = () => {
@@ -76,7 +76,7 @@ export function LoadingIndicator({
         return <Loader2 className={cn(iconSizeClass, "animate-spin")} />;
     }
   };
-  
+
   // Determine icon color based on status
   const getIconColorClass = () => {
     switch (status) {
@@ -90,7 +90,7 @@ export function LoadingIndicator({
         return "text-primary";
     }
   };
-  
+
   // Determine progress bar color based on status
   const getProgressColorClass = () => {
     switch (status) {
@@ -104,65 +104,63 @@ export function LoadingIndicator({
         return "bg-primary";
     }
   };
-  
+
   // Determine size classes
   const iconSizeClass = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6'
+    sm: "h-4 w-4",
+    md: "h-5 w-5",
+    lg: "h-6 w-6",
   }[size];
-  
+
   const textSizeClass = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base'
+    sm: "text-xs",
+    md: "text-sm",
+    lg: "text-base",
   }[size];
-  
+
   const progressHeightClass = {
-    sm: 'h-1',
-    md: 'h-2',
-    lg: 'h-3'
+    sm: "h-1",
+    md: "h-2",
+    lg: "h-3",
   }[size];
-  
+
   // Determine container class based on inline prop
   const containerClass = inline
     ? "inline-flex items-center gap-2"
     : "flex flex-col gap-2 w-full";
-  
+
   // Render the component
   return (
     <div
-      className={cn(
-        containerClass,
-        className
-      )}
+      className={cn(containerClass, className)}
       id={id}
       data-testid={testId}
       role="status"
       aria-live="polite"
     >
       {/* Icon and message */}
-      <div className={cn(
-        inline ? "flex items-center gap-2" : "flex items-center gap-2 w-full"
-      )}>
-        {showIcon && (
-          <div className={getIconColorClass()}>
-            {getIcon()}
-          </div>
+      <div
+        className={cn(
+          inline ? "flex items-center gap-2" : "flex items-center gap-2 w-full",
         )}
-        
+      >
+        {showIcon && <div className={getIconColorClass()}>{getIcon()}</div>}
+
         {showMessage && message && (
-          <div className={cn(
-            textSizeClass,
-            "font-medium",
-            inline ? "" : "flex-grow"
-          )}>
+          <div
+            className={cn(
+              textSizeClass,
+              "font-medium",
+              inline ? "" : "flex-grow",
+            )}
+          >
             {message}
           </div>
         )}
-        
+
         {/* Action buttons for error/timeout states */}
-        {(status === LoadingStatus.ERROR || status === LoadingStatus.TIMEOUT) && (
+        {(status === LoadingStatus.ERROR ||
+          status === LoadingStatus.TIMEOUT) && (
           <div className="flex items-center gap-2 ml-auto">
             {onRetry && (
               <button
@@ -173,7 +171,7 @@ export function LoadingIndicator({
                 Retry
               </button>
             )}
-            
+
             {onDismiss && (
               <button
                 onClick={onDismiss}
@@ -186,7 +184,7 @@ export function LoadingIndicator({
           </div>
         )}
       </div>
-      
+
       {/* Progress bar */}
       {showProgress && !inline && (
         <Progress
@@ -195,7 +193,7 @@ export function LoadingIndicator({
           indicatorClassName={getProgressColorClass()}
         />
       )}
-      
+
       {/* Error details */}
       {showErrorDetails && status === LoadingStatus.ERROR && error && (
         <div className="text-xs text-destructive mt-1 break-words">
@@ -232,27 +230,21 @@ export function MultiLoadingIndicator({
   states,
   className = "",
   showOnlyActive = true,
-  id
+  id,
 }: Readonly<MultiLoadingIndicatorProps>): JSX.Element | null {
   // Filter states if showOnlyActive is true
   const displayStates = showOnlyActive
-    ? states.filter(state => state.status === LoadingStatus.LOADING)
+    ? states.filter((state) => state.status === LoadingStatus.LOADING)
     : states;
-  
+
   // Don't render if no states to display
   if (displayStates.length === 0) {
     return null;
   }
-  
+
   return (
-    <div
-      className={cn(
-        "space-y-2",
-        className
-      )}
-      id={id}
-    >
-      {displayStates.map(state => (
+    <div className={cn("space-y-2", className)} id={id}>
+      {displayStates.map((state) => (
         <LoadingIndicator
           key={state.id}
           status={state.status}

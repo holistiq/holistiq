@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { Link } from "react-router-dom";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 import {
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Settings, LogOut } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface UserNavProps {
   readonly user: SupabaseUser;
@@ -48,7 +48,11 @@ export function UserNav({ user }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-8 w-8 rounded-full"
+        >
           <Avatar className="h-8 w-8">
             <AvatarImage src={avatarUrl} alt={`${displayName}'s profile`} />
             <AvatarFallback>{initials}</AvatarFallback>

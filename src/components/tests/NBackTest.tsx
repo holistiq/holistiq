@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
-import { NBackGrid } from './NBackGrid';
-import { calculateTestResults } from '@/utils/test/calculations';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
+import { NBackGrid } from "./NBackGrid";
+import { calculateTestResults } from "@/utils/test/calculations";
 
 // Helper function for development-only logging
 const debugLog = (message: string) => {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.log(message);
   }
 };
@@ -46,9 +46,16 @@ interface Stimulus {
   isTarget: boolean;
 }
 
-export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }: Readonly<NBackTestProps>) {
+export function NBackTest({
+  nBackLevel,
+  testDuration,
+  onTestComplete,
+  onCancel,
+}: Readonly<NBackTestProps>) {
   // Test state
-  const [testState, setTestState] = useState<'ready' | 'running' | 'completed'>('ready');
+  const [testState, setTestState] = useState<"ready" | "running" | "completed">(
+    "ready",
+  );
   const [currentStimulus, setCurrentStimulus] = useState<Stimulus | null>(null);
   const [progress, setProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(testDuration);
@@ -57,13 +64,15 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
 
   // Test data
   const stimuliSequenceRef = useRef<number[]>([]);
-  const responsesRef = useRef<{
-    stimulusIndex: number;
-    isTarget: boolean;
-    responded: boolean;
-    correct: boolean;
-    reactionTime: number | null;
-  }[]>([]);
+  const responsesRef = useRef<
+    {
+      stimulusIndex: number;
+      isTarget: boolean;
+      responded: boolean;
+      correct: boolean;
+      reactionTime: number | null;
+    }[]
+  >([]);
   const currentStimulusIndexRef = useRef(0);
   const testStartTimeRef = useRef(0);
   const lastStimulusTimeRef = useRef(0);
@@ -76,64 +85,75 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
   const interStimulusInterval = 1500; // ms between stimuli (includes stimulusDuration)
 
   // Function to handle animation frame updates - defined outside of testLoop to avoid circular dependencies
-  const handleAnimationFrame = useCallback((timestamp: number) => {
-
-    if (testState !== 'running') {
-      return;
-    }
-
-    const elapsedTime = timestamp - testStartTimeRef.current;
-
-    // Update progress
-    const newProgress = Math.min(100, (elapsedTime / testDuration) * 100);
-    setProgress(newProgress);
-    setTimeRemaining(Math.max(0, testDuration - elapsedTime));
-
-    // Check if test is complete
-    if (elapsedTime >= testDuration) {
-      debugLog('Test duration reached, completing test');
-      if (testLoopRef.current) {
-        testLoopRef.current(timestamp);
+  const handleAnimationFrame = useCallback(
+    (timestamp: number) => {
+      if (testState !== "running") {
+        return;
       }
-      return;
-    }
 
-    // Determine if we should show a new stimulus
-    const stimulusIndex = Math.floor(elapsedTime / interStimulusInterval);
+      const elapsedTime = timestamp - testStartTimeRef.current;
 
-    // Force show a stimulus every 1.5 seconds
-    const shouldShowStimulus = stimulusIndex !== currentStimulusIndexRef.current &&
-                              stimulusIndex < stimuliSequenceRef.current.length;
+      // Update progress
+      const newProgress = Math.min(100, (elapsedTime / testDuration) * 100);
+      setProgress(newProgress);
+      setTimeRemaining(Math.max(0, testDuration - elapsedTime));
 
-    if (shouldShowStimulus) {
-      currentStimulusIndexRef.current = stimulusIndex;
-      lastStimulusTimeRef.current = timestamp;
-
-      // Show the new stimulus
-      const position = stimuliSequenceRef.current[stimulusIndex];
-      const isTarget = stimulusIndex >= nBackLevel &&
-                      position === stimuliSequenceRef.current[stimulusIndex - nBackLevel];
-
-      // Directly update the state without setTimeout to ensure it happens
-      setCurrentStimulus({ position, isTarget });
-
-      // Schedule hiding the stimulus after stimulusDuration
-      setTimeout(() => {
-        if (testState === 'running') {
-          setCurrentStimulus(null);
+      // Check if test is complete
+      if (elapsedTime >= testDuration) {
+        debugLog("Test duration reached, completing test");
+        if (testLoopRef.current) {
+          testLoopRef.current(timestamp);
         }
-      }, stimulusDuration);
-    }
+        return;
+      }
 
-    // Continue the loop
-    animationFrameRef.current = requestAnimationFrame(handleAnimationFrame);
-  }, [testState, testDuration, nBackLevel, interStimulusInterval, stimulusDuration]);
+      // Determine if we should show a new stimulus
+      const stimulusIndex = Math.floor(elapsedTime / interStimulusInterval);
+
+      // Force show a stimulus every 1.5 seconds
+      const shouldShowStimulus =
+        stimulusIndex !== currentStimulusIndexRef.current &&
+        stimulusIndex < stimuliSequenceRef.current.length;
+
+      if (shouldShowStimulus) {
+        currentStimulusIndexRef.current = stimulusIndex;
+        lastStimulusTimeRef.current = timestamp;
+
+        // Show the new stimulus
+        const position = stimuliSequenceRef.current[stimulusIndex];
+        const isTarget =
+          stimulusIndex >= nBackLevel &&
+          position === stimuliSequenceRef.current[stimulusIndex - nBackLevel];
+
+        // Directly update the state without setTimeout to ensure it happens
+        setCurrentStimulus({ position, isTarget });
+
+        // Schedule hiding the stimulus after stimulusDuration
+        setTimeout(() => {
+          if (testState === "running") {
+            setCurrentStimulus(null);
+          }
+        }, stimulusDuration);
+      }
+
+      // Continue the loop
+      animationFrameRef.current = requestAnimationFrame(handleAnimationFrame);
+    },
+    [
+      testState,
+      testDuration,
+      nBackLevel,
+      interStimulusInterval,
+      stimulusDuration,
+    ],
+  );
 
   // Generate a sequence of stimuli positions
   const generateStimuliSequence = useCallback(() => {
     const sequence: number[] = [];
     const gridSize = 9; // 3x3 grid
-    const sequenceLength = Math.ceil(testDuration / interStimulusInterval) + nBackLevel;
+    const sequenceLength =
+      Math.ceil(testDuration / interStimulusInterval) + nBackLevel;
 
     // Generate initial n positions (these won't be targets since there's nothing to compare with yet)
     for (let i = 0; i < nBackLevel; i++) {
@@ -163,38 +183,44 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
 
   // Handle user response
   const handleResponse = useCallback(() => {
-    if (testState !== 'running' || currentStimulusIndexRef.current < nBackLevel) return;
+    if (testState !== "running" || currentStimulusIndexRef.current < nBackLevel)
+      return;
 
     const currentTime = performance.now();
     const currentIndex = currentStimulusIndexRef.current;
-    const isTarget = stimuliSequenceRef.current[currentIndex] ===
-                     stimuliSequenceRef.current[currentIndex - nBackLevel];
+    const isTarget =
+      stimuliSequenceRef.current[currentIndex] ===
+      stimuliSequenceRef.current[currentIndex - nBackLevel];
 
     // Calculate reaction time
     const reactionTime = currentTime - lastStimulusTimeRef.current;
 
     // Only log in development mode
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`User response: index=${currentIndex}, isTarget=${isTarget}, reactionTime=${reactionTime}ms`);
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `User response: index=${currentIndex}, isTarget=${isTarget}, reactionTime=${reactionTime}ms`,
+      );
     }
 
     // Record response
-    if (currentIndex - nBackLevel >= 0 && currentIndex - nBackLevel < responsesRef.current.length) {
+    if (
+      currentIndex - nBackLevel >= 0 &&
+      currentIndex - nBackLevel < responsesRef.current.length
+    ) {
       responsesRef.current[currentIndex - nBackLevel] = {
         stimulusIndex: currentIndex,
         isTarget,
         responded: true,
         correct: isTarget, // Correct if it's a target and user responded
-        reactionTime
+        reactionTime,
       };
-    } else if (process.env.NODE_ENV === 'development') {
+    } else if (process.env.NODE_ENV === "development") {
       console.warn(`Invalid response index: ${currentIndex - nBackLevel}`);
     }
   }, [nBackLevel, testState]);
 
   // Helper function to initialize test data - extracted to reduce nesting
   const initializeTestData = useCallback(() => {
-
     debugLog("Initializing test data...");
 
     // Generate stimulus sequence
@@ -202,18 +228,21 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
     stimuliSequenceRef.current = sequence;
 
     // Create responses array
-    const responses = Array(sequence.length).fill(null).map((_, i) => {
-      const isTarget = i >= nBackLevel && sequence[i] === sequence[i - nBackLevel];
-      return {
-        stimulusIndex: i,
-        isTarget,
-        responded: false,
-        // Non-targets are correct by default (if not responded to)
-        // Targets are incorrect by default (until responded to)
-        correct: !isTarget,
-        reactionTime: null
-      };
-    });
+    const responses = Array(sequence.length)
+      .fill(null)
+      .map((_, i) => {
+        const isTarget =
+          i >= nBackLevel && sequence[i] === sequence[i - nBackLevel];
+        return {
+          stimulusIndex: i,
+          isTarget,
+          responded: false,
+          // Non-targets are correct by default (if not responded to)
+          // Targets are incorrect by default (until responded to)
+          correct: !isTarget,
+          reactionTime: null,
+        };
+      });
     responsesRef.current = responses;
 
     // Reset state
@@ -225,7 +254,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
     debugLog(`Test starting at timestamp: ${startTime}`);
 
     // Start the test
-    setTestState('running');
+    setTestState("running");
 
     // Start the animation frame with a slight delay to ensure state is updated
     setTimeout(() => {
@@ -242,7 +271,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
     setShowCountdown(true);
 
     const countdownInterval = setInterval(() => {
-      setCountdownValue(prev => {
+      setCountdownValue((prev) => {
         if (prev <= 1) {
           clearInterval(countdownInterval);
           setShowCountdown(false);
@@ -268,7 +297,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
       animationFrameRef.current = null;
     }
 
-    setTestState('completed');
+    setTestState("completed");
     setCurrentStimulus(null);
 
     // Calculate environmental factors
@@ -276,7 +305,9 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
       windowSwitches: windowSwitchesRef.current,
       browserInfo: navigator.userAgent,
       screenSize: `${window.innerWidth}x${window.innerHeight}`,
-      deviceType: /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+      deviceType: /Mobi|Android/i.test(navigator.userAgent)
+        ? "mobile"
+        : "desktop",
     };
 
     try {
@@ -285,7 +316,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
         nBackLevel,
         stimuliSequenceRef.current,
         responsesRef.current,
-        environmentalFactors
+        environmentalFactors,
       );
 
       debugLog("Test results calculated successfully");
@@ -293,7 +324,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
       // Call the onTestComplete callback with the results
       onTestComplete(results);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.error("Error calculating test results:", error);
       }
 
@@ -305,8 +336,8 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
         rawData: {
           stimuliSequence: stimuliSequenceRef.current,
           responses: responsesRef.current,
-          environmentalFactors
-        }
+          environmentalFactors,
+        },
       };
 
       onTestComplete(fallbackResults);
@@ -314,23 +345,26 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
   }, [nBackLevel, onTestComplete]);
 
   // Main test loop - now just handles test completion
-  const testLoop = useCallback((timestamp: number) => {
-    debugLog(`Test loop called for completion: timestamp=${timestamp}`);
-    completeTest();
-  }, [completeTest]);
+  const testLoop = useCallback(
+    (timestamp: number) => {
+      debugLog(`Test loop called for completion: timestamp=${timestamp}`);
+      completeTest();
+    },
+    [completeTest],
+  );
 
   // Handle visibility change (tab switching)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && testState === 'running') {
+      if (document.hidden && testState === "running") {
         windowSwitchesRef.current += 1;
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [testState]);
 
@@ -341,7 +375,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
 
     // Override setTimeout to track timeouts
     const originalSetTimeout = window.setTimeout;
-    window.setTimeout = function(callback, delay) {
+    window.setTimeout = function (callback, delay) {
       const id = originalSetTimeout(callback, delay);
       timeouts.push(id);
       return id;
@@ -355,7 +389,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
       }
 
       // Clear all timeouts
-      timeouts.forEach(id => {
+      timeouts.forEach((id) => {
         console.log(`Clearing timeout ${id}`);
         clearTimeout(id);
       });
@@ -371,7 +405,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
     testLoopRef.current = testLoop;
 
     // If test is running but no animation frame is active, restart it
-    if (testState === 'running' && !animationFrameRef.current) {
+    if (testState === "running" && !animationFrameRef.current) {
       console.log("Restarting animation frame");
       animationFrameRef.current = requestAnimationFrame(handleAnimationFrame);
     }
@@ -380,31 +414,30 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
   // Handle keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (testState === 'running' && e.code === 'Space') {
+      if (testState === "running" && e.code === "Space") {
         e.preventDefault();
         handleResponse();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleResponse, testState]);
 
   return (
     <div className="flex flex-col items-center w-full">
-      {testState === 'ready' && (
+      {testState === "ready" && (
         <div className="space-y-6 w-full">
           <Card>
             <CardContent className="pt-6">
               <div className="text-center mb-4">
-                <h3 className="text-lg font-medium">
-                  {nBackLevel}-Back Test
-                </h3>
+                <h3 className="text-lg font-medium">{nBackLevel}-Back Test</h3>
                 <p className="text-muted-foreground">
-                  Press the spacebar when the current position matches the position from {nBackLevel} steps earlier.
+                  Press the spacebar when the current position matches the
+                  position from {nBackLevel} steps earlier.
                 </p>
               </div>
 
@@ -414,7 +447,9 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
 
               {onCancel && (
                 <div className="flex justify-center">
-                  <Button variant="outline" onClick={onCancel}>Cancel</Button>
+                  <Button variant="outline" onClick={onCancel}>
+                    Cancel
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -428,7 +463,7 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
         </div>
       )}
 
-      {testState === 'running' && (
+      {testState === "running" && (
         <div className="space-y-4 w-full">
           <div className="flex justify-between items-center">
             <div className="text-sm font-medium">
@@ -445,7 +480,8 @@ export function NBackTest({ nBackLevel, testDuration, onTestComplete, onCancel }
 
             <div className="mt-8 text-center">
               <p className="text-sm text-muted-foreground mb-2">
-                Press spacebar when you see a match with {nBackLevel} positions ago
+                Press spacebar when you see a match with {nBackLevel} positions
+                ago
               </p>
               <Button
                 variant="secondary"

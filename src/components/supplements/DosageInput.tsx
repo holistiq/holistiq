@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import {
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { commonUnits } from './dosageConstants';
+import { commonUnits } from "./dosageConstants";
 
 interface DosageInputProps {
   readonly amount: string;
@@ -32,10 +32,10 @@ export function DosageInput({
   unit,
   setUnit,
   amountError,
-  className
+  className,
 }: DosageInputProps) {
   // Find the current unit's conversion information
-  const currentUnit = commonUnits.find(u => u.value === unit);
+  const currentUnit = commonUnits.find((u) => u.value === unit);
 
   return (
     <div className={className}>
@@ -51,9 +51,10 @@ export function DosageInput({
                 <div className="space-y-2 p-1">
                   <p className="font-medium">Unit Conversions:</p>
                   <ul className="text-xs space-y-1">
-                    {commonUnits.map(unit => (
+                    {commonUnits.map((unit) => (
                       <li key={unit.value}>
-                        <span className="font-medium">{unit.label}:</span> {unit.conversion}
+                        <span className="font-medium">{unit.label}:</span>{" "}
+                        {unit.conversion}
                       </li>
                     ))}
                   </ul>
@@ -72,7 +73,9 @@ export function DosageInput({
               placeholder="Amount"
               className={amountError ? "border-red-500" : ""}
             />
-            {amountError && <p className="text-sm text-red-500 mt-1">{amountError}</p>}
+            {amountError && (
+              <p className="text-sm text-red-500 mt-1">{amountError}</p>
+            )}
           </div>
           <div className="w-2/5">
             <Select value={unit} onValueChange={setUnit}>
@@ -96,7 +99,8 @@ export function DosageInput({
           </p>
           {currentUnit && (
             <p className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded-md inline-block">
-              <span className="font-medium">{currentUnit.value}:</span> {currentUnit.conversion}
+              <span className="font-medium">{currentUnit.value}:</span>{" "}
+              {currentUnit.conversion}
             </p>
           )}
         </div>

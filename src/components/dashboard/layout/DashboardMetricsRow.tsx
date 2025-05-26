@@ -1,9 +1,14 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { HelpCircle } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MetricCardProps {
   /** Metric title */
@@ -37,28 +42,30 @@ export function MetricCard({
   description,
   change,
   isLoading = false,
-  className
+  className,
 }: MetricCardProps) {
   // Determine the color for the change indicator
   const getChangeColor = () => {
-    if (!change) return '';
-    
+    if (!change) return "";
+
     const { isPositive, isInverted } = change;
-    
+
     // For inverted metrics (like reaction time), lower is better
     if (isInverted) {
-      return isPositive ? 'text-red-500' : 'text-green-500';
+      return isPositive ? "text-red-500" : "text-green-500";
     }
-    
+
     // For regular metrics, higher is better
-    return isPositive ? 'text-green-500' : 'text-red-500';
+    return isPositive ? "text-green-500" : "text-red-500";
   };
 
   return (
-    <Card className={cn(
-      "overflow-hidden transition-all duration-200 hover:shadow-sm",
-      className
-    )}>
+    <Card
+      className={cn(
+        "overflow-hidden transition-all duration-200 hover:shadow-sm",
+        className,
+      )}
+    >
       <CardContent className="p-4 sm:p-6">
         {isLoading ? (
           <div className="space-y-2">
@@ -70,9 +77,11 @@ export function MetricCard({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 {icon && <div className="text-muted-foreground">{icon}</div>}
-                <p className="text-sm font-medium text-muted-foreground">{title}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {title}
+                </p>
               </div>
-              
+
               {description && (
                 <TooltipProvider>
                   <Tooltip>
@@ -86,16 +95,19 @@ export function MetricCard({
                 </TooltipProvider>
               )}
             </div>
-            
+
             <div className="flex items-end gap-2">
               <div className="text-2xl font-bold">{value}</div>
-              
+
               {change && (
-                <div className={cn(
-                  "text-sm font-medium flex items-center",
-                  getChangeColor()
-                )}>
-                  {change.isPositive ? '+' : ''}{change.value.toFixed(1)}%
+                <div
+                  className={cn(
+                    "text-sm font-medium flex items-center",
+                    getChangeColor(),
+                  )}
+                >
+                  {change.isPositive ? "+" : ""}
+                  {change.value.toFixed(1)}%
                   {change.label && <span className="ml-1">{change.label}</span>}
                 </div>
               )}
@@ -119,13 +131,15 @@ interface DashboardMetricsRowProps {
  */
 export function DashboardMetricsRow({
   metrics,
-  className
+  className,
 }: DashboardMetricsRowProps) {
   return (
-    <div className={cn(
-      "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
-      className
-    )}>
+    <div
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
+        className,
+      )}
+    >
       {metrics.map((metric, index) => (
         <MetricCard key={index} {...metric} />
       ))}

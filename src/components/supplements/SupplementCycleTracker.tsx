@@ -3,25 +3,39 @@
  *
  * Tracks and displays the progress of a supplement evaluation cycle
  */
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Pill, CheckCircle, BarChart2, Clock, AlertCircle, Loader2 } from 'lucide-react';
-import { Supplement, SupplementCycleStatus } from '@/types/supplement';
-import { processAchievementTrigger } from '@/services/achievementService';
-import { AchievementTrigger } from '@/types/achievement';
-import { updateSupplementCycleStatus } from '@/services/supplementService';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { toast } from '@/components/ui/use-toast';
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import {
+  Pill,
+  CheckCircle,
+  BarChart2,
+  Clock,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
+import { Supplement, SupplementCycleStatus } from "@/types/supplement";
+import { processAchievementTrigger } from "@/services/achievementService";
+import { AchievementTrigger } from "@/types/achievement";
+import { updateSupplementCycleStatus } from "@/services/supplementService";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { toast } from "@/components/ui/use-toast";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface SupplementCycleTrackerProps {
   readonly supplement: Supplement;
@@ -40,7 +54,7 @@ export function SupplementCycleTracker({
   hasDetailedNotes,
   onCycleCompleted,
   className,
-  compact = false
+  compact = false,
 }: Readonly<SupplementCycleTrackerProps>) {
   const { user } = useSupabaseAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +66,8 @@ export function SupplementCycleTracker({
     (hasDetailedNotes ? 34 : 0);
 
   // Get cycle status
-  const cycleStatus = supplement.cycle_status || SupplementCycleStatus.NOT_STARTED;
+  const cycleStatus =
+    supplement.cycle_status || SupplementCycleStatus.NOT_STARTED;
 
   // Handle completing the evaluation
   const handleCompleteEvaluation = async () => {
@@ -64,7 +79,7 @@ export function SupplementCycleTracker({
       const updateResult = await updateSupplementCycleStatus(
         user.id,
         supplement.id,
-        SupplementCycleStatus.COMPLETED
+        SupplementCycleStatus.COMPLETED,
       );
 
       if (!updateResult.success) {
@@ -74,23 +89,24 @@ export function SupplementCycleTracker({
       // Process achievement for supplement logging
       await processAchievementTrigger({
         trigger: AchievementTrigger.SUPPLEMENT_LOGGED,
-        userId: user.id
+        userId: user.id,
       });
 
       toast({
         title: "Evaluation Completed",
-        description: "You've successfully completed the evaluation cycle for this supplement."
+        description:
+          "You've successfully completed the evaluation cycle for this supplement.",
       });
 
       if (onCycleCompleted) {
         onCycleCompleted();
       }
     } catch (error) {
-      console.error('Error completing evaluation:', error);
+      console.error("Error completing evaluation:", error);
       toast({
         title: "Error",
         description: "Failed to complete the evaluation. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -107,7 +123,7 @@ export function SupplementCycleTracker({
       const updateResult = await updateSupplementCycleStatus(
         user.id,
         supplement.id,
-        SupplementCycleStatus.IN_PROGRESS
+        SupplementCycleStatus.IN_PROGRESS,
       );
 
       if (!updateResult.success) {
@@ -116,18 +132,18 @@ export function SupplementCycleTracker({
 
       toast({
         title: "Evaluation Started",
-        description: "You've started the evaluation cycle for this supplement."
+        description: "You've started the evaluation cycle for this supplement.",
       });
 
       if (onCycleCompleted) {
         onCycleCompleted();
       }
     } catch (error) {
-      console.error('Error starting evaluation:', error);
+      console.error("Error starting evaluation:", error);
       toast({
         title: "Error",
         description: "Failed to start the evaluation. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -138,17 +154,23 @@ export function SupplementCycleTracker({
   const renderStatusBadge = () => {
     switch (cycleStatus) {
       case SupplementCycleStatus.NOT_STARTED:
-        return <Badge variant="outline" className="gap-1">
-          <Clock className="h-3 w-3" /> Not Started
-        </Badge>;
+        return (
+          <Badge variant="outline" className="gap-1">
+            <Clock className="h-3 w-3" /> Not Started
+          </Badge>
+        );
       case SupplementCycleStatus.IN_PROGRESS:
-        return <Badge variant="secondary" className="gap-1">
-          <BarChart2 className="h-3 w-3" /> In Progress
-        </Badge>;
+        return (
+          <Badge variant="secondary" className="gap-1">
+            <BarChart2 className="h-3 w-3" /> In Progress
+          </Badge>
+        );
       case SupplementCycleStatus.COMPLETED:
-        return <Badge variant="default" className="gap-1 bg-green-600">
-          <CheckCircle className="h-3 w-3" /> Completed
-        </Badge>;
+        return (
+          <Badge variant="default" className="gap-1 bg-green-600">
+            <CheckCircle className="h-3 w-3" /> Completed
+          </Badge>
+        );
       default:
         return null;
     }
@@ -179,7 +201,12 @@ export function SupplementCycleTracker({
       return (
         <Button
           onClick={handleCompleteEvaluation}
-          disabled={!hasBeforeTests || !hasAfterTests || !hasDetailedNotes || isSubmitting}
+          disabled={
+            !hasBeforeTests ||
+            !hasAfterTests ||
+            !hasDetailedNotes ||
+            isSubmitting
+          }
           className="w-full"
         >
           {isSubmitting ? (
@@ -195,11 +222,7 @@ export function SupplementCycleTracker({
     }
 
     return (
-      <Button
-        variant="outline"
-        className="w-full"
-        disabled
-      >
+      <Button variant="outline" className="w-full" disabled>
         Evaluation Completed
       </Button>
     );
@@ -208,7 +231,12 @@ export function SupplementCycleTracker({
   // Render compact version
   if (compact) {
     return (
-      <div className={cn("flex items-center justify-between p-3 bg-secondary/10 rounded-lg", className)}>
+      <div
+        className={cn(
+          "flex items-center justify-between p-3 bg-secondary/10 rounded-lg",
+          className,
+        )}
+      >
         <div className="flex items-center gap-2">
           <Pill className="h-5 w-5 text-primary" />
           <div>
@@ -286,9 +314,7 @@ export function SupplementCycleTracker({
           </div>
         </div>
       </CardContent>
-      <CardFooter>
-        {renderActionButton()}
-      </CardFooter>
+      <CardFooter>{renderActionButton()}</CardFooter>
     </Card>
   );
 }

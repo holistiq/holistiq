@@ -16,6 +16,7 @@ Migration scripts should be run in order based on their timestamp prefixes. Each
 ### Naming Convention
 
 Migration scripts follow this naming pattern:
+
 ```
 YYYYMMDDHHMMSS_descriptive_name.sql
 ```
@@ -24,13 +25,13 @@ For example: `20230801000000_create_achievement_tables.sql`
 
 ### Available Migrations
 
-| Script | Description | Dependencies |
-|--------|-------------|--------------|
-| `20230801000000_create_achievement_tables.sql` | Creates tables for the achievement system | None |
-| `20230801000200_create_social_shares_table.sql` | Creates table for tracking social media shares | None |
-| `20250514142026_supplement_schema_update.sql` | Updates the supplement schema | None |
-| `20250701000000_create_user_badges.sql` | Creates the user_badges table | None |
-| `20250702000000_add_updated_at_to_user_badges.sql` | Adds updated_at column to user_badges | `20250701000000_create_user_badges.sql` |
+| Script                                             | Description                                    | Dependencies                            |
+| -------------------------------------------------- | ---------------------------------------------- | --------------------------------------- |
+| `20230801000000_create_achievement_tables.sql`     | Creates tables for the achievement system      | None                                    |
+| `20230801000200_create_social_shares_table.sql`    | Creates table for tracking social media shares | None                                    |
+| `20250514142026_supplement_schema_update.sql`      | Updates the supplement schema                  | None                                    |
+| `20250701000000_create_user_badges.sql`            | Creates the user_badges table                  | None                                    |
+| `20250702000000_add_updated_at_to_user_badges.sql` | Adds updated_at column to user_badges          | `20250701000000_create_user_badges.sql` |
 
 ## Seed Scripts
 
@@ -38,8 +39,8 @@ Seed scripts populate the database with initial data. They should be run after t
 
 ### Available Seed Scripts
 
-| Script | Description | Dependencies |
-|--------|-------------|--------------|
+| Script                                 | Description                                        | Dependencies                                   |
+| -------------------------------------- | -------------------------------------------------- | ---------------------------------------------- |
 | `20230801000100_seed_achievements.sql` | Populates the achievements table with initial data | `20230801000000_create_achievement_tables.sql` |
 
 ## Diagnostic Scripts
@@ -48,8 +49,8 @@ Diagnostic scripts are used to check the integrity of the database schema withou
 
 ### Available Diagnostic Scripts
 
-| Script | Description | Usage |
-|--------|-------------|-------|
+| Script                         | Description                                                       | Usage                         |
+| ------------------------------ | ----------------------------------------------------------------- | ----------------------------- |
 | `check_achievement_schema.sql` | Checks if the achievements-related tables have the correct schema | Run to diagnose schema issues |
 
 ## Running Scripts
@@ -108,57 +109,57 @@ The migration scripts include Row Level Security policies to ensure data securit
 
 Stores the definitions of all achievements that users can earn in the application.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| title | TEXT | Title of the achievement |
-| description | TEXT | Detailed description of the achievement |
-| category | TEXT | Category of the achievement (e.g., "Test", "Supplement") |
-| difficulty | TEXT | Difficulty level of the achievement |
-| required_count | INTEGER | Number of times the action must be performed |
-| points | INTEGER | Points awarded for earning the achievement |
-| icon | TEXT | Icon identifier for the achievement |
-| badge_url | TEXT | URL to the badge image |
-| created_at | TIMESTAMPTZ | When the achievement was created |
-| updated_at | TIMESTAMPTZ | When the achievement was last updated |
-| trigger | TEXT | Identifier for the event that triggers this achievement |
+| Column         | Type        | Description                                              |
+| -------------- | ----------- | -------------------------------------------------------- |
+| id             | UUID        | Primary key                                              |
+| title          | TEXT        | Title of the achievement                                 |
+| description    | TEXT        | Detailed description of the achievement                  |
+| category       | TEXT        | Category of the achievement (e.g., "Test", "Supplement") |
+| difficulty     | TEXT        | Difficulty level of the achievement                      |
+| required_count | INTEGER     | Number of times the action must be performed             |
+| points         | INTEGER     | Points awarded for earning the achievement               |
+| icon           | TEXT        | Icon identifier for the achievement                      |
+| badge_url      | TEXT        | URL to the badge image                                   |
+| created_at     | TIMESTAMPTZ | When the achievement was created                         |
+| updated_at     | TIMESTAMPTZ | When the achievement was last updated                    |
+| trigger        | TEXT        | Identifier for the event that triggers this achievement  |
 
 ### user_achievements Table
 
 Tracks the progress of users toward earning achievements.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Reference to the user |
-| achievement_id | UUID | Reference to the achievement |
-| current_count | INTEGER | Current progress toward the required count |
-| completed_at | TIMESTAMPTZ | When the achievement was completed |
-| created_at | TIMESTAMPTZ | When the record was created |
-| updated_at | TIMESTAMPTZ | When the record was last updated |
+| Column         | Type        | Description                                |
+| -------------- | ----------- | ------------------------------------------ |
+| id             | UUID        | Primary key                                |
+| user_id        | UUID        | Reference to the user                      |
+| achievement_id | UUID        | Reference to the achievement               |
+| current_count  | INTEGER     | Current progress toward the required count |
+| completed_at   | TIMESTAMPTZ | When the achievement was completed         |
+| created_at     | TIMESTAMPTZ | When the record was created                |
+| updated_at     | TIMESTAMPTZ | When the record was last updated           |
 
 ### user_badges Table
 
 Tracks which achievements users have chosen to display as badges on their profile.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Reference to the user |
-| achievement_id | UUID | Reference to the achievement being displayed |
-| display_order | INTEGER | Order in which to display the badge |
-| created_at | TIMESTAMPTZ | When the record was created |
-| updated_at | TIMESTAMPTZ | When the record was last updated |
+| Column         | Type        | Description                                  |
+| -------------- | ----------- | -------------------------------------------- |
+| id             | UUID        | Primary key                                  |
+| user_id        | UUID        | Reference to the user                        |
+| achievement_id | UUID        | Reference to the achievement being displayed |
+| display_order  | INTEGER     | Order in which to display the badge          |
+| created_at     | TIMESTAMPTZ | When the record was created                  |
+| updated_at     | TIMESTAMPTZ | When the record was last updated             |
 
 ### user_achievements_metadata Table
 
 Stores additional metadata related to user achievements.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Reference to the user |
-| achievement_id | UUID | Reference to the achievement |
-| metadata_key | TEXT | Key for the metadata |
-| metadata_value | TEXT | Value for the metadata |
-| created_at | TIMESTAMPTZ | When the record was created |
+| Column         | Type        | Description                  |
+| -------------- | ----------- | ---------------------------- |
+| id             | UUID        | Primary key                  |
+| user_id        | UUID        | Reference to the user        |
+| achievement_id | UUID        | Reference to the achievement |
+| metadata_key   | TEXT        | Key for the metadata         |
+| metadata_value | TEXT        | Value for the metadata       |
+| created_at     | TIMESTAMPTZ | When the record was created  |
