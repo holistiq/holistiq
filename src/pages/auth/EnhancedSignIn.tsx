@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,10 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Brain, Pill, Activity, Sparkles } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { clearLogoutIntent, shouldShowSignedOutWarning } from "@/utils/auth";
+import { Activity, Brain, Pill, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export default function EnhancedSignIn() {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +31,13 @@ export default function EnhancedSignIn() {
   // Check for message in location state
   useEffect(() => {
     if (location.state?.message) {
-      setMessage(location.state.message);
+      // Only show the message if it's not after a manual logout
+      if (shouldShowSignedOutWarning()) {
+        setMessage(location.state.message);
+      } else {
+        // Clear the logout intent since we've handled it
+        clearLogoutIntent();
+      }
     }
   }, [location.state]);
 

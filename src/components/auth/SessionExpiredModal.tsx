@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,9 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SessionAction, sessionManager } from "@/services/sessionManager";
 import { LockIcon, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { sessionManager, SessionAction } from "@/services/sessionManager";
 
 export function SessionExpiredModal() {
   const [isVisible, setIsVisible] = useState(false);
@@ -28,6 +28,13 @@ export function SessionExpiredModal() {
         event.newValue === SessionAction.SESSION_EXPIRED
       ) {
         setIsVisible(true);
+      }
+      // Don't show modal for manual logout
+      if (
+        event.key === "holistiq_session_action" &&
+        event.newValue === SessionAction.MANUAL_LOGOUT
+      ) {
+        setIsVisible(false);
       }
     };
 
