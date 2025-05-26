@@ -94,6 +94,9 @@ jobs:
             MODERATE_COUNT=$(npm audit --audit-level=moderate --json 2>/dev/null | jq -r '.vulnerabilities | to_entries | map(select(.value.severity == "moderate")) | length' || echo "0")
             if [ "$MODERATE_COUNT" -gt 0 ]; then
               echo "ℹ️ Found $MODERATE_COUNT moderate vulnerabilities (not blocking build):"
-              npm audit --audit-level=moderate
+              npm audit --audit-level=moderate || true  # Don't fail on moderate vulnerabilities
             fi
+
+            # Ensure we exit successfully when no critical/high vulnerabilities
+            exit 0
           fi

@@ -1,8 +1,57 @@
 # HolistiQ Project Scripts
 
-This directory contains utility scripts for the HolistiQ project.
+This directory contains utility scripts for the HolistiQ project, including development workflow automation, security auditing, and code analysis tools.
 
-## Component Usage Analyzer
+## 🚀 Development Workflow Scripts
+
+### `commit-feature.sh`
+
+Automates the feature development workflow with integrated linting checks.
+
+```bash
+# Basic usage
+./scripts/commit-feature.sh "feature-name" "Feature description"
+
+# Examples
+./scripts/commit-feature.sh "user-notifications" "Add real-time user notifications"
+
+# Emergency bypass (use sparingly)
+./scripts/commit-feature.sh "hotfix-urgent" "Fix critical bug" --skip-lint
+```
+
+**Features:**
+
+- ✅ Creates feature branches automatically
+- ✅ Runs TypeScript type checking and ESLint validation
+- ✅ Stages, commits, and pushes changes
+- ✅ Provides PR creation links
+- ✅ Emergency bypass option
+
+### `security-check.sh`
+
+Comprehensive security audit and vulnerability management.
+
+```bash
+# Check for vulnerabilities
+./scripts/security-check.sh
+
+# Auto-fix safe vulnerabilities
+./scripts/security-check.sh --fix
+
+# Fix all vulnerabilities (including breaking changes)
+./scripts/security-check.sh --fix --force
+```
+
+**Features:**
+
+- ✅ Categorizes vulnerabilities by severity (Critical/High/Moderate/Low)
+- ✅ Automatic vulnerability fixing with safety controls
+- ✅ Outdated package detection and recommendations
+- ✅ Security best practices guidance
+
+## 🔍 Code Analysis Scripts
+
+### Component Usage Analyzer (`analyze-component-usage.js`)
 
 The `analyze-component-usage.js` script helps you determine if a specific component is being used in the project. This is useful for identifying dead code or understanding component dependencies.
 
@@ -58,6 +107,7 @@ The script:
 ### Excluded Directories
 
 The script automatically excludes the following directories:
+
 - node_modules
 - dist
 - build
@@ -69,6 +119,7 @@ The script automatically excludes the following directories:
 ### Supported File Extensions
 
 The script analyzes files with the following extensions:
+
 - .ts
 - .tsx
 - .js
