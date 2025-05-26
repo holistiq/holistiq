@@ -7,8 +7,8 @@
  * It's used as a pre-commit hook to prevent accidentally committing secrets.
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 // Patterns that might indicate hardcoded secrets
 const secretPatterns = [
@@ -25,7 +25,7 @@ const secretPatterns = [
   /['"][A-Za-z0-9]{40,}['"]/i,
 
   // Private keys
-  /-----BEGIN [A-Z ]+ PRIVATE KEY-----/i
+  /-----BEGIN [A-Z ]+ PRIVATE KEY-----/i,
 ];
 
 // Files to check (from git staged files)
@@ -42,14 +42,14 @@ const ignorePatterns = [
   /dist\//,
   /\.next\//,
   /\.output\//,
-  /\.github\/workflows\//,  // Ignore GitHub Actions workflows (they use ${{ secrets.* }} syntax)
-  /components\.json/,        // Ignore shadcn/ui config file
-  /index\.html/             // Ignore HTML files (often have theme colors, etc.)
+  /\.github\/workflows\//, // Ignore GitHub Actions workflows (they use ${{ secrets.* }} syntax)
+  /components\.json/, // Ignore shadcn/ui config file
+  /index\.html/, // Ignore HTML files (often have theme colors, etc.)
 ];
 
 // Check if a file should be ignored
 function shouldIgnore(filePath) {
-  return ignorePatterns.some(pattern => pattern.test(filePath));
+  return ignorePatterns.some((pattern) => pattern.test(filePath));
 }
 
 // Check if content contains GitHub Actions syntax that should be ignored
@@ -59,47 +59,68 @@ function containsGitHubActionsSyntax(content) {
     /\$\{\{\s*secrets\./,
     /\$\{\{\s*env\./,
     /\$\{\{\s*github\./,
-    /\$\{\{\s*vars\./
+    /\$\{\{\s*vars\./,
   ];
 
-  return githubActionsPatterns.some(pattern => pattern.test(content));
+  return githubActionsPatterns.some((pattern) => pattern.test(content));
 }
 
 // Check if a file is a binary file
 function isBinaryFile(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const binaryExtensions = [
-    '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp',
-    '.mp4', '.webm', '.mp3', '.wav', '.ogg',
-    '.pdf', '.zip', '.tar', '.gz', '.7z',
-    '.ttf', '.woff', '.woff2', '.eot', '.otf'
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".bmp",
+    ".ico",
+    ".webp",
+    ".mp4",
+    ".webm",
+    ".mp3",
+    ".wav",
+    ".ogg",
+    ".pdf",
+    ".zip",
+    ".tar",
+    ".gz",
+    ".7z",
+    ".ttf",
+    ".woff",
+    ".woff2",
+    ".eot",
+    ".otf",
   ];
   return binaryExtensions.includes(ext);
 }
 
 let foundSecrets = false;
 
-filesToCheck.forEach(file => {
+filesToCheck.forEach((file) => {
   // Skip files that should be ignored
   if (shouldIgnore(file) || isBinaryFile(file)) {
     return;
   }
 
   try {
-    const content = fs.readFileSync(file, 'utf8');
+    const content = fs.readFileSync(file, "utf8");
 
     // Skip files that contain GitHub Actions syntax
     if (containsGitHubActionsSyntax(content)) {
       return;
     }
 
-    secretPatterns.forEach(pattern => {
-      const matches = content.match(new RegExp(pattern, 'g'));
+    secretPatterns.forEach((pattern) => {
+      const matches = content.match(new RegExp(pattern, "g"));
       if (matches) {
         console.error(`\n⚠️  Possible secret found in ${file}:`);
-        matches.forEach(match => {
+        matches.forEach((match) => {
           // Mask the actual secret in the output
-          const maskedMatch = match.replace(/(['"])[^\1]{4}.+?(?=\1)/, '$1****');
+          const maskedMatch = match.replace(
+            /(['"])[^\1]{4}.+?(?=\1)/,
+            "$1****",
+          );
           console.error(`  ${maskedMatch}`);
         });
         foundSecrets = true;
@@ -111,10 +132,14 @@ filesToCheck.forEach(file => {
 });
 
 if (foundSecrets) {
-  console.error('\n❌ Potential secrets found in commits. Please remove them and try again.');
-  console.error('   If these are not actual secrets, you can modify the script or use:');
-  console.error('   git commit --no-verify (use with caution!)\n');
+  console.error(
+    "\n❌ Potential secrets found in commits. Please remove them and try again.",
+  );
+  console.error(
+    "   If these are not actual secrets, you can modify the script or use:",
+  );
+  console.error("   git commit --no-verify (use with caution!)\n");
   process.exit(1);
 } else {
-  console.log('✅ No secrets detected in the staged files.');
+  console.log("✅ No secrets detected in the staged files.");
 }

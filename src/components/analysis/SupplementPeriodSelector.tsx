@@ -1,33 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarIcon, HelpCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { Supplement } from '@/types/supplement';
-import { ComparisonType } from '@/utils/comparativeAnalysisUtils';
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarIcon, HelpCircle } from "lucide-react";
+import { format } from "date-fns";
+import { Supplement } from "@/types/supplement";
+import { ComparisonType } from "@/utils/comparativeAnalysisUtils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SupplementPeriodSelectorProps {
   supplements: Supplement[];
@@ -36,7 +40,7 @@ interface SupplementPeriodSelectorProps {
     comparisonType: ComparisonType,
     supplementId1: string,
     supplementId2?: string,
-    dateRange?: { from: Date; to: Date }
+    dateRange?: { from: Date; to: Date },
   ) => void;
 }
 
@@ -46,18 +50,21 @@ interface SupplementPeriodSelectorProps {
  * @param to End date
  * @returns Formatted date range string or placeholder
  */
-function formatDateRange(from: Date | undefined, to: Date | undefined): JSX.Element {
+function formatDateRange(
+  from: Date | undefined,
+  to: Date | undefined,
+): JSX.Element {
   if (!from) {
     return <span>Pick a date range</span>;
   }
 
   if (!to) {
-    return <>{format(from, 'LLL dd, y')}</>;
+    return <>{format(from, "LLL dd, y")}</>;
   }
 
   return (
     <>
-      {format(from, 'LLL dd, y')} - {format(to, 'LLL dd, y')}
+      {format(from, "LLL dd, y")} - {format(to, "LLL dd, y")}
     </>
   );
 }
@@ -65,36 +72,54 @@ function formatDateRange(from: Date | undefined, to: Date | undefined): JSX.Elem
 export function SupplementPeriodSelector({
   supplements,
   isLoading,
-  onComparisonChange
+  onComparisonChange,
 }: Readonly<SupplementPeriodSelectorProps>) {
-  const [comparisonType, setComparisonType] = useState<ComparisonType>(ComparisonType.ON_OFF);
-  const [supplementId1, setSupplementId1] = useState<string>('');
-  const [supplementId2, setSupplementId2] = useState<string>('');
+  const [comparisonType, setComparisonType] = useState<ComparisonType>(
+    ComparisonType.ON_OFF,
+  );
+  const [supplementId1, setSupplementId1] = useState<string>("");
+  const [supplementId2, setSupplementId2] = useState<string>("");
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined;
     to: Date | undefined;
   }>({
     from: undefined,
-    to: undefined
+    to: undefined,
   });
 
   // Update the comparison when inputs change
   useEffect(() => {
     if (supplementId1) {
-      if (comparisonType === ComparisonType.BETWEEN_SUPPLEMENTS && supplementId2) {
+      if (
+        comparisonType === ComparisonType.BETWEEN_SUPPLEMENTS &&
+        supplementId2
+      ) {
         onComparisonChange(comparisonType, supplementId1, supplementId2);
-      } else if (comparisonType === ComparisonType.BEFORE_AFTER && dateRange.from && dateRange.to) {
-        onComparisonChange(comparisonType, supplementId1, undefined, { from: dateRange.from, to: dateRange.to });
+      } else if (
+        comparisonType === ComparisonType.BEFORE_AFTER &&
+        dateRange.from &&
+        dateRange.to
+      ) {
+        onComparisonChange(comparisonType, supplementId1, undefined, {
+          from: dateRange.from,
+          to: dateRange.to,
+        });
       } else if (comparisonType === ComparisonType.ON_OFF) {
         onComparisonChange(comparisonType, supplementId1);
       }
     }
-  }, [comparisonType, supplementId1, supplementId2, dateRange, onComparisonChange]);
+  }, [
+    comparisonType,
+    supplementId1,
+    supplementId2,
+    dateRange,
+    onComparisonChange,
+  ]);
 
   // Reset supplement2 when changing comparison type
   useEffect(() => {
     if (comparisonType !== ComparisonType.BETWEEN_SUPPLEMENTS) {
-      setSupplementId2('');
+      setSupplementId2("");
     }
   }, [comparisonType]);
 
@@ -139,8 +164,9 @@ export function SupplementPeriodSelector({
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <p>
-                  Compare your cognitive performance during different periods to see how supplements affect you.
-                  You can compare on/off periods for a supplement, or compare two different supplements.
+                  Compare your cognitive performance during different periods to
+                  see how supplements affect you. You can compare on/off periods
+                  for a supplement, or compare two different supplements.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -150,26 +176,42 @@ export function SupplementPeriodSelector({
       <CardContent>
         <div className="space-y-4">
           <div>
-            <label htmlFor="comparison-type" className="text-sm font-medium mb-2 block">Comparison Type</label>
+            <label
+              htmlFor="comparison-type"
+              className="text-sm font-medium mb-2 block"
+            >
+              Comparison Type
+            </label>
             <Tabs
               id="comparison-type"
               value={comparisonType}
-              onValueChange={(value) => setComparisonType(value as ComparisonType)}
+              onValueChange={(value) =>
+                setComparisonType(value as ComparisonType)
+              }
               className="w-full"
             >
               <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value={ComparisonType.ON_OFF}>On/Off Periods</TabsTrigger>
-                <TabsTrigger value={ComparisonType.BETWEEN_SUPPLEMENTS}>Between Supplements</TabsTrigger>
-                <TabsTrigger value={ComparisonType.BEFORE_AFTER}>Before/After</TabsTrigger>
+                <TabsTrigger value={ComparisonType.ON_OFF}>
+                  On/Off Periods
+                </TabsTrigger>
+                <TabsTrigger value={ComparisonType.BETWEEN_SUPPLEMENTS}>
+                  Between Supplements
+                </TabsTrigger>
+                <TabsTrigger value={ComparisonType.BEFORE_AFTER}>
+                  Before/After
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
           <div>
-            <label htmlFor="supplement-select-1" className="text-sm font-medium mb-2 block">
+            <label
+              htmlFor="supplement-select-1"
+              className="text-sm font-medium mb-2 block"
+            >
               {comparisonType === ComparisonType.BETWEEN_SUPPLEMENTS
-                ? 'First Supplement'
-                : 'Supplement'}
+                ? "First Supplement"
+                : "Supplement"}
             </label>
             <Select
               value={supplementId1}
@@ -191,7 +233,12 @@ export function SupplementPeriodSelector({
 
           {comparisonType === ComparisonType.BETWEEN_SUPPLEMENTS && (
             <div>
-              <label htmlFor="supplement-select-2" className="text-sm font-medium mb-2 block">Second Supplement</label>
+              <label
+                htmlFor="supplement-select-2"
+                className="text-sm font-medium mb-2 block"
+              >
+                Second Supplement
+              </label>
               <Select
                 value={supplementId2}
                 onValueChange={setSupplementId2}
@@ -215,7 +262,12 @@ export function SupplementPeriodSelector({
 
           {comparisonType === ComparisonType.BEFORE_AFTER && (
             <div>
-              <label htmlFor="date-range-picker" className="text-sm font-medium mb-2 block">Date Range</label>
+              <label
+                htmlFor="date-range-picker"
+                className="text-sm font-medium mb-2 block"
+              >
+                Date Range
+              </label>
               <div className="flex gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -233,19 +285,19 @@ export function SupplementPeriodSelector({
                       mode="range"
                       selected={{
                         from: dateRange.from || new Date(),
-                        to: dateRange.to || new Date()
+                        to: dateRange.to || new Date(),
                       }}
                       onSelect={(range) => {
                         if (range?.from && range?.to) {
                           setDateRange({
                             from: range.from,
-                            to: range.to
+                            to: range.to,
                           });
                           onComparisonChange(
                             comparisonType,
                             supplementId1,
                             undefined,
-                            { from: range.from, to: range.to }
+                            { from: range.from, to: range.to },
                           );
                         }
                       }}

@@ -1,8 +1,12 @@
-import React from 'react';
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
@@ -14,8 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { formulationTypes, certificationTypes } from './brandDetailsConstants';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { formulationTypes, certificationTypes } from "./brandDetailsConstants";
 
 interface BrandDetailsInputProps {
   readonly manufacturer: string;
@@ -58,7 +66,7 @@ export function BrandDetailsInput({
   setCertification,
   isOpen,
   setIsOpen,
-  className
+  className,
 }: BrandDetailsInputProps) {
   return (
     <Collapsible
@@ -70,9 +78,15 @@ export function BrandDetailsInput({
         <CollapsibleTrigger asChild>
           <div className="flex items-center space-x-2 cursor-pointer">
             <div className="bg-background rounded-full p-1">
-              {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {isOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </div>
-            <h3 className="text-base font-medium">Brand & Formulation Details (Optional)</h3>
+            <h3 className="text-base font-medium">
+              Brand & Formulation Details (Optional)
+            </h3>
           </div>
         </CollapsibleTrigger>
       </div>
@@ -81,7 +95,9 @@ export function BrandDetailsInput({
         {/* Brand & Manufacturer */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="brand" className="font-medium">Brand Name</Label>
+            <Label htmlFor="brand" className="font-medium">
+              Brand Name
+            </Label>
             <Input
               id="brand"
               value={brand}
@@ -91,7 +107,9 @@ export function BrandDetailsInput({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="manufacturer" className="font-medium">Manufacturer</Label>
+            <Label htmlFor="manufacturer" className="font-medium">
+              Manufacturer
+            </Label>
             <Input
               id="manufacturer"
               value={manufacturer}
@@ -158,7 +176,9 @@ export function BrandDetailsInput({
         {/* Batch & Expiration */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="batch" className="font-medium">Batch/Lot Number</Label>
+            <Label htmlFor="batch" className="font-medium">
+              Batch/Lot Number
+            </Label>
             <Input
               id="batch"
               value={batchNumber}
@@ -179,7 +199,11 @@ export function BrandDetailsInput({
                   className="w-full justify-start text-left font-normal bg-background/80"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {expirationDate ? format(expirationDate, "PPP") : <span>Select date</span>}
+                  {expirationDate ? (
+                    format(expirationDate, "PPP")
+                  ) : (
+                    <span>Select date</span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">

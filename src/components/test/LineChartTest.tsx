@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   LineChart,
   Line,
@@ -7,21 +7,21 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
-} from 'recharts';
+  ResponsiveContainer,
+} from "recharts";
 
 // Sample data with multiple points on the same day
 const data = [
-  { date: new Date('2023-05-08T09:00:00').getTime(), score: 85 },
-  { date: new Date('2023-05-08T14:00:00').getTime(), score: 76 },
-  { date: new Date('2023-05-11T10:00:00').getTime(), score: 83 }
+  { date: new Date("2023-05-08T09:00:00").getTime(), score: 85 },
+  { date: new Date("2023-05-08T14:00:00").getTime(), score: 76 },
+  { date: new Date("2023-05-11T10:00:00").getTime(), score: 83 },
 ];
 
 export function LineChartTest() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Line Chart Type Comparison</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <h2 className="text-xl font-semibold mb-4">Natural Curve (Before)</h2>
@@ -36,13 +36,17 @@ export function LineChartTest() {
                   dataKey="date"
                   type="number"
                   scale="time"
-                  domain={['auto', 'auto']}
-                  tickFormatter={(timestamp) => new Date(timestamp).toLocaleDateString()}
+                  domain={["auto", "auto"]}
+                  tickFormatter={(timestamp) =>
+                    new Date(timestamp).toLocaleDateString()
+                  }
                 />
                 <YAxis />
                 <Tooltip
-                  labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
-                  formatter={(value) => [value, 'Score']}
+                  labelFormatter={(timestamp) =>
+                    new Date(timestamp).toLocaleString()
+                  }
+                  formatter={(value) => [value, "Score"]}
                 />
                 <Legend />
                 <Line
@@ -57,7 +61,7 @@ export function LineChartTest() {
             </ResponsiveContainer>
           </div>
         </div>
-        
+
         <div>
           <h2 className="text-xl font-semibold mb-4">Linear (After)</h2>
           <div className="h-[300px] border p-4">
@@ -71,13 +75,17 @@ export function LineChartTest() {
                   dataKey="date"
                   type="number"
                   scale="time"
-                  domain={['auto', 'auto']}
-                  tickFormatter={(timestamp) => new Date(timestamp).toLocaleDateString()}
+                  domain={["auto", "auto"]}
+                  tickFormatter={(timestamp) =>
+                    new Date(timestamp).toLocaleDateString()
+                  }
                 />
                 <YAxis />
                 <Tooltip
-                  labelFormatter={(timestamp) => new Date(timestamp).toLocaleString()}
-                  formatter={(value) => [value, 'Score']}
+                  labelFormatter={(timestamp) =>
+                    new Date(timestamp).toLocaleString()
+                  }
+                  formatter={(value) => [value, "Score"]}
                 />
                 <Legend />
                 <Line

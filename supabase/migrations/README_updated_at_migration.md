@@ -125,6 +125,7 @@ This is not a problem, as the script checks for existing objects before creating
 After applying the migration, you can verify that it was successful by:
 
 1. Checking if the `updated_at` column exists in the `user_badges` table:
+
    ```sql
    SELECT column_name, data_type
    FROM information_schema.columns
@@ -134,6 +135,7 @@ After applying the migration, you can verify that it was successful by:
    ```
 
 2. Verifying that the trigger exists:
+
    ```sql
    SELECT tgname
    FROM pg_trigger
@@ -142,6 +144,7 @@ After applying the migration, you can verify that it was successful by:
    ```
 
 3. Testing that the trigger works by updating a record and checking if the `updated_at` timestamp changes:
+
    ```sql
    -- First, note the current updated_at value
    SELECT id, updated_at FROM public.user_badges LIMIT 1;

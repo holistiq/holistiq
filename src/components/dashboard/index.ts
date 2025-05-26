@@ -5,19 +5,19 @@
  */
 
 // Navigation components
-export * from './navigation';
+export * from "./navigation";
 
 // Metrics components
-export * from './metrics';
+export * from "./metrics";
 
 // Common components
-export * from './common';
+export * from "./common";
 
 // Tab components
-export * from './tabs/overview';
-export * from './tabs/performance';
-export * from './tabs/supplements';
-export * from './tabs/factors';
+export * from "./tabs/overview";
+export * from "./tabs/performance";
+export * from "./tabs/supplements";
+export * from "./tabs/factors";
 
 // Charts (keep existing exports)
-export * from './charts';
+export * from "./charts";

@@ -71,21 +71,21 @@ export interface CorrelationsResponse {
 
 // Enum for impact significance levels
 export enum ImpactSignificance {
-  VERY_NEGATIVE = 'very_negative',
-  NEGATIVE = 'negative',
-  NEUTRAL = 'neutral',
-  POSITIVE = 'positive',
-  VERY_POSITIVE = 'very_positive',
-  INSUFFICIENT_DATA = 'insufficient_data'
+  VERY_NEGATIVE = "very_negative",
+  NEGATIVE = "negative",
+  NEUTRAL = "neutral",
+  POSITIVE = "positive",
+  VERY_POSITIVE = "very_positive",
+  INSUFFICIENT_DATA = "insufficient_data",
 }
 
 // Enum for confidence levels
 export enum ConfidenceLevel {
-  VERY_LOW = 'very_low',     // 0-0.2
-  LOW = 'low',               // 0.2-0.4
-  MODERATE = 'moderate',     // 0.4-0.6
-  HIGH = 'high',             // 0.6-0.8
-  VERY_HIGH = 'very_high'    // 0.8-1.0
+  VERY_LOW = "very_low", // 0-0.2
+  LOW = "low", // 0.2-0.4
+  MODERATE = "moderate", // 0.4-0.6
+  HIGH = "high", // 0.6-0.8
+  VERY_HIGH = "very_high", // 0.8-1.0
 }
 
 /**
@@ -98,7 +98,7 @@ export enum ConfidenceLevel {
 export function getImpactSignificance(
   impact: number | null,
   isInverted: boolean = false,
-  threshold: number = 5
+  threshold: number = 5,
 ): ImpactSignificance {
   if (impact === null) return ImpactSignificance.INSUFFICIENT_DATA;
 
@@ -108,7 +108,8 @@ export function getImpactSignificance(
 
   if (normalizedImpact > threshold * 2) return ImpactSignificance.VERY_POSITIVE;
   if (normalizedImpact > threshold) return ImpactSignificance.POSITIVE;
-  if (normalizedImpact < -threshold * 2) return ImpactSignificance.VERY_NEGATIVE;
+  if (normalizedImpact < -threshold * 2)
+    return ImpactSignificance.VERY_NEGATIVE;
   if (normalizedImpact < -threshold) return ImpactSignificance.NEGATIVE;
   return ImpactSignificance.NEUTRAL;
 }
@@ -137,27 +138,28 @@ export function getConfidenceLevel(confidence: number | null): ConfidenceLevel {
  */
 export function getImpactDescription(
   impact: number | null,
-  metric: 'score' | 'reaction_time' | 'accuracy',
-  isInverted: boolean = metric === 'reaction_time'
+  metric: "score" | "reaction_time" | "accuracy",
+  isInverted: boolean = metric === "reaction_time",
 ): string {
-  if (impact === null) return 'Insufficient data';
+  if (impact === null) return "Insufficient data";
 
   const significance = getImpactSignificance(impact, isInverted);
   const absImpact = Math.abs(impact);
-  const direction = (isInverted ? -impact : impact) > 0 ? 'improved' : 'decreased';
+  const direction =
+    (isInverted ? -impact : impact) > 0 ? "improved" : "decreased";
 
   switch (significance) {
     case ImpactSignificance.VERY_POSITIVE:
-      return `Significantly ${direction} ${metric.replace('_', ' ')} by ${absImpact.toFixed(1)}%`;
+      return `Significantly ${direction} ${metric.replace("_", " ")} by ${absImpact.toFixed(1)}%`;
     case ImpactSignificance.POSITIVE:
-      return `Moderately ${direction} ${metric.replace('_', ' ')} by ${absImpact.toFixed(1)}%`;
+      return `Moderately ${direction} ${metric.replace("_", " ")} by ${absImpact.toFixed(1)}%`;
     case ImpactSignificance.NEUTRAL:
-      return `No significant change in ${metric.replace('_', ' ')}`;
+      return `No significant change in ${metric.replace("_", " ")}`;
     case ImpactSignificance.NEGATIVE:
-      return `Moderately ${direction} ${metric.replace('_', ' ')} by ${absImpact.toFixed(1)}%`;
+      return `Moderately ${direction} ${metric.replace("_", " ")} by ${absImpact.toFixed(1)}%`;
     case ImpactSignificance.VERY_NEGATIVE:
-      return `Significantly ${direction} ${metric.replace('_', ' ')} by ${absImpact.toFixed(1)}%`;
+      return `Significantly ${direction} ${metric.replace("_", " ")} by ${absImpact.toFixed(1)}%`;
     default:
-      return 'Insufficient data';
+      return "Insufficient data";
   }
 }

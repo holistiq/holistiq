@@ -1,45 +1,72 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from 'date-fns';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
 import { CalendarIcon, Brain } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { Supplement } from '@/types/supplement';
-import { TestResult } from '@/lib/testResultUtils';
+import { Supplement } from "@/types/supplement";
+import { TestResult } from "@/lib/testResultUtils";
 import {
   SupplementCorrelation,
-  CorrelationAnalysisOptions
-} from '@/types/correlation';
-import { calculateCorrelation, getCorrelations } from '@/services/correlationService';
-import { getSupplements } from '@/services/supplementService';
-import { getTestResults } from '@/services/testResultService';
-import { CorrelationCard } from './CorrelationCard';
+  CorrelationAnalysisOptions,
+} from "@/types/correlation";
+import {
+  calculateCorrelation,
+  getCorrelations,
+} from "@/services/correlationService";
+import { getSupplements } from "@/services/supplementService";
+import { getTestResults } from "@/services/testResultService";
+import { CorrelationCard } from "./CorrelationCard";
 
 interface CorrelationAnalysisProps {
   readonly userId: string;
 }
 
-export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProps>): JSX.Element {
+export function CorrelationAnalysis({
+  userId,
+}: Readonly<CorrelationAnalysisProps>): JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [supplements, setSupplements] = useState<Supplement[]>([]);
   // We store test results but don't directly use them in the UI
   const [, setTestResults] = useState<TestResult[]>([]);
   const [correlations, setCorrelations] = useState<SupplementCorrelation[]>([]);
-  const [selectedSupplementId, setSelectedSupplementId] = useState<string>('');
-  const [selectedCorrelation, setSelectedCorrelation] = useState<SupplementCorrelation | null>(null);
+  const [selectedSupplementId, setSelectedSupplementId] = useState<string>("");
+  const [selectedCorrelation, setSelectedCorrelation] =
+    useState<SupplementCorrelation | null>(null);
 
   // Analysis parameters
   const [onsetDelayDays, setOnsetDelayDays] = useState(7);
-  const [cumulativeEffectThreshold, setCumulativeEffectThreshold] = useState(14);
-  const [analysisStartDate, setAnalysisStartDate] = useState<Date | undefined>(undefined);
-  const [analysisEndDate, setAnalysisEndDate] = useState<Date | undefined>(undefined);
+  const [cumulativeEffectThreshold, setCumulativeEffectThreshold] =
+    useState(14);
+  const [analysisStartDate, setAnalysisStartDate] = useState<Date | undefined>(
+    undefined,
+  );
+  const [analysisEndDate, setAnalysisEndDate] = useState<Date | undefined>(
+    undefined,
+  );
 
   // Load data
   useEffect(() => {
@@ -52,7 +79,10 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
           setSupplements(supplementsResponse.supplements);
 
           // Set default selected supplement if available
-          if (supplementsResponse.supplements.length > 0 && !selectedSupplementId) {
+          if (
+            supplementsResponse.supplements.length > 0 &&
+            !selectedSupplementId
+          ) {
             setSelectedSupplementId(supplementsResponse.supplements[0].id);
           }
         }
@@ -60,12 +90,19 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
         // Load test results
         const testResultsResponse = await getTestResults(userId);
         if (testResultsResponse.success && testResultsResponse.data) {
-          const formattedResults = testResultsResponse.data.map((result: { timestamp: string; score: number; reaction_time: number; accuracy: number }) => ({
-            date: result.timestamp,
-            score: result.score,
-            reactionTime: result.reaction_time,
-            accuracy: result.accuracy
-          }));
+          const formattedResults = testResultsResponse.data.map(
+            (result: {
+              timestamp: string;
+              score: number;
+              reaction_time: number;
+              accuracy: number;
+            }) => ({
+              date: result.timestamp,
+              score: result.score,
+              reactionTime: result.reaction_time,
+              accuracy: result.accuracy,
+            }),
+          );
           setTestResults(formattedResults);
         }
 
@@ -75,9 +112,12 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
           setCorrelations(correlationsResponse.correlations);
 
           // Set selected correlation if available and matches selected supplement
-          if (correlationsResponse.correlations.length > 0 && selectedSupplementId) {
+          if (
+            correlationsResponse.correlations.length > 0 &&
+            selectedSupplementId
+          ) {
             const matchingCorrelation = correlationsResponse.correlations.find(
-              c => c.supplement_id === selectedSupplementId
+              (c) => c.supplement_id === selectedSupplementId,
             );
             if (matchingCorrelation) {
               setSelectedCorrelation(matchingCorrelation);
@@ -85,11 +125,11 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
           }
         }
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error("Error loading data:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load data. Please try again.',
-          variant: 'destructive'
+          title: "Error",
+          description: "Failed to load data. Please try again.",
+          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
@@ -105,7 +145,7 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
   useEffect(() => {
     if (selectedSupplementId && correlations.length > 0) {
       const matchingCorrelation = correlations.find(
-        c => c.supplement_id === selectedSupplementId
+        (c) => c.supplement_id === selectedSupplementId,
       );
       setSelectedCorrelation(matchingCorrelation || null);
     } else {
@@ -117,9 +157,9 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
   const runAnalysis = async () => {
     if (!selectedSupplementId) {
       toast({
-        title: 'Error',
-        description: 'Please select a supplement to analyze',
-        variant: 'destructive'
+        title: "Error",
+        description: "Please select a supplement to analyze",
+        variant: "destructive",
       });
       return;
     }
@@ -128,24 +168,30 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
     try {
       const options: CorrelationAnalysisOptions = {
         supplementId: selectedSupplementId,
-        testType: 'n-back-2', // Default test type
+        testType: "n-back-2", // Default test type
         onsetDelayDays,
         cumulativeEffectThreshold,
-        analysisStartDate: analysisStartDate ? format(analysisStartDate, 'yyyy-MM-dd') : undefined,
-        analysisEndDate: analysisEndDate ? format(analysisEndDate, 'yyyy-MM-dd') : undefined
+        analysisStartDate: analysisStartDate
+          ? format(analysisStartDate, "yyyy-MM-dd")
+          : undefined,
+        analysisEndDate: analysisEndDate
+          ? format(analysisEndDate, "yyyy-MM-dd")
+          : undefined,
       };
 
       const result = await calculateCorrelation(userId, options);
 
       if (result.success && result.correlation) {
         // Update correlations list
-        setCorrelations(prev => {
-          const existing = prev.findIndex(c => c.id === result.correlation!.id);
+        setCorrelations((prev) => {
+          const existing = prev.findIndex(
+            (c) => c.id === result.correlation!.id,
+          );
           if (existing >= 0) {
             return [
               ...prev.slice(0, existing),
               result.correlation!,
-              ...prev.slice(existing + 1)
+              ...prev.slice(existing + 1),
             ];
           } else {
             return [result.correlation!, ...prev];
@@ -155,22 +201,24 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
         setSelectedCorrelation(result.correlation);
 
         toast({
-          title: 'Analysis Complete',
-          description: 'Supplement correlation analysis has been completed successfully.',
+          title: "Analysis Complete",
+          description:
+            "Supplement correlation analysis has been completed successfully.",
         });
       } else {
         toast({
-          title: 'Analysis Failed',
-          description: result.error || 'Failed to analyze correlation. Please try again.',
-          variant: 'destructive'
+          title: "Analysis Failed",
+          description:
+            result.error || "Failed to analyze correlation. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error running analysis:', error);
+      console.error("Error running analysis:", error);
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive'
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsAnalyzing(false);
@@ -179,7 +227,7 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
 
   // Get the selected supplement
   const getSelectedSupplement = (): Supplement | undefined => {
-    return supplements.find(s => s.id === selectedSupplementId);
+    return supplements.find((s) => s.id === selectedSupplementId);
   };
 
   return (
@@ -213,7 +261,7 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
                     <SelectValue placeholder="Select a supplement" />
                   </SelectTrigger>
                   <SelectContent>
-                    {supplements.map(supplement => (
+                    {supplements.map((supplement) => (
                       <SelectItem key={supplement.id} value={supplement.id}>
                         {supplement.name} ({supplement.dosage})
                       </SelectItem>
@@ -228,7 +276,7 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
                   disabled={isAnalyzing || !selectedSupplementId}
                   className="w-full"
                 >
-                  {isAnalyzing ? 'Analyzing...' : 'Run Analysis'}
+                  {isAnalyzing ? "Analyzing..." : "Run Analysis"}
                 </Button>
               </div>
             </div>
@@ -240,7 +288,9 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor="onset-delay">Onset Delay (days)</Label>
-                    <span className="text-sm text-muted-foreground">{onsetDelayDays} days</span>
+                    <span className="text-sm text-muted-foreground">
+                      {onsetDelayDays} days
+                    </span>
                   </div>
                   <Slider
                     id="onset-delay"
@@ -257,8 +307,12 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
 
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <Label htmlFor="cumulative-effect">Cumulative Effect (days)</Label>
-                    <span className="text-sm text-muted-foreground">{cumulativeEffectThreshold} days</span>
+                    <Label htmlFor="cumulative-effect">
+                      Cumulative Effect (days)
+                    </Label>
+                    <span className="text-sm text-muted-foreground">
+                      {cumulativeEffectThreshold} days
+                    </span>
                   </div>
                   <Slider
                     id="cumulative-effect"
@@ -266,7 +320,9 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
                     max={60}
                     step={1}
                     value={[cumulativeEffectThreshold]}
-                    onValueChange={(value) => setCumulativeEffectThreshold(value[0])}
+                    onValueChange={(value) =>
+                      setCumulativeEffectThreshold(value[0])
+                    }
                   />
                   <p className="text-xs text-muted-foreground">
                     Days of consistent use needed for full effect
@@ -284,7 +340,11 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
                         className="w-full justify-start text-left font-normal"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {analysisStartDate ? format(analysisStartDate, 'PPP') : <span>Pick a start date</span>}
+                        {analysisStartDate ? (
+                          format(analysisStartDate, "PPP")
+                        ) : (
+                          <span>Pick a start date</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -307,7 +367,11 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
                         className="w-full justify-start text-left font-normal"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {analysisEndDate ? format(analysisEndDate, 'PPP') : <span>Pick an end date</span>}
+                        {analysisEndDate ? (
+                          format(analysisEndDate, "PPP")
+                        ) : (
+                          <span>Pick an end date</span>
+                        )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -337,13 +401,14 @@ export function CorrelationAnalysis({ userId }: Readonly<CorrelationAnalysisProp
                 <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium">No Analysis Results Yet</h3>
                 <p className="text-muted-foreground mb-4">
-                  Select a supplement and run the analysis to see how it affects your cognitive performance.
+                  Select a supplement and run the analysis to see how it affects
+                  your cognitive performance.
                 </p>
                 <Button
                   onClick={runAnalysis}
                   disabled={isAnalyzing || !selectedSupplementId}
                 >
-                  {isAnalyzing ? 'Analyzing...' : 'Run Analysis'}
+                  {isAnalyzing ? "Analyzing..." : "Run Analysis"}
                 </Button>
               </div>
             )}

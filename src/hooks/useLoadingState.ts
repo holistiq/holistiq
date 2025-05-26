@@ -1,18 +1,18 @@
 /**
  * Hook for managing granular loading states with a state machine approach
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from "react";
 
 /**
  * Loading state enum representing different states in the loading process
  */
 export enum LoadingStatus {
-  IDLE = 'idle',
-  LOADING = 'loading',
-  SUCCESS = 'success',
-  ERROR = 'error',
-  TIMEOUT = 'timeout',
-  PARTIAL = 'partial'
+  IDLE = "idle",
+  LOADING = "loading",
+  SUCCESS = "success",
+  ERROR = "error",
+  TIMEOUT = "timeout",
+  PARTIAL = "partial",
 }
 
 /**
@@ -72,7 +72,7 @@ export interface LoadingStateResult<T = unknown> {
       message?: string;
       source?: string;
       transform?: (data: R) => T;
-    }
+    },
   ) => Promise<R>;
   reset: () => void;
   setProgress: (progress: number, message?: string) => void;
@@ -85,14 +85,14 @@ export interface LoadingStateResult<T = unknown> {
 /**
  * Default initial state
  */
-function createInitialState<T>(message: string = 'Idle'): LoadingState<T> {
+function createInitialState<T>(message: string = "Idle"): LoadingState<T> {
   return {
     status: LoadingStatus.IDLE,
     data: null,
     error: null,
     timestamp: Date.now(),
     message,
-    progress: 0
+    progress: 0,
   };
 }
 
@@ -125,19 +125,21 @@ function createInitialState<T>(message: string = 'Idle'): LoadingState<T> {
  * ```
  */
 export function useLoadingState<T = unknown>(
-  options: LoadingStateOptions<T> = {}
+  options: LoadingStateOptions<T> = {},
 ): LoadingStateResult<T> {
   const {
     timeout = 30000, // 30 seconds default timeout
     resetOnSuccess = false,
-    initialMessage = 'Idle',
+    initialMessage = "Idle",
     onTimeout,
     onError,
-    onSuccess
+    onSuccess,
   } = options;
 
   // State for the loading state
-  const [state, setState] = useState<LoadingState<T>>(createInitialState(initialMessage));
+  const [state, setState] = useState<LoadingState<T>>(
+    createInitialState(initialMessage),
+  );
 
   // Refs for tracking timeouts and cleanup
   const timeoutRef = useRef<number | null>(null);
@@ -165,149 +167,161 @@ export function useLoadingState<T = unknown>(
 
   // Set progress
   const setProgress = useCallback((progress: number, message?: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       progress: Math.min(Math.max(0, progress), 100),
-      ...(message ? { message } : {})
+      ...(message ? { message } : {}),
     }));
   }, []);
 
   // Set message
   const setMessage = useCallback((message: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      message
+      message,
     }));
   }, []);
 
   // Set partial data
   const setPartialData = useCallback((partialData: Partial<T>) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       status: LoadingStatus.PARTIAL,
-      data: { ...((prev.data as Record<string, unknown>) ?? {}), ...partialData } as T,
-      timestamp: Date.now()
+      data: {
+        ...((prev.data as Record<string, unknown>) ?? {}),
+        ...partialData,
+      } as T,
+      timestamp: Date.now(),
     }));
   }, []);
 
   // Set error
-  const setError = useCallback((error: Error, message?: string) => {
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+  const setError = useCallback(
+    (error: Error, message?: string) => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
 
-    setState(prev => ({
-      ...prev,
-      status: LoadingStatus.ERROR,
-      error,
-      message: message || `Error: ${error.message}`,
-      timestamp: Date.now()
-    }));
+      setState((prev) => ({
+        ...prev,
+        status: LoadingStatus.ERROR,
+        error,
+        message: message || `Error: ${error.message}`,
+        timestamp: Date.now(),
+      }));
 
-    if (onError) {
-      onError(error);
-    }
-  }, [onError]);
+      if (onError) {
+        onError(error);
+      }
+    },
+    [onError],
+  );
 
   // Set success
-  const setSuccess = useCallback((data: T, message?: string) => {
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+  const setSuccess = useCallback(
+    (data: T, message?: string) => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
 
-    setState(prev => ({
-      ...prev,
-      status: LoadingStatus.SUCCESS,
-      data,
-      error: null,
-      message: message || 'Success',
-      progress: 100,
-      timestamp: Date.now()
-    }));
+      setState((prev) => ({
+        ...prev,
+        status: LoadingStatus.SUCCESS,
+        data,
+        error: null,
+        message: message || "Success",
+        progress: 100,
+        timestamp: Date.now(),
+      }));
 
-    if (onSuccess) {
-      onSuccess(data);
-    }
+      if (onSuccess) {
+        onSuccess(data);
+      }
 
-    if (resetOnSuccess) {
-      // Reset after a short delay to allow UI to show success state
-      setTimeout(() => {
-        if (isMountedRef.current) {
-          reset();
-        }
-      }, 1000);
-    }
-  }, [onSuccess, reset, resetOnSuccess]);
+      if (resetOnSuccess) {
+        // Reset after a short delay to allow UI to show success state
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            reset();
+          }
+        }, 1000);
+      }
+    },
+    [onSuccess, reset, resetOnSuccess],
+  );
 
   // Execute a promise with loading state tracking
-  const execute = useCallback(async <R = T>(
-    promise: Promise<R>,
-    options: {
-      message?: string;
-      source?: string;
-      transform?: (data: R) => T;
-    } = {}
-  ): Promise<R> => {
-    const { message = 'Loading...', source, transform } = options;
+  const execute = useCallback(
+    async <R = T>(
+      promise: Promise<R>,
+      options: {
+        message?: string;
+        source?: string;
+        transform?: (data: R) => T;
+      } = {},
+    ): Promise<R> => {
+      const { message = "Loading...", source, transform } = options;
 
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      window.clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
 
-    // Set loading state
-    setState({
-      status: LoadingStatus.LOADING,
-      data: state.data, // Preserve existing data for partial loading
-      error: null,
-      timestamp: Date.now(),
-      message,
-      progress: 0,
-      source
-    });
+      // Set loading state
+      setState({
+        status: LoadingStatus.LOADING,
+        data: state.data, // Preserve existing data for partial loading
+        error: null,
+        timestamp: Date.now(),
+        message,
+        progress: 0,
+        source,
+      });
 
-    // Set timeout
-    if (timeout > 0) {
-      timeoutRef.current = window.setTimeout(() => {
-        if (isMountedRef.current) {
-          setState(prev => ({
-            ...prev,
-            status: LoadingStatus.TIMEOUT,
-            message: `Operation timed out after ${timeout / 1000} seconds`,
-            timestamp: Date.now()
-          }));
+      // Set timeout
+      if (timeout > 0) {
+        timeoutRef.current = window.setTimeout(() => {
+          if (isMountedRef.current) {
+            setState((prev) => ({
+              ...prev,
+              status: LoadingStatus.TIMEOUT,
+              message: `Operation timed out after ${timeout / 1000} seconds`,
+              timestamp: Date.now(),
+            }));
 
-          if (onTimeout) {
-            onTimeout();
+            if (onTimeout) {
+              onTimeout();
+            }
           }
+        }, timeout);
+      }
+
+      try {
+        // Execute the promise
+        const result = await promise;
+
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          const data = transform ? transform(result) : (result as unknown as T);
+
+          setSuccess(data, message.replace("Loading", "Loaded"));
         }
-      }, timeout);
-    }
 
-    try {
-      // Execute the promise
-      const result = await promise;
+        return result;
+      } catch (error) {
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setError(error instanceof Error ? error : new Error(String(error)));
+        }
 
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        const data = transform ? transform(result) : (result as unknown as T);
-
-        setSuccess(data, message.replace('Loading', 'Loaded'));
+        throw error;
       }
-
-      return result;
-    } catch (error) {
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        setError(error instanceof Error ? error : new Error(String(error)));
-      }
-
-      throw error;
-    }
-  }, [state.data, timeout, onTimeout, setSuccess, setError]);
+    },
+    [state.data, timeout, onTimeout, setSuccess, setError],
+  );
 
   // Calculate elapsed time
   const elapsedTime = state.timestamp ? Date.now() - state.timestamp : 0;
@@ -341,6 +355,6 @@ export function useLoadingState<T = unknown>(
     setPartialData,
     setError,
     setSuccess,
-    setMessage
+    setMessage,
   };
 }

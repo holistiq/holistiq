@@ -10,14 +10,14 @@ The migration script `20250701000000_create_user_badges.sql` creates the `user_b
 
 The `user_badges` table has the following structure:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| user_id | UUID | Foreign key to auth.users(id) |
-| achievement_id | TEXT | Foreign key to achievements(id) |
-| display_order | INTEGER | Order in which badges are displayed |
-| created_at | TIMESTAMP WITH TIME ZONE | Creation timestamp |
-| updated_at | TIMESTAMP WITH TIME ZONE | Last update timestamp |
+| Column         | Type                     | Description                         |
+| -------------- | ------------------------ | ----------------------------------- |
+| id             | UUID                     | Primary key                         |
+| user_id        | UUID                     | Foreign key to auth.users(id)       |
+| achievement_id | TEXT                     | Foreign key to achievements(id)     |
+| display_order  | INTEGER                  | Order in which badges are displayed |
+| created_at     | TIMESTAMP WITH TIME ZONE | Creation timestamp                  |
+| updated_at     | TIMESTAMP WITH TIME ZONE | Last update timestamp               |
 
 ## Constraints
 

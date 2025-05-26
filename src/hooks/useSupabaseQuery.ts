@@ -1,12 +1,12 @@
 /**
  * Hook for executing Supabase queries with caching
  */
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { supabaseCache, CACHE_CONFIG } from '@/lib/supabaseCache';
-import { cache } from '@/lib/cache';
-import { useSupabaseAuth } from './useSupabaseAuth';
-import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { supabaseCache, CACHE_CONFIG } from "@/lib/supabaseCache";
+import { cache } from "@/lib/cache";
+import { useSupabaseAuth } from "./useSupabaseAuth";
+import { PostgrestFilterBuilder } from "@supabase/postgrest-js";
 
 interface QueryOptions<T> {
   // The type of entity being queried
@@ -51,9 +51,14 @@ interface QueryResult<T> {
  * @param options Query options
  * @returns Query result
  */
-export function useSupabaseQuery<T, Schema = unknown, Row = unknown, Relationships = unknown>(
+export function useSupabaseQuery<
+  T,
+  Schema = unknown,
+  Row = unknown,
+  Relationships = unknown,
+>(
   queryFn: () => PostgrestFilterBuilder<Schema, Row, Relationships>,
-  options: QueryOptions<T>
+  options: QueryOptions<T>,
 ): QueryResult<T> {
   const { user } = useSupabaseAuth();
   const [data, setData] = useState<T | null>(null);
@@ -88,27 +93,32 @@ export function useSupabaseQuery<T, Schema = unknown, Row = unknown, Relationshi
       const hasCachedValue = cachedValue !== undefined;
 
       // Execute the query with caching
-      const result = await supabaseCache.query<{ data: T; error: Error | { message?: string } | null }>(
+      const result = await supabaseCache.query<{
+        data: T;
+        error: Error | { message?: string } | null;
+      }>(
         options.entityType,
         options.cacheKeyPattern,
         async () => {
           const query = queryFn();
           return await query;
         },
-        options.ttl
+        options.ttl,
       );
 
       // Set the from cache flag based on whether we had a cached value before executing
       setIsFromCache(hasCachedValue);
 
       if (result.error) {
-        throw new Error(result.error.message ?? 'An error occurred');
+        throw new Error(result.error.message ?? "An error occurred");
       }
 
       setData(result.data);
     } catch (err) {
-      console.error('Error executing Supabase query:', err);
-      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      console.error("Error executing Supabase query:", err);
+      setError(
+        err instanceof Error ? err : new Error("An unknown error occurred"),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -119,12 +129,12 @@ export function useSupabaseQuery<T, Schema = unknown, Row = unknown, Relationshi
     options.skipCache,
     options.ttl,
     // dependencies is removed as it's an unnecessary dependency
-    queryFn
+    queryFn,
   ]);
 
   // Execute the query when the component mounts or dependencies change
   useEffect(() => {
-    if (user || !options.cacheKeyPattern.includes('undefined')) {
+    if (user || !options.cacheKeyPattern.includes("undefined")) {
       executeQuery();
     } else {
       setIsLoading(false);
@@ -141,7 +151,7 @@ export function useSupabaseQuery<T, Schema = unknown, Row = unknown, Relationshi
     isLoading,
     error,
     refetch,
-    isFromCache
+    isFromCache,
   };
 }
 
@@ -155,7 +165,7 @@ export function useSupabaseQuery<T, Schema = unknown, Row = unknown, Relationshi
 export function useSupabaseRpc<T>(
   functionName: string,
   params: Record<string, unknown>,
-  options: QueryOptions<T>
+  options: QueryOptions<T>,
 ): QueryResult<T> {
   const { user } = useSupabaseAuth();
   const [data, setData] = useState<T | null>(null);
@@ -194,26 +204,34 @@ export function useSupabaseRpc<T>(
       const hasCachedValue = cachedValue !== undefined;
 
       // Execute the RPC call with caching
-      const result = await supabaseCache.query<{ data: T; error: Error | { message?: string } | null }>(
+      const result = await supabaseCache.query<{
+        data: T;
+        error: Error | { message?: string } | null;
+      }>(
         options.entityType,
         options.cacheKeyPattern,
         async () => {
           return await supabase.rpc(functionName, memoizedParams);
         },
-        options.ttl
+        options.ttl,
       );
 
       // Set the from cache flag based on whether we had a cached value before executing
       setIsFromCache(hasCachedValue);
 
       if (result.error) {
-        throw new Error(result.error.message ?? 'An error occurred');
+        throw new Error(result.error.message ?? "An error occurred");
       }
 
       setData(result.data);
     } catch (err) {
-      console.error(`Error executing Supabase RPC call to ${functionName}:`, err);
-      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      console.error(
+        `Error executing Supabase RPC call to ${functionName}:`,
+        err,
+      );
+      setError(
+        err instanceof Error ? err : new Error("An unknown error occurred"),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -224,13 +242,13 @@ export function useSupabaseRpc<T>(
     options.entityType,
     options.cacheKeyPattern,
     options.skipCache,
-    options.ttl
+    options.ttl,
     // dependencies is removed as it's an unnecessary dependency
   ]);
 
   // Execute the RPC call when the component mounts or dependencies change
   useEffect(() => {
-    if (user || !options.cacheKeyPattern.includes('undefined')) {
+    if (user || !options.cacheKeyPattern.includes("undefined")) {
       executeRpc();
     } else {
       setIsLoading(false);
@@ -247,6 +265,6 @@ export function useSupabaseRpc<T>(
     isLoading,
     error,
     refetch,
-    isFromCache
+    isFromCache,
   };
 }

@@ -4,13 +4,17 @@
  * A simple component that allows toggling debug logging on and off.
  * Only visible in development mode when debug logging is enabled.
  */
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bug, X } from 'lucide-react';
-import { isDebugLoggingEnabled, toggleDebugLogging, isDebugModeAvailable } from '@/utils/debugUtils';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Bug, X } from "lucide-react";
+import {
+  isDebugLoggingEnabled,
+  toggleDebugLogging,
+  isDebugModeAvailable,
+} from "@/utils/debugUtils";
 
 export function DebugToggle() {
   const [isEnabled, setIsEnabled] = useState(false);

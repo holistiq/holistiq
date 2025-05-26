@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Progress } from '@/components/ui/progress';
-import { LoadingState, LoadingProgress } from '@/contexts/TestResultsContext';
-import { cn } from '@/lib/utils';
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import React, { useEffect, useState } from "react";
+import { Progress } from "@/components/ui/progress";
+import { LoadingState, LoadingProgress } from "@/contexts/TestResultsContext";
+import { cn } from "@/lib/utils";
+import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface LoadingStateIndicatorProps {
   /** Current loading state */
@@ -33,19 +33,19 @@ export const LoadingStateIndicator = React.memo(function LoadingStateIndicator({
   showDetails = true,
   autoHide = true,
   autoHideDelay = 2000,
-  id
+  id,
 }: Readonly<LoadingStateIndicatorProps>): JSX.Element | null {
   const [visible, setVisible] = useState(true);
 
   // Auto-hide logic
   useEffect(() => {
     // Show the component when loading state changes from idle
-    if (loadingState !== 'idle') {
+    if (loadingState !== "idle") {
       setVisible(true);
     }
 
     // Handle auto-hide when complete
-    if (loadingState === 'complete' && autoHide) {
+    if (loadingState === "complete" && autoHide) {
       const timer = setTimeout(() => {
         setVisible(false);
       }, autoHideDelay);
@@ -55,16 +55,16 @@ export const LoadingStateIndicator = React.memo(function LoadingStateIndicator({
   }, [loadingState, autoHide, autoHideDelay]);
 
   // Don't render if idle or hidden
-  if (loadingState === 'idle' || !visible) {
+  if (loadingState === "idle" || !visible) {
     return null;
   }
 
   // Determine icon based on state
   const getIcon = () => {
     switch (loadingState) {
-      case 'error':
+      case "error":
         return <AlertCircle className="h-5 w-5 text-destructive" />;
-      case 'complete':
+      case "complete":
         return <CheckCircle2 className="h-5 w-5 text-success" />;
       default:
         return <Loader2 className="h-5 w-5 text-primary animate-spin" />;
@@ -74,12 +74,12 @@ export const LoadingStateIndicator = React.memo(function LoadingStateIndicator({
   // Determine color based on state
   const getProgressColor = () => {
     switch (loadingState) {
-      case 'error':
-        return 'bg-destructive';
-      case 'complete':
-        return 'bg-success';
+      case "error":
+        return "bg-destructive";
+      case "complete":
+        return "bg-success";
       default:
-        return 'bg-primary';
+        return "bg-primary";
     }
   };
 
@@ -90,7 +90,7 @@ export const LoadingStateIndicator = React.memo(function LoadingStateIndicator({
   };
 
   // Render error state
-  if (loadingState === 'error') {
+  if (loadingState === "error") {
     return (
       <Alert variant="destructive" className={cn("my-2", className)} id={id}>
         <AlertCircle className="h-4 w-4" />
@@ -98,7 +98,9 @@ export const LoadingStateIndicator = React.memo(function LoadingStateIndicator({
         <AlertDescription>
           {loadingProgress.message}
           {loadingProgress.error && (
-            <div className="text-xs mt-1 opacity-80">{loadingProgress.error}</div>
+            <div className="text-xs mt-1 opacity-80">
+              {loadingProgress.error}
+            </div>
           )}
         </AlertDescription>
       </Alert>
@@ -110,8 +112,8 @@ export const LoadingStateIndicator = React.memo(function LoadingStateIndicator({
     <div
       className={cn(
         "rounded-md border p-3 shadow-sm bg-card text-card-foreground transition-opacity",
-        loadingState === 'complete' && "opacity-80",
-        className
+        loadingState === "complete" && "opacity-80",
+        className,
       )}
       id={id}
       aria-live="polite"
@@ -132,12 +134,12 @@ export const LoadingStateIndicator = React.memo(function LoadingStateIndicator({
         indicatorClassName={getProgressColor()}
       />
 
-      {showDetails && loadingState !== 'complete' && (
+      {showDetails && loadingState !== "complete" && (
         <div className="text-xs text-muted-foreground mt-1">
-          {loadingState === 'fetching_local' && "Loading from local storage..."}
-          {loadingState === 'fetching_remote' && "Loading from server..."}
-          {loadingState === 'processing' && "Processing data..."}
-          {loadingState === 'refreshing' && "Refreshing data..."}
+          {loadingState === "fetching_local" && "Loading from local storage..."}
+          {loadingState === "fetching_remote" && "Loading from server..."}
+          {loadingState === "processing" && "Processing data..."}
+          {loadingState === "refreshing" && "Refreshing data..."}
         </div>
       )}
     </div>

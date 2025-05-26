@@ -10,7 +10,7 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +24,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import {
   Moon,
@@ -36,14 +36,14 @@ import {
   Thermometer,
   Smile,
   Battery,
-  Volume2
+  Volume2,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { saveConfoundingFactor } from "@/services/confoundingFactorService";
 import {
   exerciseTypes,
   locationOptions,
-  ConfoundingFactorInput
+  ConfoundingFactorInput,
 } from "@/types/confoundingFactor";
 
 interface ConfoundingFactorsPromptProps {
@@ -64,20 +64,22 @@ export function ConfoundingFactorsPrompt({
   userId,
   testId,
   onComplete,
-  onSkip
+  onSkip,
 }: ConfoundingFactorsPromptProps) {
   // State for active tab
   const [activeTab, setActiveTab] = useState("sleep");
-  
+
   // State for form submission
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // State for form fields
   const [sleepDuration, setSleepDuration] = useState<number | null>(null);
   const [sleepQuality, setSleepQuality] = useState<number | null>(null);
   const [stressLevel, setStressLevel] = useState<number | null>(null);
   const [exerciseDuration, setExerciseDuration] = useState<number | null>(null);
-  const [exerciseIntensity, setExerciseIntensity] = useState<number | null>(null);
+  const [exerciseIntensity, setExerciseIntensity] = useState<number | null>(
+    null,
+  );
   const [exerciseType, setExerciseType] = useState<string | null>(null);
   const [caffeineIntake, setCaffeineIntake] = useState<number | null>(null);
   const [alcoholIntake, setAlcoholIntake] = useState<number | null>(null);
@@ -95,7 +97,7 @@ export function ConfoundingFactorsPrompt({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       // Create factor input object
       const factorInput: ConfoundingFactorInput = {
@@ -116,18 +118,18 @@ export function ConfoundingFactorsPrompt({
         energy_level: energyLevel,
         illness: illness || undefined,
         illness_details: illness ? illnessDetails : undefined,
-        notes: notes || undefined
+        notes: notes || undefined,
       };
-      
+
       // Save the factor
       const result = await saveConfoundingFactor(userId, factorInput);
-      
+
       if (result.success && result.data) {
         toast({
           title: "Factors saved",
-          description: "Your confounding factors have been recorded."
+          description: "Your confounding factors have been recorded.",
         });
-        
+
         // Call the onComplete callback with the factor ID
         onComplete(result.data.id);
       } else {
@@ -137,8 +139,9 @@ export function ConfoundingFactorsPrompt({
       console.error("Error saving confounding factors:", error);
       toast({
         title: "Error saving factors",
-        description: "There was a problem saving your factors. Please try again.",
-        variant: "destructive"
+        description:
+          "There was a problem saving your factors. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -150,10 +153,11 @@ export function ConfoundingFactorsPrompt({
       <CardHeader>
         <CardTitle className="text-2xl">Log Confounding Factors</CardTitle>
         <CardDescription>
-          Track variables that might have affected your cognitive performance during this test.
+          Track variables that might have affected your cognitive performance
+          during this test.
         </CardDescription>
       </CardHeader>
-      
+
       <form onSubmit={handleSubmit}>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -174,7 +178,10 @@ export function ConfoundingFactorsPrompt({
                 <Coffee className="h-4 w-4" />
                 <span className="hidden md:inline">Diet</span>
               </TabsTrigger>
-              <TabsTrigger value="environment" className="flex items-center gap-1">
+              <TabsTrigger
+                value="environment"
+                className="flex items-center gap-1"
+              >
                 <MapPin className="h-4 w-4" />
                 <span className="hidden md:inline">Environment</span>
               </TabsTrigger>
@@ -183,7 +190,7 @@ export function ConfoundingFactorsPrompt({
                 <span className="hidden md:inline">Health</span>
               </TabsTrigger>
             </TabsList>
-            
+
             {/* Sleep Tab */}
             <TabsContent value="sleep" className="space-y-4">
               <div className="space-y-4">
@@ -198,10 +205,12 @@ export function ConfoundingFactorsPrompt({
                       value={sleepDuration !== null ? [sleepDuration] : [7]}
                       onValueChange={(value) => setSleepDuration(value[0])}
                     />
-                    <span className="w-12 text-center">{sleepDuration ?? 7}</span>
+                    <span className="w-12 text-center">
+                      {sleepDuration ?? 7}
+                    </span>
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="sleep-quality">Sleep Quality (1-10)</Label>
                   <div className="flex items-center gap-4 mt-2">
@@ -213,12 +222,14 @@ export function ConfoundingFactorsPrompt({
                       value={sleepQuality !== null ? [sleepQuality] : [5]}
                       onValueChange={(value) => setSleepQuality(value[0])}
                     />
-                    <span className="w-12 text-center">{sleepQuality ?? 5}</span>
+                    <span className="w-12 text-center">
+                      {sleepQuality ?? 5}
+                    </span>
                   </div>
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* Stress Tab */}
             <TabsContent value="stress" className="space-y-4">
               <div>
@@ -236,26 +247,35 @@ export function ConfoundingFactorsPrompt({
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* Exercise Tab */}
             <TabsContent value="exercise" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="exercise-duration">Exercise Duration (minutes)</Label>
+                  <Label htmlFor="exercise-duration">
+                    Exercise Duration (minutes)
+                  </Label>
                   <Input
                     id="exercise-duration"
                     type="number"
                     min={0}
                     max={300}
                     value={exerciseDuration !== null ? exerciseDuration : ""}
-                    onChange={(e) => setExerciseDuration(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) =>
+                      setExerciseDuration(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
                     className="mt-1"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="exercise-type">Exercise Type</Label>
-                  <Select value={exerciseType || ""} onValueChange={setExerciseType}>
+                  <Select
+                    value={exerciseType || ""}
+                    onValueChange={setExerciseType}
+                  >
                     <SelectTrigger id="exercise-type" className="mt-1">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -268,24 +288,30 @@ export function ConfoundingFactorsPrompt({
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="md:col-span-2">
-                  <Label htmlFor="exercise-intensity">Exercise Intensity (1-10)</Label>
+                  <Label htmlFor="exercise-intensity">
+                    Exercise Intensity (1-10)
+                  </Label>
                   <div className="flex items-center gap-4 mt-2">
                     <Slider
                       id="exercise-intensity"
                       min={1}
                       max={10}
                       step={1}
-                      value={exerciseIntensity !== null ? [exerciseIntensity] : [5]}
+                      value={
+                        exerciseIntensity !== null ? [exerciseIntensity] : [5]
+                      }
                       onValueChange={(value) => setExerciseIntensity(value[0])}
                     />
-                    <span className="w-12 text-center">{exerciseIntensity ?? 5}</span>
+                    <span className="w-12 text-center">
+                      {exerciseIntensity ?? 5}
+                    </span>
                   </div>
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* Diet Tab */}
             <TabsContent value="diet" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -297,11 +323,15 @@ export function ConfoundingFactorsPrompt({
                     min={0}
                     max={1000}
                     value={caffeineIntake !== null ? caffeineIntake : ""}
-                    onChange={(e) => setCaffeineIntake(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) =>
+                      setCaffeineIntake(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
                     className="mt-1"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="alcohol-intake">Alcohol (drinks)</Label>
                   <Input
@@ -311,11 +341,15 @@ export function ConfoundingFactorsPrompt({
                     max={20}
                     step={0.5}
                     value={alcoholIntake !== null ? alcoholIntake : ""}
-                    onChange={(e) => setAlcoholIntake(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) =>
+                      setAlcoholIntake(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
                     className="mt-1"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="water-intake">Water (glasses)</Label>
                   <Input
@@ -324,13 +358,17 @@ export function ConfoundingFactorsPrompt({
                     min={0}
                     max={20}
                     value={waterIntake !== null ? waterIntake : ""}
-                    onChange={(e) => setWaterIntake(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) =>
+                      setWaterIntake(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
                     className="mt-1"
                   />
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* Environment Tab */}
             <TabsContent value="environment" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,7 +387,7 @@ export function ConfoundingFactorsPrompt({
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="temperature">Temperature (°C)</Label>
                   <Input
@@ -358,11 +396,15 @@ export function ConfoundingFactorsPrompt({
                     min={-10}
                     max={50}
                     value={temperature !== null ? temperature : ""}
-                    onChange={(e) => setTemperature(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) =>
+                      setTemperature(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
                     className="mt-1"
                   />
                 </div>
-                
+
                 <div className="md:col-span-2">
                   <Label htmlFor="noise-level">Noise Level (1-10)</Label>
                   <div className="flex items-center gap-4 mt-2">
@@ -379,7 +421,7 @@ export function ConfoundingFactorsPrompt({
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* Health Tab */}
             <TabsContent value="health" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -397,7 +439,7 @@ export function ConfoundingFactorsPrompt({
                     <span className="w-12 text-center">{mood ?? 5}</span>
                   </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="energy-level">Energy Level (1-10)</Label>
                   <div className="flex items-center gap-4 mt-2">
@@ -412,7 +454,7 @@ export function ConfoundingFactorsPrompt({
                     <span className="w-12 text-center">{energyLevel ?? 5}</span>
                   </div>
                 </div>
-                
+
                 <div className="md:col-span-2">
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -420,9 +462,11 @@ export function ConfoundingFactorsPrompt({
                       checked={illness}
                       onCheckedChange={setIllness}
                     />
-                    <Label htmlFor="illness">Currently experiencing illness or symptoms</Label>
+                    <Label htmlFor="illness">
+                      Currently experiencing illness or symptoms
+                    </Label>
                   </div>
-                  
+
                   {illness && (
                     <div className="mt-2">
                       <Label htmlFor="illness-details">Illness Details</Label>
@@ -438,7 +482,7 @@ export function ConfoundingFactorsPrompt({
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* Notes (shown on all tabs) */}
             <div className="mt-6">
               <Label htmlFor="notes">Additional Notes</Label>
@@ -452,7 +496,7 @@ export function ConfoundingFactorsPrompt({
             </div>
           </Tabs>
         </CardContent>
-        
+
         <CardFooter className="flex justify-between">
           <Button type="button" variant="outline" onClick={onSkip}>
             Skip

@@ -1,7 +1,10 @@
 /**
  * Constants for brand details input component
  */
-import { getFormulationTypes, getCertificationTypes } from '@/utils/supplementUtils';
+import {
+  getFormulationTypes,
+  getCertificationTypes,
+} from "@/utils/supplementUtils";
 
 // Export the types for other components to use
 export const formulationTypes = getFormulationTypes();

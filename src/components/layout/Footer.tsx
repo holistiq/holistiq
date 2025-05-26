@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 
@@ -16,13 +15,16 @@ export function Footer() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-4 max-w-md">
-              Track your cognitive performance and discover if your supplements are actually working with data-driven insights.
+              Track your cognitive performance and discover if your supplements
+              are actually working with data-driven insights.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="md:col-span-4">
-            <h3 className="font-medium mb-4 text-sm tracking-wide uppercase text-muted-foreground">Resources</h3>
+            <h3 className="font-medium mb-4 text-sm tracking-wide uppercase text-muted-foreground">
+              Resources
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link
@@ -73,7 +75,9 @@ export function Footer() {
 
           {/* Legal Links */}
           <div className="md:col-span-4">
-            <h3 className="font-medium mb-4 text-sm tracking-wide uppercase text-muted-foreground">Legal</h3>
+            <h3 className="font-medium mb-4 text-sm tracking-wide uppercase text-muted-foreground">
+              Legal
+            </h3>
             <ul className="space-y-2">
               <li>
                 <Link

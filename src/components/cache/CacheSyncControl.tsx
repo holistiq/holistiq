@@ -1,17 +1,30 @@
 /**
  * Component for controlling and monitoring cache synchronization
  */
-import { useState, useEffect } from 'react';
-import { cache, DEFAULT_CACHE_CONFIG } from '@/lib/cache';
-import { SyncMetrics } from '@/lib/cacheSyncManager';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database, Settings, Layers } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { cache, DEFAULT_CACHE_CONFIG } from "@/lib/cache";
+import { SyncMetrics } from "@/lib/cacheSyncManager";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Database, Settings, Layers } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -31,15 +44,21 @@ interface CacheSyncControlProps {
  */
 export function CacheSyncControl({
   showMetrics = true,
-  showConfig = true
+  showConfig = true,
 }: CacheSyncControlProps) {
   const [syncEnabled, setSyncEnabled] = useState(cache.isSyncEnabled());
-  const [activeTabCount, setActiveTabCount] = useState(cache.getActiveTabCount());
+  const [activeTabCount, setActiveTabCount] = useState(
+    cache.getActiveTabCount(),
+  );
   const [metrics, setMetrics] = useState<SyncMetrics>(cache.getSyncMetrics());
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [logLevel, setLogLevel] = useState(DEFAULT_CACHE_CONFIG.logLevel);
-  const [resolveConflicts, setResolveConflicts] = useState(DEFAULT_CACHE_CONFIG.resolveConflicts);
-  const [heartbeatEnabled, setHeartbeatEnabled] = useState(DEFAULT_CACHE_CONFIG.heartbeatEnabled);
+  const [resolveConflicts, setResolveConflicts] = useState(
+    DEFAULT_CACHE_CONFIG.resolveConflicts,
+  );
+  const [heartbeatEnabled, setHeartbeatEnabled] = useState(
+    DEFAULT_CACHE_CONFIG.heartbeatEnabled,
+  );
 
   // Update metrics periodically
   useEffect(() => {
@@ -60,8 +79,10 @@ export function CacheSyncControl({
 
   // Handle log level change
   const handleLogLevelChange = (value: string) => {
-    setLogLevel(value as 'none' | 'error' | 'warn' | 'info' | 'debug');
-    cache.configure({ logLevel: value as 'none' | 'error' | 'warn' | 'info' | 'debug' });
+    setLogLevel(value as "none" | "error" | "warn" | "info" | "debug");
+    cache.configure({
+      logLevel: value as "none" | "error" | "warn" | "info" | "debug",
+    });
   };
 
   // Handle resolve conflicts toggle
@@ -83,7 +104,7 @@ export function CacheSyncControl({
           <span>Cache Synchronization</span>
           <Badge variant="outline" className="ml-2 bg-blue-50">
             <Layers className="h-3 w-3 mr-1" />
-            {activeTabCount} {activeTabCount === 1 ? 'tab' : 'tabs'} active
+            {activeTabCount} {activeTabCount === 1 ? "tab" : "tabs"} active
           </Badge>
         </CardTitle>
         <CardDescription>
@@ -109,18 +130,28 @@ export function CacheSyncControl({
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground">Messages Sent</span>
-                <span className="text-xl font-semibold">{metrics.messagesSent}</span>
+                <span className="text-sm text-muted-foreground">
+                  Messages Sent
+                </span>
+                <span className="text-xl font-semibold">
+                  {metrics.messagesSent}
+                </span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground">Messages Received</span>
-                <span className="text-xl font-semibold">{metrics.messagesReceived}</span>
+                <span className="text-sm text-muted-foreground">
+                  Messages Received
+                </span>
+                <span className="text-xl font-semibold">
+                  {metrics.messagesReceived}
+                </span>
               </div>
 
               <div className="flex flex-col">
                 <span className="text-sm text-muted-foreground">Conflicts</span>
-                <span className="text-xl font-semibold">{metrics.conflictsDetected}</span>
+                <span className="text-xl font-semibold">
+                  {metrics.conflictsDetected}
+                </span>
               </div>
 
               <div className="flex flex-col">
@@ -147,13 +178,16 @@ export function CacheSyncControl({
               className="w-full"
             >
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="flex w-full justify-between p-0">
+                <Button
+                  variant="ghost"
+                  className="flex w-full justify-between p-0"
+                >
                   <span className="flex items-center">
                     <Settings className="h-4 w-4 mr-2" />
                     Configuration Options
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {isConfigOpen ? 'Hide' : 'Show'}
+                    {isConfigOpen ? "Hide" : "Show"}
                   </span>
                 </Button>
               </CollapsibleTrigger>
@@ -180,7 +214,9 @@ export function CacheSyncControl({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="resolve-conflicts">Resolve conflicts automatically</Label>
+                    <Label htmlFor="resolve-conflicts">
+                      Resolve conflicts automatically
+                    </Label>
                     <Switch
                       id="resolve-conflicts"
                       checked={resolveConflicts}

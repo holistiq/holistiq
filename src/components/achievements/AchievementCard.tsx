@@ -3,20 +3,43 @@
  *
  * Displays an achievement with its progress
  */
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { AchievementWithProgress, AchievementStatus } from '@/types/achievement';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
-  Trophy, Star, Zap, Brain, Activity, Calendar,
-  CalendarCheck, CalendarRange, Repeat, Pill,
-  List, User, Rocket, CalendarClock, Lightbulb, Target,
-  Lock, ClipboardList, RefreshCw, BarChart2, CheckCircle,
-  Map, Heart, Layers, Clock
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+  AchievementWithProgress,
+  AchievementStatus,
+} from "@/types/achievement";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Trophy,
+  Star,
+  Zap,
+  Brain,
+  Activity,
+  Calendar,
+  CalendarCheck,
+  CalendarRange,
+  Repeat,
+  Pill,
+  List,
+  User,
+  Rocket,
+  CalendarClock,
+  Lightbulb,
+  Target,
+  Lock,
+  ClipboardList,
+  RefreshCw,
+  BarChart2,
+  CheckCircle,
+  Map,
+  Heart,
+  Layers,
+  Clock,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface AchievementCardProps {
   readonly achievement: AchievementWithProgress;
@@ -25,7 +48,7 @@ interface AchievementCardProps {
 
 export function AchievementCard({
   achievement,
-  onClick
+  onClick,
 }: Readonly<AchievementCardProps>) {
   // State to defer animations until after initial render
   const [animationsEnabled, setAnimationsEnabled] = useState(false);
@@ -51,39 +74,39 @@ export function AchievementCard({
     requiredCount,
     percentComplete,
     completedAt,
-    secret
+    secret,
   } = achievement;
 
   // Get icon component based on achievement icon name
   const getIconComponent = (iconName: string) => {
     const iconMap: Record<string, React.ReactNode> = {
-      'trophy': <Trophy className="h-6 w-6" />,
-      'star': <Star className="h-6 w-6" />,
-      'zap': <Zap className="h-6 w-6" />,
-      'brain': <Brain className="h-6 w-6" />,
-      'activity': <Activity className="h-6 w-6" />,
-      'calendar': <Calendar className="h-6 w-6" />,
-      'calendar-check': <CalendarCheck className="h-6 w-6" />,
-      'calendar-range': <CalendarRange className="h-6 w-6" />,
-      'calendar-clock': <CalendarClock className="h-6 w-6" />,
-      'repeat': <Repeat className="h-6 w-6" />,
-      'pill': <Pill className="h-6 w-6" />,
-      'list': <List className="h-6 w-6" />,
-      'user': <User className="h-6 w-6" />,
-      'rocket': <Rocket className="h-6 w-6" />,
-      'lightbulb': <Lightbulb className="h-6 w-6" />,
-      'target': <Target className="h-6 w-6" />,
-      'clipboard-list': <ClipboardList className="h-6 w-6" />,
-      'refresh-cw': <RefreshCw className="h-6 w-6" />,
-      'bar-chart-2': <BarChart2 className="h-6 w-6" />,
-      'check-circle': <CheckCircle className="h-6 w-6" />,
-      'map': <Map className="h-6 w-6" />,
-      'heart': <Heart className="h-6 w-6" />,
-      'layers': <Layers className="h-6 w-6" />,
-      'clock': <Clock className="h-6 w-6" />,
+      trophy: <Trophy className="h-6 w-6" />,
+      star: <Star className="h-6 w-6" />,
+      zap: <Zap className="h-6 w-6" />,
+      brain: <Brain className="h-6 w-6" />,
+      activity: <Activity className="h-6 w-6" />,
+      calendar: <Calendar className="h-6 w-6" />,
+      "calendar-check": <CalendarCheck className="h-6 w-6" />,
+      "calendar-range": <CalendarRange className="h-6 w-6" />,
+      "calendar-clock": <CalendarClock className="h-6 w-6" />,
+      repeat: <Repeat className="h-6 w-6" />,
+      pill: <Pill className="h-6 w-6" />,
+      list: <List className="h-6 w-6" />,
+      user: <User className="h-6 w-6" />,
+      rocket: <Rocket className="h-6 w-6" />,
+      lightbulb: <Lightbulb className="h-6 w-6" />,
+      target: <Target className="h-6 w-6" />,
+      "clipboard-list": <ClipboardList className="h-6 w-6" />,
+      "refresh-cw": <RefreshCw className="h-6 w-6" />,
+      "bar-chart-2": <BarChart2 className="h-6 w-6" />,
+      "check-circle": <CheckCircle className="h-6 w-6" />,
+      map: <Map className="h-6 w-6" />,
+      heart: <Heart className="h-6 w-6" />,
+      layers: <Layers className="h-6 w-6" />,
+      clock: <Clock className="h-6 w-6" />,
       // Legacy mappings for backward compatibility
-      'flask': <Lightbulb className="h-6 w-6" />,
-      'beaker': <Target className="h-6 w-6" />
+      flask: <Lightbulb className="h-6 w-6" />,
+      beaker: <Target className="h-6 w-6" />,
     };
 
     return iconMap[iconName] || <Trophy className="h-6 w-6" />;
@@ -92,16 +115,16 @@ export function AchievementCard({
   // Get difficulty color
   const getDifficultyColor = () => {
     switch (difficulty) {
-      case 'easy':
-        return 'bg-green-500 text-green-50';
-      case 'medium':
-        return 'bg-blue-500 text-blue-50';
-      case 'hard':
-        return 'bg-purple-500 text-purple-50';
-      case 'expert':
-        return 'bg-amber-500 text-amber-50';
+      case "easy":
+        return "bg-green-500 text-green-50";
+      case "medium":
+        return "bg-blue-500 text-blue-50";
+      case "hard":
+        return "bg-purple-500 text-purple-50";
+      case "expert":
+        return "bg-amber-500 text-amber-50";
       default:
-        return 'bg-primary text-primary-foreground';
+        return "bg-primary text-primary-foreground";
     }
   };
 
@@ -109,13 +132,13 @@ export function AchievementCard({
   const getStatusColor = () => {
     switch (status) {
       case AchievementStatus.COMPLETED:
-        return 'text-green-500';
+        return "text-green-500";
       case AchievementStatus.IN_PROGRESS:
-        return 'text-amber-500';
+        return "text-amber-500";
       case AchievementStatus.LOCKED:
-        return 'text-muted-foreground';
+        return "text-muted-foreground";
       default:
-        return 'text-muted-foreground';
+        return "text-muted-foreground";
     }
   };
 
@@ -123,13 +146,13 @@ export function AchievementCard({
   const getStatusText = () => {
     switch (status) {
       case AchievementStatus.COMPLETED:
-        return 'Completed';
+        return "Completed";
       case AchievementStatus.IN_PROGRESS:
-        return 'In Progress';
+        return "In Progress";
       case AchievementStatus.LOCKED:
-        return 'Locked';
+        return "Locked";
       default:
-        return 'Locked';
+        return "Locked";
     }
   };
 
@@ -148,11 +171,11 @@ export function AchievementCard({
       className={cn(
         "border rounded-lg overflow-hidden cursor-pointer transition-all",
         status === AchievementStatus.COMPLETED ? "bg-card" : "bg-card/50",
-        onClick ? "hover:shadow-md" : ""
+        onClick ? "hover:shadow-md" : "",
       )}
       initial={{ scale: 1 }}
       whileHover={animationsEnabled && onClick ? { scale: 1.02 } : {}}
-      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
       onClick={handleClick}
     >
       <div className="p-4">
@@ -163,15 +186,13 @@ export function AchievementCard({
               "p-3 rounded-full flex-shrink-0",
               status === AchievementStatus.COMPLETED
                 ? "bg-primary/20"
-                : "bg-muted"
+                : "bg-muted",
             )}
           >
             {isLockedSecret ? (
               <Lock className="h-6 w-6 text-muted-foreground" />
             ) : (
-              <div className={getStatusColor()}>
-                {getIconComponent(icon)}
-              </div>
+              <div className={getStatusColor()}>{getIconComponent(icon)}</div>
             )}
           </div>
 
@@ -199,9 +220,7 @@ export function AchievementCard({
             <div className="mt-3">
               {status !== AchievementStatus.LOCKED && (
                 <div className="flex justify-between items-center mb-1 text-xs">
-                  <span className={getStatusColor()}>
-                    {getStatusText()}
-                  </span>
+                  <span className={getStatusColor()}>{getStatusText()}</span>
                   <span className="text-muted-foreground">
                     {currentCount}/{requiredCount}
                   </span>
@@ -212,7 +231,7 @@ export function AchievementCard({
                 value={percentComplete}
                 className={cn(
                   "h-1.5",
-                  status === AchievementStatus.COMPLETED ? "" : "opacity-70"
+                  status === AchievementStatus.COMPLETED ? "" : "opacity-70",
                 )}
               />
             </div>
@@ -224,7 +243,9 @@ export function AchievementCard({
                 variant="outline"
                 className={cn(
                   "text-xs font-normal",
-                  status === AchievementStatus.COMPLETED ? getDifficultyColor() : ""
+                  status === AchievementStatus.COMPLETED
+                    ? getDifficultyColor()
+                    : "",
                 )}
               >
                 {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
@@ -233,13 +254,16 @@ export function AchievementCard({
               {/* Completion date badge */}
               {completedAt && (
                 <Badge variant="outline" className="text-xs font-normal">
-                  Completed {format(new Date(completedAt), 'MMM d, yyyy')}
+                  Completed {format(new Date(completedAt), "MMM d, yyyy")}
                 </Badge>
               )}
 
               {/* Secret badge */}
               {secret && status !== AchievementStatus.LOCKED && (
-                <Badge variant="outline" className="text-xs font-normal bg-amber-500/10 text-amber-600 border-amber-200">
+                <Badge
+                  variant="outline"
+                  className="text-xs font-normal bg-amber-500/10 text-amber-600 border-amber-200"
+                >
                   Secret
                 </Badge>
               )}

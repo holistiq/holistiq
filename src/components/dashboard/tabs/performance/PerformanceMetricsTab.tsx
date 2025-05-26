@@ -3,23 +3,23 @@
  *
  * Displays performance metrics charts for score, reaction time, and accuracy
  */
-import { useEffect, memo } from 'react';
+import { useEffect, memo } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
-} from '@/components/ui/card';
-import { TestResult } from '@/lib/testResultUtils';
-import { StablePerformanceChart } from '../../charts/StablePerformanceChart';
-import { useLoadingState, LoadingStatus } from '@/hooks/useLoadingState';
-import { PartialLoadingContainer } from '@/components/ui/partial-loading-container';
-import { createLogger } from '@/lib/logger';
-import { RenderProfiler } from '@/components/debug/RenderProfiler';
+  CardDescription,
+} from "@/components/ui/card";
+import { TestResult } from "@/lib/testResultUtils";
+import { StablePerformanceChart } from "../../charts/StablePerformanceChart";
+import { useLoadingState, LoadingStatus } from "@/hooks/useLoadingState";
+import { PartialLoadingContainer } from "@/components/ui/partial-loading-container";
+import { createLogger } from "@/lib/logger";
+import { RenderProfiler } from "@/components/debug/RenderProfiler";
 
 // Create a logger for the PerformanceMetricsTab component
-const logger = createLogger({ namespace: 'PerformanceMetricsTab' });
+const logger = createLogger({ namespace: "PerformanceMetricsTab" });
 
 /**
  * Props for the PerformanceMetricsTab component
@@ -39,41 +39,50 @@ export const PerformanceMetricsTab = memo(function PerformanceMetricsTab({
   testResults,
   baselineResult = null,
   isLoading = false,
-  onLoadingStateChange
+  onLoadingStateChange,
 }: Readonly<PerformanceMetricsTabProps>): JSX.Element {
   // Use our new loading state hook
   const scoreLoadingState = useLoadingState<TestResult[]>({
-    id: 'performance-metrics-score'
+    id: "performance-metrics-score",
   });
 
   const reactionTimeLoadingState = useLoadingState<TestResult[]>({
-    id: 'performance-metrics-reaction-time'
+    id: "performance-metrics-reaction-time",
   });
 
   const accuracyLoadingState = useLoadingState<TestResult[]>({
-    id: 'performance-metrics-accuracy'
+    id: "performance-metrics-accuracy",
   });
 
   // Set loading states immediately without artificial delays
   useEffect(() => {
     if (isLoading) {
       // Set all charts to loading state
-      scoreLoadingState.setMessage('Loading score data...');
-      reactionTimeLoadingState.setMessage('Loading reaction time data...');
-      accuracyLoadingState.setMessage('Loading accuracy data...');
+      scoreLoadingState.setMessage("Loading score data...");
+      reactionTimeLoadingState.setMessage("Loading reaction time data...");
+      accuracyLoadingState.setMessage("Loading accuracy data...");
 
       // Set all charts to success state immediately
       // This eliminates the staggered loading effect that causes flickering
-      scoreLoadingState.setSuccess(testResults, 'Score data loaded');
-      reactionTimeLoadingState.setSuccess(testResults, 'Reaction time data loaded');
-      accuracyLoadingState.setSuccess(testResults, 'Accuracy data loaded');
+      scoreLoadingState.setSuccess(testResults, "Score data loaded");
+      reactionTimeLoadingState.setSuccess(
+        testResults,
+        "Reaction time data loaded",
+      );
+      accuracyLoadingState.setSuccess(testResults, "Accuracy data loaded");
     } else {
       // If not loading, set all charts to success state with the data
       scoreLoadingState.setSuccess(testResults);
       reactionTimeLoadingState.setSuccess(testResults);
       accuracyLoadingState.setSuccess(testResults);
     }
-  }, [isLoading, testResults, scoreLoadingState, reactionTimeLoadingState, accuracyLoadingState]);
+  }, [
+    isLoading,
+    testResults,
+    scoreLoadingState,
+    reactionTimeLoadingState,
+    accuracyLoadingState,
+  ]);
 
   // Notify parent of loading state changes
   useEffect(() => {
@@ -112,7 +121,7 @@ export const PerformanceMetricsTab = memo(function PerformanceMetricsTab({
     accuracyLoadingState.isLoading,
     accuracyLoadingState.isError,
     accuracyLoadingState.isSuccess,
-    onLoadingStateChange
+    onLoadingStateChange,
   ]);
 
   return (

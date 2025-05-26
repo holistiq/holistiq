@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { format, formatDistance } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { format, formatDistance } from "date-fns";
 import {
   Clock,
   Plus,
@@ -11,32 +11,32 @@ import {
   Filter,
   Pill,
   HelpCircle,
-  BookOpen
-} from 'lucide-react';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { getWashoutPeriods } from '@/services/washoutPeriodService';
-import { WashoutPeriod, WashoutPeriodStatus } from '@/types/washoutPeriod';
+  BookOpen,
+} from "lucide-react";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { getWashoutPeriods } from "@/services/washoutPeriodService";
+import { WashoutPeriod, WashoutPeriodStatus } from "@/types/washoutPeriod";
 
 // UI Components
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { WashoutPeriodsSection } from '@/components/supplements/WashoutPeriodsSection';
-import { Progress } from '@/components/ui/progress';
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WashoutPeriodsSection } from "@/components/supplements/WashoutPeriodsSection";
+import { Progress } from "@/components/ui/progress";
 
 export default function WashoutPeriods() {
   const { user } = useSupabaseAuth();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [washoutPeriods, setWashoutPeriods] = useState<WashoutPeriod[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   // Load washout periods on component mount and when user changes
   useEffect(() => {
@@ -53,10 +53,10 @@ export default function WashoutPeriods() {
       if (result.success) {
         setWashoutPeriods(result.washoutPeriods);
       } else {
-        console.error('Error loading washout periods:', result.error);
+        console.error("Error loading washout periods:", result.error);
       }
     } catch (error) {
-      console.error('Unexpected error loading washout periods:', error);
+      console.error("Unexpected error loading washout periods:", error);
     } finally {
       setIsLoading(false);
     }
@@ -64,15 +64,17 @@ export default function WashoutPeriods() {
 
   // Filter washout periods based on active tab
   const getFilteredWashoutPeriods = () => {
-    if (activeTab === 'all') {
+    if (activeTab === "all") {
       return washoutPeriods;
     }
-    return washoutPeriods.filter(period => period.status === activeTab);
+    return washoutPeriods.filter((period) => period.status === activeTab);
   };
 
   // Get active washout periods
   const getActiveWashoutPeriods = () => {
-    return washoutPeriods.filter(period => period.status === WashoutPeriodStatus.ACTIVE);
+    return washoutPeriods.filter(
+      (period) => period.status === WashoutPeriodStatus.ACTIVE,
+    );
   };
 
   // Calculate duration in days
@@ -93,7 +95,11 @@ export default function WashoutPeriods() {
       case WashoutPeriodStatus.ACTIVE:
         return <Badge variant="secondary">Active</Badge>;
       case WashoutPeriodStatus.COMPLETED:
-        return <Badge variant="success" className="bg-green-500">Completed</Badge>;
+        return (
+          <Badge variant="success" className="bg-green-500">
+            Completed
+          </Badge>
+        );
       case WashoutPeriodStatus.CANCELLED:
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
@@ -143,9 +149,12 @@ export default function WashoutPeriods() {
                     <Pill className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-medium">{period.supplement_name}</h3>
+                    <h3 className="text-lg font-medium">
+                      {period.supplement_name}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Started {format(new Date(period.start_date), 'MMM d, yyyy')}
+                      Started{" "}
+                      {format(new Date(period.start_date), "MMM d, yyyy")}
                     </p>
                   </div>
                 </div>
@@ -154,30 +163,47 @@ export default function WashoutPeriods() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Duration: </span>
                     {calculateDuration(period)} days
-                    {period.expected_duration_days && ` / ${period.expected_duration_days} planned`}
+                    {period.expected_duration_days &&
+                      ` / ${period.expected_duration_days} planned`}
                   </div>
                 </div>
               </div>
 
-              {period.status === WashoutPeriodStatus.ACTIVE && period.expected_duration_days && (
-                <div className="mb-4">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Progress</span>
-                    <span>
-                      {Math.min(100, Math.round((calculateDuration(period) / period.expected_duration_days) * 100))}%
-                    </span>
+              {period.status === WashoutPeriodStatus.ACTIVE &&
+                period.expected_duration_days && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Progress</span>
+                      <span>
+                        {Math.min(
+                          100,
+                          Math.round(
+                            (calculateDuration(period) /
+                              period.expected_duration_days) *
+                              100,
+                          ),
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <Progress
+                      value={Math.min(
+                        100,
+                        Math.round(
+                          (calculateDuration(period) /
+                            period.expected_duration_days) *
+                            100,
+                        ),
+                      )}
+                      className="h-2"
+                    />
                   </div>
-                  <Progress
-                    value={Math.min(100, Math.round((calculateDuration(period) / period.expected_duration_days) * 100))}
-                    className="h-2"
-                  />
-                </div>
-              )}
+                )}
 
               {period.end_date && (
                 <div className="text-sm mb-4">
                   <span className="text-muted-foreground">Ended: </span>
-                  {format(new Date(period.end_date), 'MMM d, yyyy')}
+                  {format(new Date(period.end_date), "MMM d, yyyy")}
                   {period.status === WashoutPeriodStatus.COMPLETED && (
                     <span className="ml-2 text-green-500 flex items-center gap-1 inline-flex">
                       <CheckCircle className="h-3 w-3" />
@@ -218,9 +244,12 @@ export default function WashoutPeriods() {
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Washout Periods</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Washout Periods
+            </h1>
             <p className="text-muted-foreground mt-1">
-              Track supplement elimination periods to establish accurate baselines
+              Track supplement elimination periods to establish accurate
+              baselines
             </p>
           </div>
           <div className="flex gap-3">
@@ -247,12 +276,17 @@ export default function WashoutPeriods() {
 
         {/* Active Washout Periods Section */}
         <WashoutPeriodsSection
-          washoutPeriods={getActiveWashoutPeriods().map(p => ({
+          washoutPeriods={getActiveWashoutPeriods().map((p) => ({
             ...p,
             days_elapsed: calculateDuration(p),
             progress_percentage: p.expected_duration_days
-              ? Math.min(100, Math.round((calculateDuration(p) / p.expected_duration_days) * 100))
-              : 0
+              ? Math.min(
+                  100,
+                  Math.round(
+                    (calculateDuration(p) / p.expected_duration_days) * 100,
+                  ),
+                )
+              : 0,
           }))}
           isLoading={isLoading}
           onUpdate={() => user?.id && loadWashoutPeriods(user.id)}
@@ -267,12 +301,23 @@ export default function WashoutPeriods() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <Tabs
+              defaultValue="all"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="mb-6"
+            >
               <TabsList>
                 <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value={WashoutPeriodStatus.ACTIVE}>Active</TabsTrigger>
-                <TabsTrigger value={WashoutPeriodStatus.COMPLETED}>Completed</TabsTrigger>
-                <TabsTrigger value={WashoutPeriodStatus.CANCELLED}>Cancelled</TabsTrigger>
+                <TabsTrigger value={WashoutPeriodStatus.ACTIVE}>
+                  Active
+                </TabsTrigger>
+                <TabsTrigger value={WashoutPeriodStatus.COMPLETED}>
+                  Completed
+                </TabsTrigger>
+                <TabsTrigger value={WashoutPeriodStatus.CANCELLED}>
+                  Cancelled
+                </TabsTrigger>
               </TabsList>
             </Tabs>
 

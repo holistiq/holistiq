@@ -10,7 +10,7 @@
  */
 export async function executeWithTimeout<T>(
   apiCall: () => Promise<T>,
-  timeoutMs: number = 15000
+  timeoutMs: number = 15000,
 ): Promise<T> {
   const startTime = performance.now();
 
@@ -18,8 +18,11 @@ export async function executeWithTimeout<T>(
     const result = await Promise.race([
       apiCall(),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs)
-      )
+        setTimeout(
+          () => reject(new Error(`Request timed out after ${timeoutMs}ms`)),
+          timeoutMs,
+        ),
+      ),
     ]);
 
     // Log performance metrics
@@ -41,7 +44,11 @@ export async function executeWithTimeout<T>(
  * @param pageSize Number of items per page
  * @returns Paginated array
  */
-export function paginateData<T>(data: T[], page: number = 1, pageSize: number = 10): T[] {
+export function paginateData<T>(
+  data: T[],
+  page: number = 1,
+  pageSize: number = 10,
+): T[] {
   const startIndex = (page - 1) * pageSize;
   return data.slice(startIndex, startIndex + pageSize);
 }
@@ -65,7 +72,11 @@ class ApiCache {
    * @param ttlMs Time to live in milliseconds
    * @returns Promise with the data
    */
-  async getOrSet<T>(key: string, apiFn: () => Promise<T>, ttlMs: number = 5 * 60 * 1000): Promise<T> {
+  async getOrSet<T>(
+    key: string,
+    apiFn: () => Promise<T>,
+    ttlMs: number = 5 * 60 * 1000,
+  ): Promise<T> {
     const now = Date.now();
     const entry = this.cache[key] as CacheEntry<T> | undefined;
 
@@ -83,7 +94,7 @@ class ApiCache {
     this.cache[key] = {
       data,
       timestamp: now,
-      expiresAt: now + ttlMs
+      expiresAt: now + ttlMs,
     };
 
     return data;

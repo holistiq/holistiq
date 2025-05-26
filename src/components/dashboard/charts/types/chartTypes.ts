@@ -1,4 +1,4 @@
-import { TooltipProps } from 'recharts';
+import { TooltipProps } from "recharts";
 
 /**
  * Interface for moving average trend data

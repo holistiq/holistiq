@@ -5,7 +5,7 @@
  */
 
 // Main chart component
-export { PerformanceChart } from './PerformanceChart';
+export { PerformanceChart } from "./PerformanceChart";
 
 // Types
-export type { PerformanceChartProps } from './PerformanceChart';
+export type { PerformanceChartProps } from "./PerformanceChart";

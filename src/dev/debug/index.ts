@@ -4,4 +4,4 @@
  * This file exports debugging components.
  */
 
-export * from './DebugToggle';
+export * from "./DebugToggle";

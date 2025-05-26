@@ -1,14 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   LineChart,
   Line,
@@ -19,9 +19,9 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  ReferenceLine
-} from 'recharts';
-import { format } from 'date-fns';
+  ReferenceLine,
+} from "recharts";
+import { format } from "date-fns";
 import {
   Brain,
   Clock,
@@ -34,29 +34,29 @@ import {
   XCircle,
   Info,
   Download,
-  Share2
-} from 'lucide-react';
+  Share2,
+} from "lucide-react";
 import {
   Tooltip as UITooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
-import { Supplement } from '@/types/supplement';
-import { TestResult } from '@/lib/testResultUtils';
-import { SupplementEvaluationStatus } from '@/components/supplements/SupplementEvaluationStatus';
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Supplement } from "@/types/supplement";
+import { TestResult } from "@/lib/testResultUtils";
+import { SupplementEvaluationStatus } from "@/components/supplements/SupplementEvaluationStatus";
 import {
   SupplementCorrelation,
   ImpactSignificance,
   getImpactSignificance,
-  getConfidenceLevel
-} from '@/types/correlation';
+  getConfidenceLevel,
+} from "@/types/correlation";
 import {
   StatisticalAnalysis,
   MetricSignificance,
   getSignificanceColor,
-  getSignificanceInterpretation
-} from '@/types/statisticalSignificance';
+  getSignificanceInterpretation,
+} from "@/types/statisticalSignificance";
 
 // Custom tooltip component for the charts
 interface ChartTooltipProps {
@@ -114,15 +114,16 @@ export function SupplementEffectivenessReport({
   testResults,
   isLoading = false,
   onExport,
-  onShare
+  onShare,
 }: SupplementEffectivenessReportProps) {
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState("summary");
 
   // Get the most recent correlation for this supplement
   const latestCorrelation = useMemo(() => {
     if (!correlations.length) return null;
-    const sortedCorrelations = [...correlations].sort((a, b) =>
-      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    const sortedCorrelations = [...correlations].sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
     );
     return sortedCorrelations[0];
   }, [correlations]);
@@ -130,8 +131,9 @@ export function SupplementEffectivenessReport({
   // Get the most recent statistical analysis for this supplement
   const latestAnalysis = useMemo(() => {
     if (!analyses.length) return null;
-    const sortedAnalyses = [...analyses].sort((a, b) =>
-      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    const sortedAnalyses = [...analyses].sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
     );
     return sortedAnalyses[0];
   }, [analyses]);
@@ -143,15 +145,18 @@ export function SupplementEffectivenessReport({
     // Filter test results to only include those after supplement start date
     const supplementStartDate = new Date(supplement.intake_time);
     const relevantResults = testResults
-      .filter(result => new Date(result.timestamp) >= supplementStartDate)
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      .filter((result) => new Date(result.timestamp) >= supplementStartDate)
+      .sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+      );
 
-    return relevantResults.map(result => ({
+    return relevantResults.map((result) => ({
       date: new Date(result.timestamp).getTime(),
-      formattedDate: format(new Date(result.timestamp), 'MMM d, yyyy'),
+      formattedDate: format(new Date(result.timestamp), "MMM d, yyyy"),
       score: result.score,
       reactionTime: result.reaction_time,
-      accuracy: result.accuracy
+      accuracy: result.accuracy,
     }));
   }, [testResults, supplement]);
 
@@ -161,34 +166,37 @@ export function SupplementEffectivenessReport({
 
     return [
       {
-        metric: 'Score',
+        metric: "Score",
         impact: latestCorrelation.score_impact || 0,
-        color: getMetricColor(latestCorrelation.score_impact, true)
+        color: getMetricColor(latestCorrelation.score_impact, true),
       },
       {
-        metric: 'Reaction Time',
+        metric: "Reaction Time",
         impact: latestCorrelation.reaction_time_impact || 0,
-        color: getMetricColor(latestCorrelation.reaction_time_impact, false)
+        color: getMetricColor(latestCorrelation.reaction_time_impact, false),
       },
       {
-        metric: 'Accuracy',
+        metric: "Accuracy",
         impact: latestCorrelation.accuracy_impact || 0,
-        color: getMetricColor(latestCorrelation.accuracy_impact, true)
-      }
+        color: getMetricColor(latestCorrelation.accuracy_impact, true),
+      },
     ];
   }, [latestCorrelation]);
 
   // Helper function to get color based on impact
-  function getMetricColor(impact: number | null, isPositiveGood: boolean): string {
-    if (impact === null) return '#888888';
+  function getMetricColor(
+    impact: number | null,
+    isPositiveGood: boolean,
+  ): string {
+    if (impact === null) return "#888888";
 
     const normalizedImpact = isPositiveGood ? impact : -impact;
 
-    if (normalizedImpact > 10) return '#22c55e'; // Significant positive - green
-    if (normalizedImpact > 5) return '#4ade80'; // Moderate positive - light green
-    if (normalizedImpact > -5) return '#888888'; // Neutral - gray
-    if (normalizedImpact > -10) return '#f87171'; // Moderate negative - light red
-    return '#ef4444'; // Significant negative - red
+    if (normalizedImpact > 10) return "#22c55e"; // Significant positive - green
+    if (normalizedImpact > 5) return "#4ade80"; // Moderate positive - light green
+    if (normalizedImpact > -5) return "#888888"; // Neutral - gray
+    if (normalizedImpact > -10) return "#f87171"; // Moderate negative - light red
+    return "#ef4444"; // Significant negative - red
   }
 
   // We'll use the ChartTooltip component defined outside this component
@@ -220,18 +228,29 @@ export function SupplementEffectivenessReport({
               {supplement.name} Effectiveness Report
             </CardTitle>
             <CardDescription>
-              Analysis of how {supplement.name} affects your cognitive performance
+              Analysis of how {supplement.name} affects your cognitive
+              performance
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {onExport && (
-              <Button variant="outline" size="sm" onClick={onExport} className="gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onExport}
+                className="gap-1"
+              >
                 <Download className="h-4 w-4" />
                 Export
               </Button>
             )}
             {onShare && (
-              <Button variant="outline" size="sm" onClick={onShare} className="gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onShare}
+                className="gap-1"
+              >
                 <Share2 className="h-4 w-4" />
                 Share
               </Button>
@@ -277,12 +296,16 @@ export function SupplementEffectivenessReport({
 
           <div className="text-center py-8">
             <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Effectiveness Data Available</h3>
+            <h3 className="text-lg font-medium mb-2">
+              No Effectiveness Data Available
+            </h3>
             <p className="text-muted-foreground mb-4">
-              We don't have enough data to analyze the effectiveness of {supplement.name} yet.
+              We don't have enough data to analyze the effectiveness of{" "}
+              {supplement.name} yet.
             </p>
             <p className="text-sm text-muted-foreground">
-              Continue taking cognitive tests while using this supplement to generate an effectiveness report.
+              Continue taking cognitive tests while using this supplement to
+              generate an effectiveness report.
             </p>
           </div>
         </>
@@ -303,22 +326,22 @@ export function SupplementEffectivenessReport({
           <h3 className="text-lg font-medium mb-3">Overall Impact</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {renderImpactCard(
-              'Score',
+              "Score",
               <Brain className="h-5 w-5 text-blue-500" />,
               latestCorrelation.score_impact,
-              true
+              true,
             )}
             {renderImpactCard(
-              'Reaction Time',
+              "Reaction Time",
               <Clock className="h-5 w-5 text-amber-500" />,
               latestCorrelation.reaction_time_impact,
-              false
+              false,
             )}
             {renderImpactCard(
-              'Accuracy',
+              "Accuracy",
               <Target className="h-5 w-5 text-green-500" />,
               latestCorrelation.accuracy_impact,
-              true
+              true,
             )}
           </div>
         </div>
@@ -336,7 +359,10 @@ export function SupplementEffectivenessReport({
                 <XAxis type="number" domain={[-20, 20]} />
                 <YAxis dataKey="metric" type="category" width={100} />
                 <Tooltip
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Impact']}
+                  formatter={(value: number) => [
+                    `${value.toFixed(1)}%`,
+                    "Impact",
+                  ]}
                   labelFormatter={(label) => `${label} Impact`}
                 />
                 <ReferenceLine x={0} stroke="#888" />
@@ -357,34 +383,54 @@ export function SupplementEffectivenessReport({
               <p className="flex justify-between">
                 <span className="text-muted-foreground">Analysis Period:</span>
                 <span className="font-medium">
-                  {format(new Date(latestCorrelation.analysis_period_start), 'MMM d, yyyy')} -
-                  {format(new Date(latestCorrelation.analysis_period_end), 'MMM d, yyyy')}
+                  {format(
+                    new Date(latestCorrelation.analysis_period_start),
+                    "MMM d, yyyy",
+                  )}{" "}
+                  -
+                  {format(
+                    new Date(latestCorrelation.analysis_period_end),
+                    "MMM d, yyyy",
+                  )}
                 </span>
               </p>
               <p className="flex justify-between mt-2">
                 <span className="text-muted-foreground">Sample Size:</span>
-                <span className="font-medium">{latestCorrelation.sample_size} tests</span>
+                <span className="font-medium">
+                  {latestCorrelation.sample_size} tests
+                </span>
               </p>
               <p className="flex justify-between mt-2">
                 <span className="text-muted-foreground">Confidence Level:</span>
                 <span className="font-medium">
-                  {getConfidenceLevel(latestCorrelation.confidence_level || 0).replace('_', ' ')}
+                  {getConfidenceLevel(
+                    latestCorrelation.confidence_level || 0,
+                  ).replace("_", " ")}
                 </span>
               </p>
             </div>
             <div>
               <p className="flex justify-between">
                 <span className="text-muted-foreground">Onset Delay:</span>
-                <span className="font-medium">{latestCorrelation.onset_delay_days} days</span>
+                <span className="font-medium">
+                  {latestCorrelation.onset_delay_days} days
+                </span>
               </p>
               <p className="flex justify-between mt-2">
-                <span className="text-muted-foreground">Cumulative Effect Threshold:</span>
-                <span className="font-medium">{latestCorrelation.cumulative_effect_threshold} days</span>
+                <span className="text-muted-foreground">
+                  Cumulative Effect Threshold:
+                </span>
+                <span className="font-medium">
+                  {latestCorrelation.cumulative_effect_threshold} days
+                </span>
               </p>
               <p className="flex justify-between mt-2">
                 <span className="text-muted-foreground">Last Updated:</span>
                 <span className="font-medium">
-                  {format(new Date(latestCorrelation.updated_at), 'MMM d, yyyy')}
+                  {format(
+                    new Date(latestCorrelation.updated_at),
+                    "MMM d, yyyy",
+                  )}
                 </span>
               </p>
             </div>
@@ -398,7 +444,7 @@ export function SupplementEffectivenessReport({
     metric: string,
     metricIcon: React.ReactNode,
     impact: number | null,
-    isPositiveGood: boolean
+    isPositiveGood: boolean,
   ) {
     if (impact === null) {
       return (
@@ -432,14 +478,17 @@ export function SupplementEffectivenessReport({
               ) : (
                 <XCircle className="h-4 w-4 text-red-500" />
               )}
-              <span className={isPositive ? 'text-green-600' : 'text-red-600'}>
-                {isPositive ? '+' : ''}{impact.toFixed(1)}%
+              <span className={isPositive ? "text-green-600" : "text-red-600"}>
+                {isPositive ? "+" : ""}
+                {impact.toFixed(1)}%
               </span>
             </>
           ) : (
             <>
               <Minus className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">No significant change</span>
+              <span className="text-muted-foreground">
+                No significant change
+              </span>
             </>
           )}
         </div>
@@ -452,9 +501,12 @@ export function SupplementEffectivenessReport({
       return (
         <div className="text-center py-8">
           <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No Performance Data Available</h3>
+          <h3 className="text-lg font-medium mb-2">
+            No Performance Data Available
+          </h3>
           <p className="text-muted-foreground">
-            Take cognitive tests while using {supplement.name} to see performance trends.
+            Take cognitive tests while using {supplement.name} to see
+            performance trends.
           </p>
         </div>
       );
@@ -475,12 +527,14 @@ export function SupplementEffectivenessReport({
                   dataKey="date"
                   type="number"
                   scale="time"
-                  domain={['dataMin', 'dataMax']}
-                  tickFormatter={(timestamp) => format(new Date(timestamp), 'MMM d')}
+                  domain={["dataMin", "dataMax"]}
+                  tickFormatter={(timestamp) =>
+                    format(new Date(timestamp), "MMM d")
+                  }
                 />
                 <YAxis
                   domain={[0, 100]}
-                  label={{ value: 'Score', angle: -90, position: 'insideLeft' }}
+                  label={{ value: "Score", angle: -90, position: "insideLeft" }}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 <Line
@@ -509,12 +563,18 @@ export function SupplementEffectivenessReport({
                   dataKey="date"
                   type="number"
                   scale="time"
-                  domain={['dataMin', 'dataMax']}
-                  tickFormatter={(timestamp) => format(new Date(timestamp), 'MMM d')}
+                  domain={["dataMin", "dataMax"]}
+                  tickFormatter={(timestamp) =>
+                    format(new Date(timestamp), "MMM d")
+                  }
                 />
                 <YAxis
-                  domain={['dataMin', 'dataMax']}
-                  label={{ value: 'Reaction Time (ms)', angle: -90, position: 'insideLeft' }}
+                  domain={["dataMin", "dataMax"]}
+                  label={{
+                    value: "Reaction Time (ms)",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 <Line
@@ -543,12 +603,18 @@ export function SupplementEffectivenessReport({
                   dataKey="date"
                   type="number"
                   scale="time"
-                  domain={['dataMin', 'dataMax']}
-                  tickFormatter={(timestamp) => format(new Date(timestamp), 'MMM d')}
+                  domain={["dataMin", "dataMax"]}
+                  tickFormatter={(timestamp) =>
+                    format(new Date(timestamp), "MMM d")
+                  }
                 />
                 <YAxis
                   domain={[0, 100]}
-                  label={{ value: 'Accuracy (%)', angle: -90, position: 'insideLeft' }}
+                  label={{
+                    value: "Accuracy (%)",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
                 />
                 <Tooltip content={<ChartTooltip />} />
                 <Line
@@ -572,18 +638,23 @@ export function SupplementEffectivenessReport({
       return (
         <div className="text-center py-8">
           <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">No Statistical Analysis Available</h3>
+          <h3 className="text-lg font-medium mb-2">
+            No Statistical Analysis Available
+          </h3>
           <p className="text-muted-foreground mb-4">
-            We don't have enough data to perform a statistical analysis for {supplement.name} yet.
+            We don't have enough data to perform a statistical analysis for{" "}
+            {supplement.name} yet.
           </p>
           <p className="text-sm text-muted-foreground">
-            Continue taking cognitive tests to generate statistical significance data.
+            Continue taking cognitive tests to generate statistical significance
+            data.
           </p>
         </div>
       );
     }
 
-    const { baseline_period, comparison_period, significance_analysis } = latestAnalysis.results;
+    const { baseline_period, comparison_period, significance_analysis } =
+      latestAnalysis.results;
 
     if (!baseline_period || !comparison_period || !significance_analysis) {
       return (
@@ -591,7 +662,8 @@ export function SupplementEffectivenessReport({
           <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">Analysis Error</h3>
           <p className="text-muted-foreground">
-            There was an error processing the statistical analysis for this supplement.
+            There was an error processing the statistical analysis for this
+            supplement.
           </p>
         </div>
       );
@@ -607,30 +679,30 @@ export function SupplementEffectivenessReport({
 
           <div className="space-y-4">
             {renderMetricSignificance(
-              'Score',
+              "Score",
               <Brain className="h-4 w-4 text-blue-500" />,
               baseline_period.mean_score,
               comparison_period.mean_score,
               significance_analysis.score,
-              true
+              true,
             )}
 
             {renderMetricSignificance(
-              'Reaction Time',
+              "Reaction Time",
               <Clock className="h-4 w-4 text-amber-500" />,
               baseline_period.mean_reaction_time,
               comparison_period.mean_reaction_time,
               significance_analysis.reaction_time,
-              false
+              false,
             )}
 
             {renderMetricSignificance(
-              'Accuracy',
+              "Accuracy",
               <Target className="h-4 w-4 text-green-500" />,
               baseline_period.mean_accuracy,
               comparison_period.mean_accuracy,
               significance_analysis.accuracy,
-              true
+              true,
             )}
           </div>
         </div>
@@ -643,8 +715,8 @@ export function SupplementEffectivenessReport({
               <p className="flex justify-between">
                 <span className="text-muted-foreground">Date Range:</span>
                 <span>
-                  {format(new Date(baseline_period.start), 'MMM d, yyyy')} -
-                  {format(new Date(baseline_period.end), 'MMM d, yyyy')}
+                  {format(new Date(baseline_period.start), "MMM d, yyyy")} -
+                  {format(new Date(baseline_period.end), "MMM d, yyyy")}
                 </span>
               </p>
               <p className="flex justify-between mt-1">
@@ -657,8 +729,8 @@ export function SupplementEffectivenessReport({
               <p className="flex justify-between">
                 <span className="text-muted-foreground">Date Range:</span>
                 <span>
-                  {format(new Date(comparison_period.start), 'MMM d, yyyy')} -
-                  {format(new Date(comparison_period.end), 'MMM d, yyyy')}
+                  {format(new Date(comparison_period.start), "MMM d, yyyy")} -
+                  {format(new Date(comparison_period.end), "MMM d, yyyy")}
                 </span>
               </p>
               <p className="flex justify-between mt-1">
@@ -671,12 +743,16 @@ export function SupplementEffectivenessReport({
           <div className="mt-4">
             <h4 className="font-medium mb-2">Statistical Parameters</h4>
             <p className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Significance Level (α):</span>
+              <span className="text-muted-foreground">
+                Significance Level (α):
+              </span>
               <span>{significance_analysis.alpha}</span>
             </p>
             <p className="flex justify-between text-sm mt-1">
               <span className="text-muted-foreground">Analysis Date:</span>
-              <span>{format(new Date(latestAnalysis.created_at), 'MMM d, yyyy')}</span>
+              <span>
+                {format(new Date(latestAnalysis.created_at), "MMM d, yyyy")}
+              </span>
             </p>
           </div>
         </div>
@@ -690,7 +766,7 @@ export function SupplementEffectivenessReport({
     baselineValue: number,
     comparisonValue: number,
     significance: MetricSignificance,
-    isPositiveGood: boolean
+    isPositiveGood: boolean,
   ) {
     const changePercent = significance.change_percent;
     const isPositive = isPositiveGood ? changePercent > 0 : changePercent < 0;
@@ -717,7 +793,10 @@ export function SupplementEffectivenessReport({
                     <CheckCircle className="h-4 w-4 ml-1" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Statistically significant (p={significance.p_value.toFixed(3)})</p>
+                    <p>
+                      Statistically significant (p=
+                      {significance.p_value.toFixed(3)})
+                    </p>
                   </TooltipContent>
                 </UITooltip>
               </TooltipProvider>

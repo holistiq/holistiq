@@ -1,10 +1,22 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -29,13 +41,13 @@ import {
   Twitter,
   Facebook,
   Linkedin,
-  Mail
+  Mail,
 } from "lucide-react";
 import { SocialShare } from "./SocialShare";
-import { 
-  createPublicShare, 
+import {
+  createPublicShare,
   generateShareableUrl,
-  CreatePublicShareRequest 
+  CreatePublicShareRequest,
 } from "@/services/publicShareService";
 
 interface EnhancedSocialShareProps {
@@ -58,7 +70,7 @@ export function EnhancedSocialShare({
   title,
   text,
   hashtags = [],
-  onShare
+  onShare,
 }: EnhancedSocialShareProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -69,31 +81,34 @@ export function EnhancedSocialShare({
     expiresInHours: "",
     maxViews: "",
     enableExpiration: false,
-    enableViewLimit: false
+    enableViewLimit: false,
   });
 
   const handleCreatePublicShare = async () => {
     setIsCreatingShare(true);
-    
+
     try {
       const request: CreatePublicShareRequest = {
         testId,
-        title: shareSettings.customTitle || `${testType} Result - Score: ${score}`,
+        title:
+          shareSettings.customTitle || `${testType} Result - Score: ${score}`,
         description: shareSettings.description || undefined,
-        expiresInHours: shareSettings.enableExpiration && shareSettings.expiresInHours 
-          ? parseInt(shareSettings.expiresInHours) 
-          : undefined,
-        maxViews: shareSettings.enableViewLimit && shareSettings.maxViews 
-          ? parseInt(shareSettings.maxViews) 
-          : undefined
+        expiresInHours:
+          shareSettings.enableExpiration && shareSettings.expiresInHours
+            ? parseInt(shareSettings.expiresInHours)
+            : undefined,
+        maxViews:
+          shareSettings.enableViewLimit && shareSettings.maxViews
+            ? parseInt(shareSettings.maxViews)
+            : undefined,
       };
 
       const response = await createPublicShare(request);
-      
+
       if (response.success && response.data) {
         const fullUrl = generateShareableUrl(response.data.shareToken);
         setShareUrl(fullUrl);
-        
+
         toast({
           title: "Share link created!",
           description: "Your test result can now be shared with friends.",
@@ -119,7 +134,7 @@ export function EnhancedSocialShare({
 
   const handleCopyShareUrl = async () => {
     if (!shareUrl) return;
-    
+
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast({
@@ -137,12 +152,12 @@ export function EnhancedSocialShare({
 
   const handleSocialShare = (platform: string) => {
     const urlToShare = shareUrl || window.location.href;
-    
+
     // Update the social share component to use the public share URL if available
-    const shareText = shareUrl 
+    const shareText = shareUrl
       ? `${text} Check out my detailed results: ${shareUrl}`
       : text;
-    
+
     if (onShare) {
       onShare(platform);
     }
@@ -175,7 +190,7 @@ export function EnhancedSocialShare({
             Generate a secure link that friends can view without signing up
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {!shareUrl ? (
             <>
@@ -187,23 +202,27 @@ export function EnhancedSocialShare({
                     id="customTitle"
                     placeholder={`${testType} Result - Score: ${score}`}
                     value={shareSettings.customTitle}
-                    onChange={(e) => setShareSettings(prev => ({ 
-                      ...prev, 
-                      customTitle: e.target.value 
-                    }))}
+                    onChange={(e) =>
+                      setShareSettings((prev) => ({
+                        ...prev,
+                        customTitle: e.target.value,
+                      }))
+                    }
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="description">Description (Optional)</Label>
                   <Textarea
                     id="description"
                     placeholder="Add a personal message about your test results..."
                     value={shareSettings.description}
-                    onChange={(e) => setShareSettings(prev => ({ 
-                      ...prev, 
-                      description: e.target.value 
-                    }))}
+                    onChange={(e) =>
+                      setShareSettings((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     rows={2}
                   />
                 </div>
@@ -220,35 +239,41 @@ export function EnhancedSocialShare({
                   <Settings className="mr-2 h-4 w-4" />
                   Advanced Settings
                 </Button>
-                
+
                 {showAdvanced && (
                   <div className="space-y-4 pl-4 border-l-2 border-muted">
                     {/* Expiration */}
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-medium">Link Expiration</Label>
+                        <Label className="text-sm font-medium">
+                          Link Expiration
+                        </Label>
                         <p className="text-xs text-muted-foreground">
                           Automatically expire the link after a set time
                         </p>
                       </div>
                       <Switch
                         checked={shareSettings.enableExpiration}
-                        onCheckedChange={(checked) => setShareSettings(prev => ({ 
-                          ...prev, 
-                          enableExpiration: checked 
-                        }))}
+                        onCheckedChange={(checked) =>
+                          setShareSettings((prev) => ({
+                            ...prev,
+                            enableExpiration: checked,
+                          }))
+                        }
                       />
                     </div>
-                    
+
                     {shareSettings.enableExpiration && (
                       <div>
                         <Label htmlFor="expiresIn">Expires in (hours)</Label>
                         <Select
                           value={shareSettings.expiresInHours}
-                          onValueChange={(value) => setShareSettings(prev => ({ 
-                            ...prev, 
-                            expiresInHours: value 
-                          }))}
+                          onValueChange={(value) =>
+                            setShareSettings((prev) => ({
+                              ...prev,
+                              expiresInHours: value,
+                            }))
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select duration" />
@@ -266,29 +291,35 @@ export function EnhancedSocialShare({
                     {/* View Limit */}
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label className="text-sm font-medium">View Limit</Label>
+                        <Label className="text-sm font-medium">
+                          View Limit
+                        </Label>
                         <p className="text-xs text-muted-foreground">
                           Limit how many times the link can be viewed
                         </p>
                       </div>
                       <Switch
                         checked={shareSettings.enableViewLimit}
-                        onCheckedChange={(checked) => setShareSettings(prev => ({ 
-                          ...prev, 
-                          enableViewLimit: checked 
-                        }))}
+                        onCheckedChange={(checked) =>
+                          setShareSettings((prev) => ({
+                            ...prev,
+                            enableViewLimit: checked,
+                          }))
+                        }
                       />
                     </div>
-                    
+
                     {shareSettings.enableViewLimit && (
                       <div>
                         <Label htmlFor="maxViews">Maximum views</Label>
                         <Select
                           value={shareSettings.maxViews}
-                          onValueChange={(value) => setShareSettings(prev => ({ 
-                            ...prev, 
-                            maxViews: value 
-                          }))}
+                          onValueChange={(value) =>
+                            setShareSettings((prev) => ({
+                              ...prev,
+                              maxViews: value,
+                            }))
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select limit" />
@@ -306,7 +337,7 @@ export function EnhancedSocialShare({
                 )}
               </div>
 
-              <Button 
+              <Button
                 onClick={handleCreatePublicShare}
                 disabled={isCreatingShare}
                 className="w-full"
@@ -327,10 +358,11 @@ export function EnhancedSocialShare({
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertDescription>
-                  Your shareable link has been created! Friends can view your test results without signing up.
+                  Your shareable link has been created! Friends can view your
+                  test results without signing up.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="flex gap-2">
                 <Input
                   value={shareUrl}
@@ -345,14 +377,15 @@ export function EnhancedSocialShare({
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               <div className="flex gap-2 text-xs text-muted-foreground">
-                {shareSettings.enableExpiration && shareSettings.expiresInHours && (
-                  <Badge variant="outline" className="text-xs">
-                    <Clock className="mr-1 h-3 w-3" />
-                    Expires in {shareSettings.expiresInHours}h
-                  </Badge>
-                )}
+                {shareSettings.enableExpiration &&
+                  shareSettings.expiresInHours && (
+                    <Badge variant="outline" className="text-xs">
+                      <Clock className="mr-1 h-3 w-3" />
+                      Expires in {shareSettings.expiresInHours}h
+                    </Badge>
+                  )}
                 {shareSettings.enableViewLimit && shareSettings.maxViews && (
                   <Badge variant="outline" className="text-xs">
                     <Eye className="mr-1 h-3 w-3" />

@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Loader2, Clock } from 'lucide-react';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { toast } from '@/components/ui/use-toast';
-import { createWashoutPeriod } from '@/services/washoutPeriodService';
-import { getSupplements } from '@/services/supplementService';
-import { Supplement } from '@/types/supplement';
-import { WashoutPeriodEducation } from '@/components/supplements/WashoutPeriodEducation';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, Loader2, Clock } from "lucide-react";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
+import { toast } from "@/components/ui/use-toast";
+import { createWashoutPeriod } from "@/services/washoutPeriodService";
+import { getSupplements } from "@/services/supplementService";
+import { Supplement } from "@/types/supplement";
+import { WashoutPeriodEducation } from "@/components/supplements/WashoutPeriodEducation";
 
 // UI Components
 import {
@@ -17,52 +17,53 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export default function LogWashoutPeriod() {
   const navigate = useNavigate();
   const { user } = useSupabaseAuth();
 
   // Form state
-  const [supplementId, setSupplementId] = useState<string>('');
-  const [supplementName, setSupplementName] = useState<string>('');
+  const [supplementId, setSupplementId] = useState<string>("");
+  const [supplementName, setSupplementName] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [expectedDuration, setExpectedDuration] = useState<string>('');
-  const [reason, setReason] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
+  const [expectedDuration, setExpectedDuration] = useState<string>("");
+  const [reason, setReason] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
 
   // Validation state
-  const [supplementError, setSupplementError] = useState<string>('');
-  const [durationError, setDurationError] = useState<string>('');
+  const [supplementError, setSupplementError] = useState<string>("");
+  const [durationError, setDurationError] = useState<string>("");
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isLoadingSupplements, setIsLoadingSupplements] = useState<boolean>(false);
+  const [isLoadingSupplements, setIsLoadingSupplements] =
+    useState<boolean>(false);
   const [supplements, setSupplements] = useState<Supplement[]>([]);
 
   // Load supplements on component mount
@@ -80,15 +81,15 @@ export default function LogWashoutPeriod() {
       if (result.success) {
         setSupplements(result.supplements);
       } else {
-        console.error('Error loading supplements:', result.error);
+        console.error("Error loading supplements:", result.error);
         toast({
-          title: 'Error loading supplements',
-          description: result.error || 'Please try again later',
-          variant: 'destructive',
+          title: "Error loading supplements",
+          description: result.error || "Please try again later",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Unexpected error loading supplements:', error);
+      console.error("Unexpected error loading supplements:", error);
     } finally {
       setIsLoadingSupplements(false);
     }
@@ -97,10 +98,10 @@ export default function LogWashoutPeriod() {
   // Handle supplement selection
   const handleSupplementChange = (value: string) => {
     setSupplementId(value);
-    setSupplementError('');
+    setSupplementError("");
 
     // Find the supplement name
-    const supplement = supplements.find(s => s.id === value);
+    const supplement = supplements.find((s) => s.id === value);
     if (supplement) {
       setSupplementName(supplement.name);
     }
@@ -114,15 +115,18 @@ export default function LogWashoutPeriod() {
     let isValid = true;
 
     if (!supplementId && !supplementName) {
-      setSupplementError('Please select or enter a supplement name');
+      setSupplementError("Please select or enter a supplement name");
       isValid = false;
     }
 
     if (!expectedDuration) {
-      setDurationError('Please enter an expected duration');
+      setDurationError("Please enter an expected duration");
       isValid = false;
-    } else if (isNaN(Number(expectedDuration)) || Number(expectedDuration) <= 0) {
-      setDurationError('Please enter a valid positive number');
+    } else if (
+      isNaN(Number(expectedDuration)) ||
+      Number(expectedDuration) <= 0
+    ) {
+      setDurationError("Please enter a valid positive number");
       isValid = false;
     }
 
@@ -132,12 +136,12 @@ export default function LogWashoutPeriod() {
 
     try {
       if (!user?.id) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
       const result = await createWashoutPeriod(user.id, {
         supplement_id: supplementId || null,
-        supplement_name: supplementName || 'Unknown Supplement',
+        supplement_name: supplementName || "Unknown Supplement",
         start_date: startDate?.toISOString() || new Date().toISOString(),
         expected_duration_days: Number(expectedDuration),
         reason: reason || null,
@@ -146,23 +150,26 @@ export default function LogWashoutPeriod() {
 
       if (result.success) {
         toast({
-          title: 'Washout period started',
-          description: 'Your washout period has been successfully logged',
+          title: "Washout period started",
+          description: "Your washout period has been successfully logged",
         });
-        navigate('/supplements');
+        navigate("/supplements");
       } else {
         toast({
-          title: 'Error starting washout period',
-          description: result.error || 'Please try again later',
-          variant: 'destructive',
+          title: "Error starting washout period",
+          description: result.error || "Please try again later",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error submitting washout period:', error);
+      console.error("Error submitting washout period:", error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -173,7 +180,9 @@ export default function LogWashoutPeriod() {
     <div className="container py-8 md:py-12 max-w-screen-xl">
       <Card className="mx-auto max-w-2xl">
         <CardHeader className="pb-4">
-          <CardTitle className="text-2xl md:text-3xl">Start Washout Period</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl">
+            Start Washout Period
+          </CardTitle>
           <CardDescription className="text-base">
             Track when you stop taking a supplement to establish a baseline
           </CardDescription>
@@ -185,7 +194,10 @@ export default function LogWashoutPeriod() {
             <WashoutPeriodEducation variant="compact" />
 
             <div className="flex justify-end">
-              <Link to="/washout-period-guide" className="text-sm text-primary flex items-center gap-1 hover:underline">
+              <Link
+                to="/washout-period-guide"
+                className="text-sm text-primary flex items-center gap-1 hover:underline"
+              >
                 <Clock className="h-3 w-3" />
                 Learn more about washout periods
               </Link>
@@ -196,8 +208,14 @@ export default function LogWashoutPeriod() {
               <Label htmlFor="supplement" className="text-base font-medium">
                 Supplement
               </Label>
-              <Select value={supplementId} onValueChange={handleSupplementChange}>
-                <SelectTrigger id="supplement" className={supplementError ? "border-red-500" : ""}>
+              <Select
+                value={supplementId}
+                onValueChange={handleSupplementChange}
+              >
+                <SelectTrigger
+                  id="supplement"
+                  className={supplementError ? "border-red-500" : ""}
+                >
                   <SelectValue placeholder="Select a supplement" />
                 </SelectTrigger>
                 <SelectContent>
@@ -222,7 +240,10 @@ export default function LogWashoutPeriod() {
 
               {/* Manual Supplement Name Entry */}
               <div className="pt-2">
-                <Label htmlFor="supplementName" className="text-sm text-muted-foreground">
+                <Label
+                  htmlFor="supplementName"
+                  className="text-sm text-muted-foreground"
+                >
                   Or enter supplement name manually
                 </Label>
                 <Input
@@ -230,14 +251,16 @@ export default function LogWashoutPeriod() {
                   value={supplementName}
                   onChange={(e) => {
                     setSupplementName(e.target.value);
-                    setSupplementError('');
+                    setSupplementError("");
                     // Clear the selection if manually entering a name
-                    if (e.target.value) setSupplementId('');
+                    if (e.target.value) setSupplementId("");
                   }}
                   placeholder="e.g., Omega-3, Vitamin D, etc."
                   className={`mt-1 ${supplementError ? "border-red-500" : ""}`}
                 />
-                {supplementError && <p className="text-sm text-red-500 mt-1">{supplementError}</p>}
+                {supplementError && (
+                  <p className="text-sm text-red-500 mt-1">{supplementError}</p>
+                )}
               </div>
             </div>
 
@@ -252,11 +275,15 @@ export default function LogWashoutPeriod() {
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
+                      !startDate && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                    {startDate ? (
+                      format(startDate, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -283,7 +310,9 @@ export default function LogWashoutPeriod() {
                     </TooltipTrigger>
                     <TooltipContent side="top">
                       <p className="max-w-xs">
-                        How long you plan to stop taking this supplement. Common washout periods range from 7-30 days depending on the supplement.
+                        How long you plan to stop taking this supplement. Common
+                        washout periods range from 7-30 days depending on the
+                        supplement.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -296,12 +325,14 @@ export default function LogWashoutPeriod() {
                 value={expectedDuration}
                 onChange={(e) => {
                   setExpectedDuration(e.target.value);
-                  setDurationError('');
+                  setDurationError("");
                 }}
                 placeholder="e.g., 14"
                 className={durationError ? "border-red-500" : ""}
               />
-              {durationError && <p className="text-sm text-red-500">{durationError}</p>}
+              {durationError && (
+                <p className="text-sm text-red-500">{durationError}</p>
+              )}
             </div>
 
             {/* Reason */}

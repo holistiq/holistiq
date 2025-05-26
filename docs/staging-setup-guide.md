@@ -1,7 +1,9 @@
 # Staging Setup Guide - Separate Netlify Sites
 
 ## Overview
+
 Due to Netlify free tier limitations, we'll create two separate sites:
+
 - **Production Site**: myholistiq.com (main branch)
 - **Staging Site**: staging.myholistiq.com (develop branch)
 
@@ -53,6 +55,7 @@ VITE_ENABLE_DEBUG_LOGGING=true
 ## Verification
 
 After setup, test with:
+
 ```bash
 npm run verify-staging
 ```
@@ -60,6 +63,7 @@ npm run verify-staging
 ## Alternative: Branch Deploy URLs
 
 If you prefer simpler setup, use:
+
 - Production: https://myholistiq.com
 - Staging: https://develop--myholistiq.netlify.app
 

@@ -6,7 +6,7 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter
+  CardFooter,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationRequired } from "@/components/auth/AuthenticationRequired";
@@ -22,12 +22,12 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -46,7 +46,7 @@ import {
   Clock,
   Plus,
   Minus,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
@@ -54,7 +54,7 @@ import { saveConfoundingFactor } from "@/services/confoundingFactorService";
 import {
   exerciseTypes,
   locationOptions,
-  mealTypes
+  mealTypes,
 } from "@/types/confoundingFactor";
 
 export default function LogConfoundingFactor() {
@@ -76,7 +76,9 @@ export default function LogConfoundingFactor() {
 
   // Exercise factors
   const [exerciseDuration, setExerciseDuration] = useState<number | null>(null);
-  const [exerciseIntensity, setExerciseIntensity] = useState<number | null>(null);
+  const [exerciseIntensity, setExerciseIntensity] = useState<number | null>(
+    null,
+  );
   const [exerciseType, setExerciseType] = useState<string | null>(null);
 
   // Diet factors
@@ -105,13 +107,15 @@ export default function LogConfoundingFactor() {
 
     try {
       // Format the recorded_at timestamp
-      const recordedAt = date ? new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        parseInt(time.split(":")[0]),
-        parseInt(time.split(":")[1])
-      ).toISOString() : new Date().toISOString();
+      const recordedAt = date
+        ? new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            parseInt(time.split(":")[0]),
+            parseInt(time.split(":")[1]),
+          ).toISOString()
+        : new Date().toISOString();
 
       const result = await saveConfoundingFactor(user.id, {
         recorded_at: recordedAt,
@@ -132,7 +136,7 @@ export default function LogConfoundingFactor() {
         energy_level: energyLevel,
         illness,
         illness_details: illnessDetails,
-        notes
+        notes,
       });
 
       if (result.success) {
@@ -145,7 +149,7 @@ export default function LogConfoundingFactor() {
         toast({
           title: "Error saving factors",
           description: result.error || "An unknown error occurred.",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -153,7 +157,7 @@ export default function LogConfoundingFactor() {
       toast({
         title: "Error",
         description: "Failed to save confounding factors. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -197,9 +201,7 @@ export default function LogConfoundingFactor() {
   // If user is not authenticated, show authentication required component
   if (!user) {
     return (
-      <AuthenticationRequired
-        message="You need to be logged in to track confounding factors that may affect your cognitive performance."
-      />
+      <AuthenticationRequired message="You need to be logged in to track confounding factors that may affect your cognitive performance." />
     );
   }
 
@@ -207,9 +209,12 @@ export default function LogConfoundingFactor() {
     <div className="container py-8 md:py-12 max-w-screen-xl">
       <Card className="mx-auto max-w-4xl">
         <CardHeader className="pb-4">
-          <CardTitle className="text-2xl md:text-3xl">Log Confounding Factors</CardTitle>
+          <CardTitle className="text-2xl md:text-3xl">
+            Log Confounding Factors
+          </CardTitle>
           <CardDescription className="text-base">
-            Track variables that might affect your cognitive performance beyond supplements.
+            Track variables that might affect your cognitive performance beyond
+            supplements.
           </CardDescription>
         </CardHeader>
 
@@ -225,7 +230,7 @@ export default function LogConfoundingFactor() {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
+                        !date && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -268,7 +273,10 @@ export default function LogConfoundingFactor() {
                   <Activity className="h-4 w-4" />
                   <span className="hidden md:inline">Stress</span>
                 </TabsTrigger>
-                <TabsTrigger value="exercise" className="flex items-center gap-1">
+                <TabsTrigger
+                  value="exercise"
+                  className="flex items-center gap-1"
+                >
                   <Dumbbell className="h-4 w-4" />
                   <span className="hidden md:inline">Exercise</span>
                 </TabsTrigger>
@@ -276,7 +284,10 @@ export default function LogConfoundingFactor() {
                   <Coffee className="h-4 w-4" />
                   <span className="hidden md:inline">Diet</span>
                 </TabsTrigger>
-                <TabsTrigger value="environment" className="flex items-center gap-1">
+                <TabsTrigger
+                  value="environment"
+                  className="flex items-center gap-1"
+                >
                   <MapPin className="h-4 w-4" />
                   <span className="hidden md:inline">Environment</span>
                 </TabsTrigger>
@@ -291,9 +302,13 @@ export default function LogConfoundingFactor() {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label htmlFor="sleep-duration">Sleep Duration (hours)</Label>
+                      <Label htmlFor="sleep-duration">
+                        Sleep Duration (hours)
+                      </Label>
                       <span className="text-sm text-muted-foreground">
-                        {sleepDuration ? (sleepDuration / 60).toFixed(1) : "Not set"}
+                        {sleepDuration
+                          ? (sleepDuration / 60).toFixed(1)
+                          : "Not set"}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -304,8 +319,16 @@ export default function LogConfoundingFactor() {
                         max="24"
                         step="0.5"
                         placeholder="Hours"
-                        value={sleepDuration ? (sleepDuration / 60).toString() : ""}
-                        onChange={(e) => setSleepDuration(e.target.value ? parseFloat(e.target.value) * 60 : null)}
+                        value={
+                          sleepDuration ? (sleepDuration / 60).toString() : ""
+                        }
+                        onChange={(e) =>
+                          setSleepDuration(
+                            e.target.value
+                              ? parseFloat(e.target.value) * 60
+                              : null,
+                          )
+                        }
                         className="w-24"
                       />
                       <Slider
@@ -313,7 +336,9 @@ export default function LogConfoundingFactor() {
                         min={0}
                         max={12}
                         step={0.5}
-                        onValueChange={(value) => setSleepDuration(value[0] * 60)}
+                        onValueChange={(value) =>
+                          setSleepDuration(value[0] * 60)
+                        }
                         className="flex-1"
                       />
                     </div>
@@ -371,7 +396,10 @@ export default function LogConfoundingFactor() {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="exercise-type">Exercise Type</Label>
-                    <Select value={exerciseType || ""} onValueChange={setExerciseType}>
+                    <Select
+                      value={exerciseType || ""}
+                      onValueChange={setExerciseType}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select exercise type" />
                       </SelectTrigger>
@@ -387,9 +415,13 @@ export default function LogConfoundingFactor() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label htmlFor="exercise-duration">Duration (minutes)</Label>
+                      <Label htmlFor="exercise-duration">
+                        Duration (minutes)
+                      </Label>
                       <span className="text-sm text-muted-foreground">
-                        {exerciseDuration ? `${exerciseDuration} min` : "Not set"}
+                        {exerciseDuration
+                          ? `${exerciseDuration} min`
+                          : "Not set"}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -401,7 +433,11 @@ export default function LogConfoundingFactor() {
                         step="5"
                         placeholder="Minutes"
                         value={exerciseDuration?.toString() || ""}
-                        onChange={(e) => setExerciseDuration(e.target.value ? parseInt(e.target.value) : null)}
+                        onChange={(e) =>
+                          setExerciseDuration(
+                            e.target.value ? parseInt(e.target.value) : null,
+                          )
+                        }
                         className="w-24"
                       />
                       <Slider
@@ -419,7 +455,9 @@ export default function LogConfoundingFactor() {
                     <div className="flex justify-between">
                       <Label htmlFor="exercise-intensity">Intensity</Label>
                       <span className="text-sm text-muted-foreground">
-                        {exerciseIntensity ? `${exerciseIntensity}/10` : "Not set"}
+                        {exerciseIntensity
+                          ? `${exerciseIntensity}/10`
+                          : "Not set"}
                       </span>
                     </div>
                     <Slider
@@ -443,7 +481,9 @@ export default function LogConfoundingFactor() {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label htmlFor="caffeine-intake">Caffeine Intake (mg)</Label>
+                      <Label htmlFor="caffeine-intake">
+                        Caffeine Intake (mg)
+                      </Label>
                       <span className="text-sm text-muted-foreground">
                         {caffeineIntake ? `${caffeineIntake} mg` : "Not set"}
                       </span>
@@ -457,7 +497,11 @@ export default function LogConfoundingFactor() {
                         step="10"
                         placeholder="mg"
                         value={caffeineIntake?.toString() || ""}
-                        onChange={(e) => setCaffeineIntake(e.target.value ? parseInt(e.target.value) : null)}
+                        onChange={(e) =>
+                          setCaffeineIntake(
+                            e.target.value ? parseInt(e.target.value) : null,
+                          )
+                        }
                         className="w-24"
                       />
                       <Slider
@@ -476,7 +520,9 @@ export default function LogConfoundingFactor() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label htmlFor="alcohol-intake">Alcohol Intake (drinks)</Label>
+                      <Label htmlFor="alcohol-intake">
+                        Alcohol Intake (drinks)
+                      </Label>
                       <span className="text-sm text-muted-foreground">
                         {alcoholIntake ? `${alcoholIntake} drinks` : "Not set"}
                       </span>
@@ -490,7 +536,11 @@ export default function LogConfoundingFactor() {
                         step="1"
                         placeholder="Drinks"
                         value={alcoholIntake?.toString() || ""}
-                        onChange={(e) => setAlcoholIntake(e.target.value ? parseInt(e.target.value) : null)}
+                        onChange={(e) =>
+                          setAlcoholIntake(
+                            e.target.value ? parseInt(e.target.value) : null,
+                          )
+                        }
                         className="w-24"
                       />
                       <Slider
@@ -520,7 +570,11 @@ export default function LogConfoundingFactor() {
                         step="100"
                         placeholder="ml"
                         value={waterIntake?.toString() || ""}
-                        onChange={(e) => setWaterIntake(e.target.value ? parseInt(e.target.value) : null)}
+                        onChange={(e) =>
+                          setWaterIntake(
+                            e.target.value ? parseInt(e.target.value) : null,
+                          )
+                        }
                         className="w-24"
                       />
                       <Slider
@@ -550,7 +604,9 @@ export default function LogConfoundingFactor() {
                     </div>
 
                     {meals.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-2">No meals logged</p>
+                      <p className="text-sm text-muted-foreground py-2">
+                        No meals logged
+                      </p>
                     ) : (
                       <div className="space-y-2">
                         {meals.map((meal, index) => (
@@ -558,19 +614,26 @@ export default function LogConfoundingFactor() {
                             <Input
                               type="time"
                               value={meal.time}
-                              onChange={(e) => updateMeal(index, "time", e.target.value)}
+                              onChange={(e) =>
+                                updateMeal(index, "time", e.target.value)
+                              }
                               className="w-32"
                             />
                             <Select
                               value={meal.type}
-                              onValueChange={(value) => updateMeal(index, "type", value)}
+                              onValueChange={(value) =>
+                                updateMeal(index, "type", value)
+                              }
                             >
                               <SelectTrigger className="flex-1">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 {mealTypes.map((type) => (
-                                  <SelectItem key={type.value} value={type.value}>
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
                                     {type.label}
                                   </SelectItem>
                                 ))}
@@ -718,7 +781,9 @@ export default function LogConfoundingFactor() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between space-x-2">
-                      <Label htmlFor="illness" className="flex-1">Feeling ill?</Label>
+                      <Label htmlFor="illness" className="flex-1">
+                        Feeling ill?
+                      </Label>
                       <Switch
                         id="illness"
                         checked={illness}

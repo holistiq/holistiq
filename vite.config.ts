@@ -8,9 +8,7 @@ export default defineConfig(({ mode }) => ({
     host: process.env.VITE_HOST ?? "::",
     port: parseInt(process.env.VITE_PORT ?? "8080"),
   },
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Star, Factory, Calendar, CheckCircle, Info } from "lucide-react";
-import { Supplement } from '@/types/supplement';
+import { Supplement } from "@/types/supplement";
 import {
   formatExpirationDate,
   getFormulationLabel,
-  getCertificationLabel
-} from '@/utils/supplementUtils';
+  getCertificationLabel,
+} from "@/utils/supplementUtils";
 
 interface BrandDetailsDisplayProps {
   readonly supplement: Supplement;
@@ -14,16 +14,21 @@ interface BrandDetailsDisplayProps {
   readonly className?: string;
 }
 
-export function BrandDetailsDisplay({ supplement, compact = false, className = '' }: BrandDetailsDisplayProps) {
+export function BrandDetailsDisplay({
+  supplement,
+  compact = false,
+  className = "",
+}: BrandDetailsDisplayProps) {
   // Check if we have any brand or formulation details to display
-  const hasBrandDetails = supplement.brand ||
-                          supplement.manufacturer ||
-                          supplement.brand_reputation ||
-                          supplement.formulation_type ||
-                          supplement.batch_number ||
-                          supplement.expiration_date ||
-                          supplement.third_party_tested ||
-                          supplement.certification;
+  const hasBrandDetails =
+    supplement.brand ||
+    supplement.manufacturer ||
+    supplement.brand_reputation ||
+    supplement.formulation_type ||
+    supplement.batch_number ||
+    supplement.expiration_date ||
+    supplement.third_party_tested ||
+    supplement.certification;
 
   if (!hasBrandDetails) {
     return null;
@@ -63,7 +68,10 @@ export function BrandDetailsDisplay({ supplement, compact = false, className = '
         )}
 
         {supplement.third_party_tested && (
-          <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 gap-0.5 bg-green-50">
+          <Badge
+            variant="outline"
+            className="text-xs px-1.5 py-0 h-5 gap-0.5 bg-green-50"
+          >
             <CheckCircle className="h-3 w-3 text-green-500" />
             Verified
           </Badge>
@@ -93,7 +101,9 @@ export function BrandDetailsDisplay({ supplement, compact = false, className = '
 
             {supplement.manufacturer && (
               <div>
-                <span className="text-muted-foreground text-xs">Manufacturer:</span>
+                <span className="text-muted-foreground text-xs">
+                  Manufacturer:
+                </span>
                 <div className="flex items-center gap-1">
                   <Factory className="h-3 w-3" />
                   <span>{supplement.manufacturer}</span>
@@ -120,7 +130,9 @@ export function BrandDetailsDisplay({ supplement, compact = false, className = '
           <>
             {supplement.batch_number && (
               <div>
-                <span className="text-muted-foreground text-xs">Batch/Lot #:</span>
+                <span className="text-muted-foreground text-xs">
+                  Batch/Lot #:
+                </span>
                 <div>{supplement.batch_number}</div>
               </div>
             )}
@@ -130,7 +142,9 @@ export function BrandDetailsDisplay({ supplement, compact = false, className = '
                 <span className="text-muted-foreground text-xs">Expires:</span>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
-                  <span>{formatExpirationDate(supplement.expiration_date)}</span>
+                  <span>
+                    {formatExpirationDate(supplement.expiration_date)}
+                  </span>
                 </div>
               </div>
             )}
@@ -140,7 +154,9 @@ export function BrandDetailsDisplay({ supplement, compact = false, className = '
         {/* Certification */}
         {supplement.third_party_tested && (
           <div className="col-span-2">
-            <span className="text-muted-foreground text-xs">Certification:</span>
+            <span className="text-muted-foreground text-xs">
+              Certification:
+            </span>
             <div className="flex items-center gap-1 mt-0.5">
               <Award className="h-4 w-4 text-green-500" />
               <span>

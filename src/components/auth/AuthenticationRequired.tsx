@@ -19,7 +19,7 @@ export function AuthenticationRequired({
   message = "You need to be logged in to access this feature.",
   redirectPath = "/signin",
   countdownSeconds = 5,
-  children
+  children,
 }: React.PropsWithChildren<AuthenticationRequiredProps>) {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(countdownSeconds);
@@ -40,7 +40,7 @@ export function AuthenticationRequired({
     if (!showAuthModal) return;
 
     const timer = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
           navigate(redirectPath);
@@ -102,14 +102,15 @@ export function AuthenticationRequired({
             <p className="mb-6 text-muted-foreground">
               {message}
               <br />
-              Redirecting to sign in page in <span className="font-medium text-foreground">{countdown}</span> seconds...
+              Redirecting to sign in page in{" "}
+              <span className="font-medium text-foreground">
+                {countdown}
+              </span>{" "}
+              seconds...
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                className="flex-1"
-                onClick={() => navigate(redirectPath)}
-              >
+              <Button className="flex-1" onClick={() => navigate(redirectPath)}>
                 <LogIn className="mr-2 h-4 w-4" />
                 Sign in now
               </Button>

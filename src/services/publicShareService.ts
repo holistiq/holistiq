@@ -70,29 +70,29 @@ export interface ServiceResponse<T> {
  * Create a public share for a test result
  */
 export async function createPublicShare(
-  request: CreatePublicShareRequest
+  request: CreatePublicShareRequest,
 ): Promise<ServiceResponse<PublicShareResponse>> {
   try {
-    const { data, error } = await supabase.rpc('create_public_share', {
+    const { data, error } = await supabase.rpc("create_public_share", {
       p_test_id: request.testId,
       p_title: request.title || null,
       p_description: request.description || null,
       p_expires_in_hours: request.expiresInHours || null,
-      p_max_views: request.maxViews || null
+      p_max_views: request.maxViews || null,
     });
 
     if (error) {
-      console.error('Error creating public share:', error);
+      console.error("Error creating public share:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
 
     if (!data || data.length === 0) {
       return {
         success: false,
-        error: 'Failed to create public share'
+        error: "Failed to create public share",
       };
     }
 
@@ -102,14 +102,14 @@ export async function createPublicShare(
       data: {
         shareId: shareData.share_id,
         shareToken: shareData.share_token,
-        shareUrl: shareData.share_url
-      }
+        shareUrl: shareData.share_url,
+      },
     };
   } catch (error) {
-    console.error('Unexpected error creating public share:', error);
+    console.error("Unexpected error creating public share:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -118,25 +118,25 @@ export async function createPublicShare(
  * Get public share data by token (for anonymous viewing)
  */
 export async function getPublicShareData(
-  shareToken: string
+  shareToken: string,
 ): Promise<ServiceResponse<PublicShareData>> {
   try {
-    const { data, error } = await supabase.rpc('get_public_share_data', {
-      p_share_token: shareToken
+    const { data, error } = await supabase.rpc("get_public_share_data", {
+      p_share_token: shareToken,
     });
 
     if (error) {
-      console.error('Error getting public share data:', error);
+      console.error("Error getting public share data:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
 
     if (!data || data.length === 0) {
       return {
         success: false,
-        error: 'Share not found or no longer available'
+        error: "Share not found or no longer available",
       };
     }
 
@@ -154,14 +154,14 @@ export async function getPublicShareData(
         shareId: shareData.share_id,
         currentViews: shareData.current_views,
         maxViews: shareData.max_views,
-        expiresAt: shareData.expires_at
-      }
+        expiresAt: shareData.expires_at,
+      },
     };
   } catch (error) {
-    console.error('Unexpected error getting public share data:', error);
+    console.error("Unexpected error getting public share data:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -170,30 +170,30 @@ export async function getPublicShareData(
  * Revoke a public share
  */
 export async function revokePublicShare(
-  shareToken: string
+  shareToken: string,
 ): Promise<ServiceResponse<boolean>> {
   try {
-    const { data, error } = await supabase.rpc('revoke_public_share', {
-      p_share_token: shareToken
+    const { data, error } = await supabase.rpc("revoke_public_share", {
+      p_share_token: shareToken,
     });
 
     if (error) {
-      console.error('Error revoking public share:', error);
+      console.error("Error revoking public share:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
 
     return {
       success: true,
-      data: data === true
+      data: data === true,
     };
   } catch (error) {
-    console.error('Unexpected error revoking public share:', error);
+    console.error("Unexpected error revoking public share:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -201,11 +201,14 @@ export async function revokePublicShare(
 /**
  * Get user's public shares
  */
-export async function getUserPublicShares(): Promise<ServiceResponse<UserPublicShare[]>> {
+export async function getUserPublicShares(): Promise<
+  ServiceResponse<UserPublicShare[]>
+> {
   try {
     const { data, error } = await supabase
-      .from('public_test_shares')
-      .select(`
+      .from("public_test_shares")
+      .select(
+        `
         id,
         share_token,
         title,
@@ -220,27 +223,28 @@ export async function getUserPublicShares(): Promise<ServiceResponse<UserPublicS
           score,
           timestamp
         )
-      `)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error getting user public shares:', error);
+      console.error("Error getting user public shares:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
 
     return {
       success: true,
-      data: (data as UserPublicShare[]) || []
+      data: (data as UserPublicShare[]) || [],
     };
   } catch (error) {
-    console.error('Unexpected error getting user public shares:', error);
+    console.error("Unexpected error getting user public shares:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

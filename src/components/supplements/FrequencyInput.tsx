@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,7 +8,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
   Select,
@@ -18,7 +18,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Clock } from "lucide-react";
-import { frequencyOptions, timeOfDayOptions, daysOfWeek } from './frequencyConstants';
+import {
+  frequencyOptions,
+  timeOfDayOptions,
+  daysOfWeek,
+} from "./frequencyConstants";
 
 interface FrequencyInputProps {
   readonly frequency: string;
@@ -53,7 +57,7 @@ export function FrequencyInput({
   setSpecificTime,
   scheduleDaysError,
   frequencyError,
-  className
+  className,
 }: FrequencyInputProps) {
   return (
     <div className={className}>
@@ -73,19 +77,30 @@ export function FrequencyInput({
               ))}
             </SelectContent>
           </Select>
-          {frequencyError && <p className="text-sm text-red-500 mt-1">{frequencyError}</p>}
+          {frequencyError && (
+            <p className="text-sm text-red-500 mt-1">{frequencyError}</p>
+          )}
         </div>
 
         {/* Custom Schedule (conditionally shown) */}
         {frequency === "custom" && (
-          <div className={`space-y-3 border rounded-md p-4 bg-secondary/10 ${scheduleDaysError ? "border-red-500" : ""}`}>
+          <div
+            className={`space-y-3 border rounded-md p-4 bg-secondary/10 ${scheduleDaysError ? "border-red-500" : ""}`}
+          >
             <div className="flex justify-between items-center">
               <Label className="font-medium">Custom Schedule</Label>
-              {scheduleDaysError && <span className="text-sm text-red-500">{scheduleDaysError}</span>}
+              {scheduleDaysError && (
+                <span className="text-sm text-red-500">
+                  {scheduleDaysError}
+                </span>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 mt-2">
               {daysOfWeek.map((day) => (
-                <div key={day.value} className="flex items-center space-x-2 bg-background/80 p-1.5 rounded-md">
+                <div
+                  key={day.value}
+                  className="flex items-center space-x-2 bg-background/80 p-1.5 rounded-md"
+                >
                   <Checkbox
                     id={day.value}
                     checked={scheduleDays.includes(day.value)}
@@ -93,7 +108,9 @@ export function FrequencyInput({
                       if (checked) {
                         setScheduleDays([...scheduleDays, day.value]);
                       } else {
-                        setScheduleDays(scheduleDays.filter(d => d !== day.value));
+                        setScheduleDays(
+                          scheduleDays.filter((d) => d !== day.value),
+                        );
                       }
                     }}
                   />
@@ -110,7 +127,8 @@ export function FrequencyInput({
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground">
-              Please select at least one day of the week for your custom schedule.
+              Please select at least one day of the week for your custom
+              schedule.
             </p>
           </div>
         )}
@@ -136,14 +154,18 @@ export function FrequencyInput({
           {/* Specific Time Picker */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="specific-time" className="font-medium">Specific Time</Label>
+              <Label htmlFor="specific-time" className="font-medium">
+                Specific Time
+              </Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Clock className="h-4 w-4 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">Set a specific time for more precise tracking</p>
+                    <p className="max-w-xs">
+                      Set a specific time for more precise tracking
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -169,10 +191,7 @@ export function FrequencyInput({
               Indicates whether this supplement should be taken with a meal
             </p>
           </div>
-          <Switch
-            checked={withFood}
-            onCheckedChange={setWithFood}
-          />
+          <Switch checked={withFood} onCheckedChange={setWithFood} />
         </div>
       </div>
     </div>

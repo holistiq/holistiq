@@ -3,16 +3,28 @@
  *
  * Provides functionality to add and display annotations on the performance chart
  */
-import { useState } from 'react';
-import { PlusCircle, X, Edit, Flag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Textarea } from '@/components/ui/textarea';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
+import { useState } from "react";
+import { PlusCircle, X, Edit, Flag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 
 export interface Annotation {
   id: string;
@@ -24,7 +36,7 @@ export interface Annotation {
 
 interface ChartAnnotationProps {
   annotations: Annotation[];
-  onAddAnnotation: (annotation: Omit<Annotation, 'id'>) => void;
+  onAddAnnotation: (annotation: Omit<Annotation, "id">) => void;
   onEditAnnotation: (id: string, annotation: Partial<Annotation>) => void;
   onDeleteAnnotation: (id: string) => void;
 }
@@ -33,23 +45,25 @@ export function ChartAnnotation({
   annotations,
   onAddAnnotation,
   onEditAnnotation,
-  onDeleteAnnotation
+  onDeleteAnnotation,
 }: Readonly<ChartAnnotationProps>) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingAnnotation, setEditingAnnotation] = useState<Annotation | null>(null);
+  const [editingAnnotation, setEditingAnnotation] = useState<Annotation | null>(
+    null,
+  );
   const [newAnnotation, setNewAnnotation] = useState<Partial<Annotation>>({
     date: Date.now(),
-    label: '',
-    description: '',
-    color: '#3b82f6' // Default blue color
+    label: "",
+    description: "",
+    color: "#3b82f6", // Default blue color
   });
 
   const colorOptions = [
-    { value: '#3b82f6', label: 'Blue' },
-    { value: '#10b981', label: 'Green' },
-    { value: '#ef4444', label: 'Red' },
-    { value: '#f59e0b', label: 'Orange' },
-    { value: '#8b5cf6', label: 'Purple' }
+    { value: "#3b82f6", label: "Blue" },
+    { value: "#10b981", label: "Green" },
+    { value: "#ef4444", label: "Red" },
+    { value: "#f59e0b", label: "Orange" },
+    { value: "#8b5cf6", label: "Purple" },
   ];
 
   const handleAddAnnotation = () => {
@@ -57,16 +71,16 @@ export function ChartAnnotation({
       onAddAnnotation({
         date: newAnnotation.date,
         label: newAnnotation.label,
-        description: newAnnotation.description || '',
-        color: newAnnotation.color || '#3b82f6'
+        description: newAnnotation.description || "",
+        color: newAnnotation.color || "#3b82f6",
       });
 
       // Reset form
       setNewAnnotation({
         date: Date.now(),
-        label: '',
-        description: '',
-        color: '#3b82f6'
+        label: "",
+        description: "",
+        color: "#3b82f6",
       });
 
       setIsAddDialogOpen(false);
@@ -79,7 +93,7 @@ export function ChartAnnotation({
         date: editingAnnotation.date,
         label: editingAnnotation.label,
         description: editingAnnotation.description,
-        color: editingAnnotation.color
+        color: editingAnnotation.color,
       });
       setEditingAnnotation(null);
     }
@@ -115,18 +129,24 @@ export function ChartAnnotation({
                       className="justify-start text-left font-normal"
                     >
                       {newAnnotation.date
-                        ? format(new Date(newAnnotation.date), 'PPP')
+                        ? format(new Date(newAnnotation.date), "PPP")
                         : "Select a date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={newAnnotation.date ? new Date(newAnnotation.date) : undefined}
-                      onSelect={(date) => setNewAnnotation({
-                        ...newAnnotation,
-                        date: date ? date.getTime() : Date.now()
-                      })}
+                      selected={
+                        newAnnotation.date
+                          ? new Date(newAnnotation.date)
+                          : undefined
+                      }
+                      onSelect={(date) =>
+                        setNewAnnotation({
+                          ...newAnnotation,
+                          date: date ? date.getTime() : Date.now(),
+                        })
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -136,11 +156,13 @@ export function ChartAnnotation({
                 <Label htmlFor="label">Label</Label>
                 <Input
                   id="label"
-                  value={newAnnotation.label || ''}
-                  onChange={(e) => setNewAnnotation({
-                    ...newAnnotation,
-                    label: e.target.value
-                  })}
+                  value={newAnnotation.label || ""}
+                  onChange={(e) =>
+                    setNewAnnotation({
+                      ...newAnnotation,
+                      label: e.target.value,
+                    })
+                  }
                   placeholder="e.g., Started new supplement"
                 />
               </div>
@@ -149,11 +171,13 @@ export function ChartAnnotation({
                 <Label htmlFor="description">Description (optional)</Label>
                 <Textarea
                   id="description"
-                  value={newAnnotation.description || ''}
-                  onChange={(e) => setNewAnnotation({
-                    ...newAnnotation,
-                    description: e.target.value
-                  })}
+                  value={newAnnotation.description || ""}
+                  onChange={(e) =>
+                    setNewAnnotation({
+                      ...newAnnotation,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Add more details about this event"
                 />
               </div>
@@ -161,16 +185,18 @@ export function ChartAnnotation({
               <div className="grid gap-2">
                 <Label>Color</Label>
                 <div className="flex space-x-2">
-                  {colorOptions.map(color => (
+                  {colorOptions.map((color) => (
                     <button
                       key={color.value}
                       type="button"
-                      className={`w-6 h-6 rounded-full ${newAnnotation.color === color.value ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
+                      className={`w-6 h-6 rounded-full ${newAnnotation.color === color.value ? "ring-2 ring-offset-2 ring-primary" : ""}`}
                       style={{ backgroundColor: color.value }}
-                      onClick={() => setNewAnnotation({
-                        ...newAnnotation,
-                        color: color.value
-                      })}
+                      onClick={() =>
+                        setNewAnnotation({
+                          ...newAnnotation,
+                          color: color.value,
+                        })
+                      }
                       aria-label={`Select ${color.label} color`}
                     />
                   ))}
@@ -182,17 +208,24 @@ export function ChartAnnotation({
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
-              <Button onClick={handleAddAnnotation} disabled={!newAnnotation.label}>Add</Button>
+              <Button
+                onClick={handleAddAnnotation}
+                disabled={!newAnnotation.label}
+              >
+                Add
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
       {annotations.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No annotations yet. Add one to mark important events on your chart.</p>
+        <p className="text-sm text-muted-foreground">
+          No annotations yet. Add one to mark important events on your chart.
+        </p>
       ) : (
         <div className="space-y-2">
-          {annotations.map(annotation => (
+          {annotations.map((annotation) => (
             <div
               key={annotation.id}
               className="flex items-start justify-between p-2 rounded border bg-background"
@@ -206,11 +239,13 @@ export function ChartAnnotation({
                   <div className="flex items-center">
                     <p className="text-sm font-medium">{annotation.label}</p>
                     <span className="text-xs text-muted-foreground ml-2">
-                      {format(new Date(annotation.date), 'MMM d, yyyy')}
+                      {format(new Date(annotation.date), "MMM d, yyyy")}
                     </span>
                   </div>
                   {annotation.description && (
-                    <p className="text-xs text-muted-foreground mt-1">{annotation.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {annotation.description}
+                    </p>
                   )}
                 </div>
               </div>
@@ -243,17 +278,24 @@ export function ChartAnnotation({
                                 variant="outline"
                                 className="justify-start text-left font-normal"
                               >
-                                {format(new Date(editingAnnotation.date), 'PPP')}
+                                {format(
+                                  new Date(editingAnnotation.date),
+                                  "PPP",
+                                )}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                               <Calendar
                                 mode="single"
                                 selected={new Date(editingAnnotation.date)}
-                                onSelect={(date) => setEditingAnnotation({
-                                  ...editingAnnotation,
-                                  date: date ? date.getTime() : editingAnnotation.date
-                                })}
+                                onSelect={(date) =>
+                                  setEditingAnnotation({
+                                    ...editingAnnotation,
+                                    date: date
+                                      ? date.getTime()
+                                      : editingAnnotation.date,
+                                  })
+                                }
                               />
                             </PopoverContent>
                           </Popover>
@@ -264,38 +306,46 @@ export function ChartAnnotation({
                           <Input
                             id="edit-label"
                             value={editingAnnotation.label}
-                            onChange={(e) => setEditingAnnotation({
-                              ...editingAnnotation,
-                              label: e.target.value
-                            })}
+                            onChange={(e) =>
+                              setEditingAnnotation({
+                                ...editingAnnotation,
+                                label: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
                         <div className="grid gap-2">
-                          <Label htmlFor="edit-description">Description (optional)</Label>
+                          <Label htmlFor="edit-description">
+                            Description (optional)
+                          </Label>
                           <Textarea
                             id="edit-description"
                             value={editingAnnotation.description}
-                            onChange={(e) => setEditingAnnotation({
-                              ...editingAnnotation,
-                              description: e.target.value
-                            })}
+                            onChange={(e) =>
+                              setEditingAnnotation({
+                                ...editingAnnotation,
+                                description: e.target.value,
+                              })
+                            }
                           />
                         </div>
 
                         <div className="grid gap-2">
                           <Label>Color</Label>
                           <div className="flex space-x-2">
-                            {colorOptions.map(color => (
+                            {colorOptions.map((color) => (
                               <button
                                 key={color.value}
                                 type="button"
-                                className={`w-6 h-6 rounded-full ${editingAnnotation.color === color.value ? 'ring-2 ring-offset-2 ring-primary' : ''}`}
+                                className={`w-6 h-6 rounded-full ${editingAnnotation.color === color.value ? "ring-2 ring-offset-2 ring-primary" : ""}`}
                                 style={{ backgroundColor: color.value }}
-                                onClick={() => setEditingAnnotation({
-                                  ...editingAnnotation,
-                                  color: color.value
-                                })}
+                                onClick={() =>
+                                  setEditingAnnotation({
+                                    ...editingAnnotation,
+                                    color: color.value,
+                                  })
+                                }
                                 aria-label={`Select ${color.label} color`}
                               />
                             ))}
@@ -308,7 +358,9 @@ export function ChartAnnotation({
                       <DialogClose asChild>
                         <Button variant="outline">Cancel</Button>
                       </DialogClose>
-                      <Button onClick={handleEditAnnotation}>Save Changes</Button>
+                      <Button onClick={handleEditAnnotation}>
+                        Save Changes
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>

@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -20,7 +20,7 @@ import {
   BarChart2,
   Clock,
   ChevronDown,
-  Trophy
+  Trophy,
 } from "lucide-react";
 
 /**
@@ -46,7 +46,10 @@ export const ActionsDropdown = memo(function ActionsDropdown() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/baseline-analysis" className="flex items-center gap-2 w-full">
+            <Link
+              to="/baseline-analysis"
+              className="flex items-center gap-2 w-full"
+            >
               <Target className="h-4 w-4" />
               <span>Baseline Analysis</span>
             </Link>
@@ -70,19 +73,28 @@ export const ActionsDropdown = memo(function ActionsDropdown() {
         <DropdownMenuLabel>Tracking</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link to="/log-supplement" className="flex items-center gap-2 w-full">
+            <Link
+              to="/log-supplement"
+              className="flex items-center gap-2 w-full"
+            >
               <Pill className="h-4 w-4" />
               <span>Log Supplement</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/log-confounding-factor" className="flex items-center gap-2 w-full">
+            <Link
+              to="/log-confounding-factor"
+              className="flex items-center gap-2 w-full"
+            >
               <Activity className="h-4 w-4" />
               <span>Log Factors</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/log-washout-period" className="flex items-center gap-2 w-full">
+            <Link
+              to="/log-washout-period"
+              className="flex items-center gap-2 w-full"
+            >
               <Clock className="h-4 w-4" />
               <span>Log Washout Period</span>
             </Link>
@@ -94,19 +106,28 @@ export const ActionsDropdown = memo(function ActionsDropdown() {
         <DropdownMenuLabel>Analysis</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link to="/supplement-effectiveness" className="flex items-center gap-2 w-full">
+            <Link
+              to="/supplement-effectiveness"
+              className="flex items-center gap-2 w-full"
+            >
               <BarChart2 className="h-4 w-4" />
               <span>Effectiveness</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/statistical-significance" className="flex items-center gap-2 w-full">
+            <Link
+              to="/statistical-significance"
+              className="flex items-center gap-2 w-full"
+            >
               <Calculator className="h-4 w-4" />
               <span>Significance</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link to="/comparative-visualization" className="flex items-center gap-2 w-full">
+            <Link
+              to="/comparative-visualization"
+              className="flex items-center gap-2 w-full"
+            >
               <BarChart2 className="h-4 w-4" />
               <span>Compare</span>
             </Link>

@@ -1,12 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FactorCorrelation } from '@/types/confoundingFactor';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { FactorCorrelation } from "@/types/confoundingFactor";
 import {
   Moon,
   Activity,
   Coffee,
   Dumbbell,
   Smile,
-  HelpCircle
+  HelpCircle,
 } from "lucide-react";
 import {
   BarChart,
@@ -18,15 +24,15 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
-  Cell
-} from 'recharts';
+  Cell,
+} from "recharts";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 // Define chart data type
 interface ChartDataPoint {
@@ -50,15 +56,18 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps): ReactNode => {
       <div className="bg-white p-3 border rounded-md shadow-md">
         <p className="font-medium">{data.factor}</p>
         <p className="text-sm">
-          Correlation: <span className="font-medium">{(data.correlation * 100).toFixed(1)}%</span>
+          Correlation:{" "}
+          <span className="font-medium">
+            {(data.correlation * 100).toFixed(1)}%
+          </span>
         </p>
         <p className="text-sm">
           Sample Size: <span className="font-medium">{data.sampleSize}</span>
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           {data.correlation > 0
-            ? 'Positive correlation: Higher values are associated with better performance'
-            : 'Negative correlation: Higher values are associated with worse performance'}
+            ? "Positive correlation: Higher values are associated with better performance"
+            : "Negative correlation: Higher values are associated with worse performance"}
         </p>
       </div>
     );
@@ -71,19 +80,22 @@ interface FactorCorrelationChartProps {
   readonly isLoading?: boolean;
 }
 
-export function FactorCorrelationChart({ correlations, isLoading = false }: Readonly<FactorCorrelationChartProps>): JSX.Element {
+export function FactorCorrelationChart({
+  correlations,
+  isLoading = false,
+}: Readonly<FactorCorrelationChartProps>): JSX.Element {
   // Helper function to get icon for factor
   const getFactorIcon = (factor: string): JSX.Element => {
     switch (factor) {
-      case 'sleep':
+      case "sleep":
         return <Moon className="h-5 w-5" />;
-      case 'stress':
+      case "stress":
         return <Activity className="h-5 w-5" />;
-      case 'exercise':
+      case "exercise":
         return <Dumbbell className="h-5 w-5" />;
-      case 'caffeine':
+      case "caffeine":
         return <Coffee className="h-5 w-5" />;
-      case 'mood':
+      case "mood":
         return <Smile className="h-5 w-5" />;
       default:
         return <Activity className="h-5 w-5" />;
@@ -114,15 +126,15 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
   // Helper function to get factor name
   const getFactorName = (factor: string): string => {
     switch (factor) {
-      case 'sleep':
+      case "sleep":
         return "Sleep";
-      case 'stress':
+      case "stress":
         return "Stress";
-      case 'exercise':
+      case "exercise":
         return "Exercise";
-      case 'caffeine':
+      case "caffeine":
         return "Caffeine";
-      case 'mood':
+      case "mood":
         return "Mood";
       default:
         return factor.charAt(0).toUpperCase() + factor.slice(1);
@@ -133,25 +145,37 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
   const getCorrelationDetails = (correlation: FactorCorrelation): string[] => {
     const details: string[] = [];
 
-    if (correlation.factor === 'sleep') {
+    if (correlation.factor === "sleep") {
       if (correlation.quality_correlation !== undefined) {
-        details.push(`Sleep quality: ${(correlation.quality_correlation * 100).toFixed(1)}%`);
+        details.push(
+          `Sleep quality: ${(correlation.quality_correlation * 100).toFixed(1)}%`,
+        );
       }
-      details.push(`Sleep duration: ${(correlation.correlation * 100).toFixed(1)}%`);
-    } else if (correlation.factor === 'exercise') {
+      details.push(
+        `Sleep duration: ${(correlation.correlation * 100).toFixed(1)}%`,
+      );
+    } else if (correlation.factor === "exercise") {
       if (correlation.duration_correlation !== undefined) {
-        details.push(`Exercise duration: ${(correlation.duration_correlation * 100).toFixed(1)}%`);
+        details.push(
+          `Exercise duration: ${(correlation.duration_correlation * 100).toFixed(1)}%`,
+        );
       }
       if (correlation.intensity_correlation !== undefined) {
-        details.push(`Exercise intensity: ${(correlation.intensity_correlation * 100).toFixed(1)}%`);
+        details.push(
+          `Exercise intensity: ${(correlation.intensity_correlation * 100).toFixed(1)}%`,
+        );
       }
-    } else if (correlation.factor === 'mood') {
+    } else if (correlation.factor === "mood") {
       if (correlation.energy_correlation !== undefined) {
-        details.push(`Energy level: ${(correlation.energy_correlation * 100).toFixed(1)}%`);
+        details.push(
+          `Energy level: ${(correlation.energy_correlation * 100).toFixed(1)}%`,
+        );
       }
       details.push(`Mood: ${(correlation.correlation * 100).toFixed(1)}%`);
     } else {
-      details.push(`${getFactorName(correlation.factor)}: ${(correlation.correlation * 100).toFixed(1)}%`);
+      details.push(
+        `${getFactorName(correlation.factor)}: ${(correlation.correlation * 100).toFixed(1)}%`,
+      );
     }
 
     return details;
@@ -195,7 +219,8 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
             <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="font-medium mb-2">Insufficient Data</p>
             <p className="text-sm text-muted-foreground mb-4">
-              Log more confounding factors and take more tests to see correlations
+              Log more confounding factors and take more tests to see
+              correlations
             </p>
           </div>
         </CardContent>
@@ -205,13 +230,13 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
 
   // Prepare data for the bar chart
   const chartData: ChartDataPoint[] = correlations
-    .filter(correlation => correlation.sample_size >= 3)
-    .map(correlation => ({
+    .filter((correlation) => correlation.sample_size >= 3)
+    .map((correlation) => ({
       factor: getFactorName(correlation.factor),
       correlation: correlation.correlation,
-      color: correlation.correlation >= 0 ? '#22c55e' : '#ef4444', // green or red
+      color: correlation.correlation >= 0 ? "#22c55e" : "#ef4444", // green or red
       sampleSize: correlation.sample_size,
-      rawFactor: correlation.factor
+      rawFactor: correlation.factor,
     }));
 
   // Sort by absolute correlation value (descending)
@@ -235,7 +260,11 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
                 type="number"
                 domain={[-1, 1]}
                 tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
-                label={{ value: 'Correlation with Cognitive Performance', position: 'insideBottom', offset: -5 }}
+                label={{
+                  value: "Correlation with Cognitive Performance",
+                  position: "insideBottom",
+                  offset: -5,
+                }}
               />
               <YAxis
                 dataKey="factor"
@@ -273,9 +302,11 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <p>
-                    Positive correlations (green) indicate factors that may improve your performance.
-                    Negative correlations (red) indicate factors that may reduce your performance.
-                    The strength of the color indicates the strength of the correlation.
+                    Positive correlations (green) indicate factors that may
+                    improve your performance. Negative correlations (red)
+                    indicate factors that may reduce your performance. The
+                    strength of the color indicates the strength of the
+                    correlation.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -292,16 +323,22 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
               const correlationValue = correlation.correlation;
               const correlationColor = getCorrelationColor(correlationValue);
               const correlationWidth = `${Math.min(Math.abs(correlationValue * 100), 100)}%`;
-              const correlationDirection = correlationValue >= 0 ? 'right' : 'left';
+              const correlationDirection =
+                correlationValue >= 0 ? "right" : "left";
 
               return (
-                <div key={`${correlation.factor}-${index}`} className="space-y-1">
+                <div
+                  key={`${correlation.factor}-${index}`}
+                  className="space-y-1"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">
                         {getFactorIcon(correlation.factor)}
                       </span>
-                      <span className="font-medium">{getFactorName(correlation.factor)}</span>
+                      <span className="font-medium">
+                        {getFactorName(correlation.factor)}
+                      </span>
                     </div>
                     <span className={`text-sm ${correlationColor}`}>
                       {getCorrelationDescription(correlationValue)}
@@ -310,20 +347,34 @@ export function FactorCorrelationChart({ correlations, isLoading = false }: Read
 
                   <div className="h-2 w-full bg-secondary/30 rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${correlationValue >= 0 ? 'bg-green-500' : 'bg-red-500'} rounded-full`}
+                      className={`h-full ${correlationValue >= 0 ? "bg-green-500" : "bg-red-500"} rounded-full`}
                       style={{
                         width: correlationWidth,
-                        marginLeft: correlationDirection === 'left' ? `calc(50% - ${correlationWidth})` : '50%',
-                        marginRight: correlationDirection === 'right' ? `calc(50% - ${correlationWidth})` : '50%'
+                        marginLeft:
+                          correlationDirection === "left"
+                            ? `calc(50% - ${correlationWidth})`
+                            : "50%",
+                        marginRight:
+                          correlationDirection === "right"
+                            ? `calc(50% - ${correlationWidth})`
+                            : "50%",
                       }}
                     ></div>
                   </div>
 
                   <div className="text-xs text-muted-foreground">
-                    {getCorrelationDetails(correlation).map((detail, detailIndex) => (
-                      <div key={`${correlation.factor}-detail-${detailIndex}`}>{detail}</div>
-                    ))}
-                    <div>Sample size: {correlation.sample_size} data points</div>
+                    {getCorrelationDetails(correlation).map(
+                      (detail, detailIndex) => (
+                        <div
+                          key={`${correlation.factor}-detail-${detailIndex}`}
+                        >
+                          {detail}
+                        </div>
+                      ),
+                    )}
+                    <div>
+                      Sample size: {correlation.sample_size} data points
+                    </div>
                   </div>
                 </div>
               );
