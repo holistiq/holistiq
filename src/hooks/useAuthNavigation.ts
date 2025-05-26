@@ -1,3 +1,4 @@
+import { sessionManager } from "@/services/sessionManager";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AUTH_EVENTS } from "./useSupabaseAuth";
@@ -12,16 +13,34 @@ export function useAuthNavigation() {
   useEffect(() => {
     // Handle sign out event
     const handleSignOut = (event: CustomEvent) => {
-      const message = event.detail?.message || "You have been signed out.";
-      navigate("/signin", {
-        state: { message },
-      });
+      const isManual = event.detail?.isManual ?? false;
+
+      // Check logout intent from sessionManager
+      const logoutIntent = sessionManager.getLogoutIntent();
+      const wasManualLogout = logoutIntent?.isManual ?? isManual;
+
+      // Check if this is a page refresh after manual logout
+      const isManualLogoutRefresh =
+        sessionStorage.getItem("holistiq_manual_logout") === "true";
+
+      // Only show message for automatic signouts or genuine unexpected signouts
+      if (!wasManualLogout && !isManualLogoutRefresh) {
+        const message = event.detail?.message ?? "You have been signed out.";
+        navigate("/signin", {
+          state: { message },
+        });
+      } else {
+        // For manual logouts, navigate without showing the warning message
+        navigate("/signin");
+        // Clear the logout intent since we've handled it
+        sessionManager.clearLogoutIntent();
+      }
     };
 
     // Handle session expired event
     const handleSessionExpired = (event: CustomEvent) => {
       const message =
-        event.detail?.message ||
+        event.detail?.message ??
         "Your session has expired. Please sign in again.";
       navigate("/signin", {
         state: { message },

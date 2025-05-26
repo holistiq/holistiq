@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,12 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Clock, RefreshCw } from "lucide-react";
 import {
-  sessionManager,
   SESSION_CONFIG,
   SessionAction,
+  sessionManager,
 } from "@/services/sessionManager";
+import { Clock, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface SessionTimeoutWarningProps {
   onExtend?: () => void;
@@ -44,7 +44,8 @@ export function SessionTimeoutWarning({
     const handleStorageChange = (event: StorageEvent) => {
       if (
         event.key === "holistiq_session_action" &&
-        event.newValue === SessionAction.SESSION_EXPIRED
+        (event.newValue === SessionAction.SESSION_EXPIRED ||
+          event.newValue === SessionAction.MANUAL_LOGOUT)
       ) {
         setIsVisible(false);
       }

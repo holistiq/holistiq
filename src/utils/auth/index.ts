@@ -4,4 +4,4 @@
  * This file exports all authentication-related utility functions.
  */
 
-// No exports currently
+export * from "./logoutIntentUtils";

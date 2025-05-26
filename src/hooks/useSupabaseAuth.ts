@@ -1,12 +1,12 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sessionManager } from "@/services/sessionManager";
-import { useToast } from "@/hooks/use-toast";
 import {
-  getDirectSessionFromStorage,
   extractUserFromSession,
+  getDirectSessionFromStorage,
 } from "@/utils/sessionUtils";
-import { User, Session } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // Custom event for auth state changes
 export const AUTH_EVENTS = {
@@ -601,8 +601,8 @@ export function useSupabaseAuth() {
       // Store the current path before signing out
       const currentPath = window.location.pathname;
 
-      // Call the session manager to sign out
-      await sessionManager.signOut();
+      // Call the session manager to sign out (manual = true)
+      await sessionManager.signOut(true);
 
       // Update global state
       globalAuthState.user = null;
@@ -632,10 +632,13 @@ export function useSupabaseAuth() {
         console.error("Error clearing storage during sign out:", storageError);
       }
 
-      // Dispatch custom event for sign out
+      // Dispatch custom event for manual sign out
       window.dispatchEvent(
         new CustomEvent(AUTH_EVENTS.SIGNED_OUT, {
-          detail: { message: "You have been signed out." },
+          detail: {
+            message: "You have been signed out.",
+            isManual: true,
+          },
         }),
       );
 

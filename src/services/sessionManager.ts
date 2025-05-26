@@ -25,6 +25,7 @@ export enum SessionAction {
   LOGGED_OUT = "LOGGED_OUT",
   SESSION_EXPIRED = "SESSION_EXPIRED",
   SESSION_EXTENDED = "SESSION_EXTENDED",
+  MANUAL_LOGOUT = "MANUAL_LOGOUT", // New action for intentional logout
 }
 
 // Session manager class
@@ -219,9 +220,8 @@ export class SessionManager {
     // Reset warning flag since session is now expired
     this.isWarningDisplayed = false;
 
-    // Sign out the user
-    await supabase.auth.signOut();
-    this.session = null;
+    // Sign out the user automatically (not manual)
+    await this.signOut(false);
 
     // Broadcast session expiration
     this.broadcastSessionAction(SessionAction.SESSION_EXPIRED);
@@ -336,6 +336,12 @@ export class SessionManager {
           }
           break;
 
+        case SessionAction.MANUAL_LOGOUT:
+          // Handle manual logout from another tab
+          this.cleanup();
+          // Don't show session expired callback for manual logout
+          break;
+
         case SessionAction.SESSION_EXTENDED:
           // Reset timeout if session was extended in another tab
           if (this.session) {
@@ -409,9 +415,65 @@ export class SessionManager {
     this.broadcastSessionAction(SessionAction.SESSION_EXTENDED);
   }
 
-  // Sign out the user
-  public async signOut(): Promise<void> {
+  // Track logout intent to distinguish between manual and automatic signouts
+  private setLogoutIntent(isManual: boolean): void {
     try {
+      const intent = {
+        isManual,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("holistiq_logout_intent", JSON.stringify(intent));
+
+      // Also set a flag that persists across page refreshes for a short time
+      if (isManual) {
+        sessionStorage.setItem("holistiq_manual_logout", "true");
+        // Clear the flag after 30 seconds to prevent it from persisting too long
+        setTimeout(() => {
+          sessionStorage.removeItem("holistiq_manual_logout");
+        }, 30000);
+      }
+    } catch (error) {
+      console.error("Error setting logout intent:", error);
+    }
+  }
+
+  // Get logout intent to determine if the last logout was manual
+  public getLogoutIntent(): { isManual: boolean; timestamp: number } | null {
+    try {
+      const intentStr = localStorage.getItem("holistiq_logout_intent");
+      if (!intentStr) return null;
+
+      const intent = JSON.parse(intentStr);
+
+      // Clear old intents (older than 5 minutes)
+      if (Date.now() - intent.timestamp > 5 * 60 * 1000) {
+        localStorage.removeItem("holistiq_logout_intent");
+        return null;
+      }
+
+      return intent;
+    } catch (error) {
+      console.error("Error getting logout intent:", error);
+      return null;
+    }
+  }
+
+  // Clear logout intent
+  public clearLogoutIntent(): void {
+    try {
+      localStorage.removeItem("holistiq_logout_intent");
+      sessionStorage.removeItem("holistiq_manual_logout");
+    } catch (error) {
+      console.error("Error clearing logout intent:", error);
+    }
+  }
+
+  // Sign out the user with manual flag
+  public async signOut(isManual: boolean = true): Promise<void> {
+    try {
+      // Track logout intent
+      this.setLogoutIntent(isManual);
+
       // Get the current user ID before signing out (for cache clearing)
       const userId = this.session?.user?.id;
 
@@ -456,19 +518,31 @@ export class SessionManager {
         console.error("Error clearing storage items:", storageError);
       }
 
-      // Broadcast logout to other tabs
-      this.broadcastSessionAction(SessionAction.LOGGED_OUT);
+      // Broadcast appropriate action based on logout type
+      const action = isManual
+        ? SessionAction.MANUAL_LOGOUT
+        : SessionAction.LOGGED_OUT;
+      this.broadcastSessionAction(action);
 
       // Dispatch a custom event for components to react to
-      window.dispatchEvent(new CustomEvent("holistiq:signed-out"));
+      window.dispatchEvent(
+        new CustomEvent("holistiq:signed-out", {
+          detail: { isManual },
+        }),
+      );
 
       if (SESSION_CONFIG.LOG_LEVEL !== "none") {
-        console.log("User successfully signed out");
+        console.log(
+          `User successfully signed out (${isManual ? "manual" : "automatic"})`,
+        );
       }
     } catch (error) {
       console.error("Error during sign out process:", error);
       // Still try to broadcast logout even if there was an error
-      this.broadcastSessionAction(SessionAction.LOGGED_OUT);
+      const action = isManual
+        ? SessionAction.MANUAL_LOGOUT
+        : SessionAction.LOGGED_OUT;
+      this.broadcastSessionAction(action);
       throw error;
     }
   }
